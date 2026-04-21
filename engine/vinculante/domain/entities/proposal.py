@@ -1,3 +1,4 @@
+from pgvector.sqlalchemy import Vector
 from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -15,5 +16,6 @@ class Proposal(Base):
     topic: Mapped[str | None] = mapped_column(String)
     subtopic: Mapped[str | None] = mapped_column(String)
     source_file: Mapped[str | None] = mapped_column(String)
+    embedding = mapped_column(Vector(None))
 
     matches: Mapped[list["Match"]] = relationship(back_populates="proposal")

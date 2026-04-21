@@ -4,7 +4,7 @@ services:
     ports:
       - 5432:5432
     env_file:
-      - .env
+      - ./engine/.env
     volumes:
       - vinculante-postgres:/var/lib/postgresql/data
 
@@ -18,7 +18,9 @@ services:
     container_name: vinculante-engine
     restart: unless-stopped
     env_file:
-      - .env
+      - ./engine/.env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - ./engine:/code
       - /code/.venv
