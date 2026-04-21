@@ -2,16 +2,18 @@ from pathlib import Path
 
 import typer
 
+from vinculante.application.ingestion.proposal_ingestor import ProposalIngestor
+from vinculante.application.ingestion.target_ingestor import TargetIngestor
+from vinculante.application.plain_text.generator_service import PlainTextGeneratorService
 from vinculante.infrastructure.chunking.docling_chunker import DoclingChunker
 from vinculante.infrastructure.config.settings import get_settings
 from vinculante.infrastructure.db.repositories.proposals import ProposalRepository
 from vinculante.infrastructure.db.repositories.sections import SectionRepository
 from vinculante.infrastructure.db.repositories.targets import TargetRepository
 from vinculante.infrastructure.db.session import SessionLocal
+from vinculante.infrastructure.llm.factory import create_llm_from_env
 from vinculante.infrastructure.loaders.csv_loader import CsvLoader
 from vinculante.infrastructure.loaders.xlsx_loader import XlsxLoader
-from vinculante.application.ingestion.proposal_ingestor import ProposalIngestor
-from vinculante.application.ingestion.target_ingestor import TargetIngestor
 
 app = typer.Typer(help="Ingest proposals and target documents.")
 
@@ -46,6 +48,7 @@ def ingest_target(
     version: str = typer.Option(None, help="Document version"),
 ):
     """Chunk and load a target normative document into the database."""
+    settings = get_settings()
     with SessionLocal() as db:
         target_repo = TargetRepository(db)
         section_repo = SectionRepository(db)
@@ -56,5 +59,9 @@ def ingest_target(
             chunker=chunker,
         )
         target = ingestor.ingest(str(file), title=title, author=author, version=version)
-        msg = f"Ingested target document '{target.title}' (id={target.id})"
-    typer.echo(msg)
+        typer.echo(f"Ingested target document '{target.title}' (id={target.id})")
+
+        llm = create_llm_from_env(settings)
+        generator = PlainTextGeneratorService(section_repo=section_repo, llm=llm)
+        count = generator.generate(target_id=target.id)
+    typer.echo(f"Generated plain_text for {count} sections")
