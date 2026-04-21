@@ -1,0 +1,31 @@
+import enum
+
+from sqlalchemy import Enum, Float, ForeignKey, Integer, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from ..base import Base
+
+
+class MatchStatus(str, enum.Enum):
+    pending = "pending"
+    confirmed = "confirmed"
+    rejected = "rejected"
+
+
+class Match(Base):
+    __tablename__ = "matches"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    proposal_id: Mapped[int] = mapped_column(ForeignKey("proposals.id"), nullable=False)
+    section_id: Mapped[int] = mapped_column(ForeignKey("sections.id"), nullable=False)
+    degree: Mapped[str | None] = mapped_column(String)
+    explanation: Mapped[str | None] = mapped_column(String)
+    confidence: Mapped[float | None] = mapped_column(Float)
+    status: Mapped[MatchStatus] = mapped_column(
+        Enum(MatchStatus), nullable=False, default=MatchStatus.pending
+    )
+    section_start_at: Mapped[int | None] = mapped_column(Integer)
+    section_end_at: Mapped[int | None] = mapped_column(Integer)
+
+    proposal: Mapped["Proposal"] = relationship(back_populates="matches")
+    section: Mapped["Section"] = relationship(back_populates="matches")
