@@ -1,5 +1,5 @@
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import Integer, String
+from sqlalchemy import ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..base import Base
@@ -16,6 +16,8 @@ class Proposal(Base):
     topic: Mapped[str | None] = mapped_column(String)
     subtopic: Mapped[str | None] = mapped_column(String)
     source_file: Mapped[str | None] = mapped_column(String)
+    target_id: Mapped[int | None] = mapped_column(ForeignKey("target_documents.id"))
     embedding = mapped_column(Vector(None))
 
+    target_document: Mapped["TargetDocument | None"] = relationship()
     matches: Mapped[list["Match"]] = relationship(back_populates="proposal")

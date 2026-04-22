@@ -12,7 +12,7 @@ class ProposalIngestor:
         self.repo = repo
         self.loader = loader
 
-    def ingest(self, file_path: str) -> list[Proposal]:
+    def ingest(self, file_path: str, target_id: int | None = None) -> list[Proposal]:
         rows = self.loader.load(file_path)
         proposals = [
             Proposal(
@@ -23,6 +23,7 @@ class ProposalIngestor:
                 topic=row.get("topic") or None,
                 subtopic=row.get("subtopic") or None,
                 source_file=file_path,
+                target_id=target_id,
             )
             for row in rows
             if row.get("text")

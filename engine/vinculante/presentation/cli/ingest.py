@@ -30,13 +30,14 @@ def _loader_for(path: Path):
 @app.command("proposals")
 def ingest_proposals(
     file: Path = typer.Option(..., help="Path to csv/xlsx with proposals (must contain a 'text' column)"),
+    target_id: int = typer.Option(None, help="Link ingested proposals to this target document"),
 ):
     """Load proposals from a file into the database."""
     with SessionLocal() as db:
         repo = ProposalRepository(db)
         loader = _loader_for(file)
         ingestor = ProposalIngestor(repo=repo, loader=loader)
-        proposals = ingestor.ingest(str(file))
+        proposals = ingestor.ingest(str(file), target_id=target_id)
     typer.echo(f"Ingested {len(proposals)} proposals from {file}")
 
 

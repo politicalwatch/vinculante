@@ -14,11 +14,10 @@ class SectionRepository(BaseRepository[Section]):
     def find_similar(
         self,
         embedding: list[float],
+        target_id: int,
         k: int = 5,
-        target_id: int | None = None,
     ) -> list[Section]:
         stmt = select(Section).filter(Section.embedding.isnot(None))
-        if target_id is not None:
-            stmt = stmt.filter(Section.target_id == target_id)
+        stmt = stmt.filter(Section.target_id == target_id)
         stmt = stmt.order_by(Section.embedding.l2_distance(embedding)).limit(k)
         return list(self.db.scalars(stmt).all())
