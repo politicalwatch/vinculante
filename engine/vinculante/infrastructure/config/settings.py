@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     # Matching
     matching_top_k: int = 5
     matching_confidence_threshold: float = 0.5
+    matching_concurrency: int = 4
 
 
 @lru_cache
