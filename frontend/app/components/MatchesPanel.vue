@@ -22,9 +22,19 @@ const authorTypeOptions = [
 ]
 const authorTypeFilter = ref('all')
 
+const degreeOptions = [
+  { label: 'Todos', value: 'all' },
+  { label: 'Alto', value: 'alto' },
+  { label: 'Medio', value: 'medio' }
+]
+const degreeFilter = ref('all')
+
 const filteredMatches = computed(() => {
-  if (authorTypeFilter.value === 'all') return props.matches
-  return props.matches.filter(m => m.proposal.author_type === authorTypeFilter.value)
+  return props.matches.filter((m) => {
+    if (authorTypeFilter.value !== 'all' && m.proposal.author_type !== authorTypeFilter.value) return false
+    if (degreeFilter.value !== 'all' && m.degree !== degreeFilter.value) return false
+    return true
+  })
 })
 </script>
 
@@ -49,14 +59,28 @@ const filteredMatches = computed(() => {
       </div>
 
       <!-- Filter bar -->
-      <div class="px-4 py-2 border-b border-default shrink-0 flex items-center gap-2">
-        <span class="text-xs text-muted">Tipo de autor</span>
-        <USelect
-          v-model="authorTypeFilter"
-          :items="authorTypeOptions"
-          size="xs"
-          class="w-36"
-        />
+      <div class="px-4 py-2 border-b border-default shrink-0 flex items-center gap-3 flex-wrap">
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-muted">Tipo de autor</span>
+          <USelect
+            v-model="authorTypeFilter"
+            :items="authorTypeOptions"
+            size="xs"
+            class="w-32"
+          />
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-muted">Grado</span>
+          <USelect
+            v-model="degreeFilter"
+            :items="degreeOptions"
+            size="xs"
+            class="w-28"
+          />
+        </div>
+        <span class="text-xs text-muted ml-auto">
+          Mostrando {{ filteredMatches.length }} de {{ matches.length }} coincidencias
+        </span>
       </div>
 
       <!-- Loading state -->
