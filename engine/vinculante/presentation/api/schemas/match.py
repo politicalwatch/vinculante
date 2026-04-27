@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 
 from vinculante.domain.entities import MatchStatus
+from .proposal import ProposalRead
 
 
 class MatchRead(BaseModel):
@@ -11,9 +12,12 @@ class MatchRead(BaseModel):
     explanation: str | None = None
     confidence: float | None = None
     status: MatchStatus
-    section_start_at: int | None = None
-    section_end_at: int | None = None
+    section_spans: list | None = None
 
     model_config = {"from_attributes": True}
+
+
+class MatchWithProposalRead(MatchRead):
+    proposal: ProposalRead
 
 

@@ -5,9 +5,17 @@ const route = useRoute()
 const id = Number(route.params.id)
 const api = useApi()
 
-const [{ data: target, error: targetError }, { data: sections, error: sectionsError }] = await Promise.all([
+const [
+  { data: target, error: targetError },
+  { data: sections, error: sectionsError },
+  { data: matchCounts }
+] = await Promise.all([
   useFetch<TargetDocument>(`/targets/${id}`, { $fetch: api }),
-  useFetch<Section[]>('/sections', { $fetch: api, query: { target_id: id } })
+  useFetch<Section[]>('/sections', { $fetch: api, query: { target_id: id } }),
+  useFetch<Record<number, number>>('/matches/counts', {
+    $fetch: api,
+    query: { target_id: id, degree: ['medio', 'alto'] }
+  })
 ])
 
 if (targetError.value) {
@@ -111,6 +119,7 @@ const depthMap = computed(() => {
           :depth="depthMap.get(section.id) ?? 0"
           :active="selectedSectionId === section.id"
           :spans="selectedSectionId === section.id ? activeSpans : []"
+          :match-count="matchCounts?.[section.id] ?? 0"
           @click="selectSection(section.id)"
         />
       </div>

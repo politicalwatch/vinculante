@@ -8,7 +8,7 @@ router = APIRouter(prefix="/targets", tags=["targets"])
 
 @router.get("", response_model=list[TargetDocumentRead])
 def list_targets(repo: TargetRepoDep):
-    return repo.get_all()
+    return repo.get_all_with_counts()
 
 
 @router.get("/{target_id}", response_model=TargetDocumentRead)
