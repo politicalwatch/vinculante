@@ -18,6 +18,16 @@ const degreeLabel = computed(() => props.match.degree === 'alto' ? 'Alto' : 'Med
 const confidencePct = computed(() =>
   props.match.confidence !== null ? `${Math.round(props.match.confidence * 100)}%` : null
 )
+
+const authorTypeLabels: Record<string, string> = {
+  citizens: 'Ciudadanía',
+  academia: 'Academia'
+}
+const authorTypeLabel = computed(() => {
+  const t = props.match.proposal.author_type
+  if (!t) return null
+  return authorTypeLabels[t] ?? t
+})
 </script>
 
 <template>
@@ -32,10 +42,13 @@ const confidencePct = computed(() =>
     @click="$emit('click')"
   >
     <div class="flex flex-col gap-3">
-      <!-- Header row: degree + confidence -->
+      <!-- Header row: degree + author type + confidence -->
       <div class="flex items-center gap-2">
         <UBadge :color="degreeColor" variant="subtle" size="sm">
           {{ degreeLabel }}
+        </UBadge>
+        <UBadge v-if="authorTypeLabel" color="neutral" variant="outline" size="sm">
+          {{ authorTypeLabel }}
         </UBadge>
         <span v-if="confidencePct" class="text-xs text-muted ml-auto">
           {{ confidencePct }} confianza

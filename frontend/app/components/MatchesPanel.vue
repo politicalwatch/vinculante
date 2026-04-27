@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Match } from '~/types/api'
 
-defineProps<{
+const props = defineProps<{
   sectionId: number | null
   matches: Match[]
   loading: boolean
@@ -14,6 +14,18 @@ defineEmits<{
   'leave-match': [id: number]
   'select-match': [id: number]
 }>()
+
+const authorTypeOptions = [
+  { label: 'Todos', value: 'all' },
+  { label: 'Ciudadanía', value: 'citizens' },
+  { label: 'Academia', value: 'academia' }
+]
+const authorTypeFilter = ref('all')
+
+const filteredMatches = computed(() => {
+  if (authorTypeFilter.value === 'all') return props.matches
+  return props.matches.filter(m => m.proposal.author_type === authorTypeFilter.value)
+})
 </script>
 
 <template>
@@ -36,6 +48,17 @@ defineEmits<{
         </p>
       </div>
 
+      <!-- Filter bar -->
+      <div class="px-4 py-2 border-b border-default shrink-0 flex items-center gap-2">
+        <span class="text-xs text-muted">Tipo de autor</span>
+        <USelect
+          v-model="authorTypeFilter"
+          :items="authorTypeOptions"
+          size="xs"
+          class="w-36"
+        />
+      </div>
+
       <!-- Loading state -->
       <div v-if="loading" class="p-4 flex flex-col gap-3">
         <USkeleton v-for="n in 3" :key="n" class="h-28 rounded-lg" />
@@ -52,10 +75,21 @@ defineEmits<{
         </p>
       </div>
 
+      <!-- No matches after filter -->
+      <div
+        v-else-if="filteredMatches.length === 0"
+        class="flex flex-col items-center justify-center flex-1 gap-2 px-8 text-center py-12"
+      >
+        <UIcon name="i-lucide-filter-x" class="size-8 text-muted" />
+        <p class="text-sm text-muted">
+          Sin coincidencias para este filtro.
+        </p>
+      </div>
+
       <!-- Matches list -->
       <div v-else class="overflow-y-auto flex-1 p-4 flex flex-col gap-3">
         <MatchCard
-          v-for="match in matches"
+          v-for="match in filteredMatches"
           :key="match.id"
           :match="match"
           :selected="match.id === selectedMatchId"
