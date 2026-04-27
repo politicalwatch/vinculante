@@ -1,6 +1,7 @@
 import enum
 
-from sqlalchemy import Enum, Float, ForeignKey, Integer, String
+from sqlalchemy import Enum, Float, ForeignKey, String
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..base import Base
@@ -15,7 +16,7 @@ class MatchStatus(str, enum.Enum):
 class Match(Base):
     __tablename__ = "matches"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
     proposal_id: Mapped[int] = mapped_column(ForeignKey("proposals.id"), nullable=False)
     section_id: Mapped[int] = mapped_column(ForeignKey("sections.id"), nullable=False)
     degree: Mapped[str | None] = mapped_column(String)
@@ -24,8 +25,7 @@ class Match(Base):
     status: Mapped[MatchStatus] = mapped_column(
         Enum(MatchStatus), nullable=False, default=MatchStatus.pending
     )
-    section_start_at: Mapped[int | None] = mapped_column(Integer)
-    section_end_at: Mapped[int | None] = mapped_column(Integer)
+    section_spans: Mapped[list | None] = mapped_column(JSONB, nullable=True)
 
     proposal: Mapped["Proposal"] = relationship(back_populates="matches")
     section: Mapped["Section"] = relationship(back_populates="matches")
