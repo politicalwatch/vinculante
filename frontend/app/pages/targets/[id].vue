@@ -28,6 +28,8 @@ const selectedSectionId = ref<number | null>(null)
 const hoveredMatchId = ref<number | null>(null)
 const selectedMatchId = ref<number | null>(null)
 
+const degreeRank: Record<string, number> = { alto: 0, medio: 1, bajo: 2, ninguno: 3 }
+
 const { data: matches, status: matchesStatus } = useAsyncData(
   'section-matches',
   () => {
@@ -46,6 +48,16 @@ function selectSection(sectionId: number) {
 watch(selectedSectionId, () => {
   hoveredMatchId.value = null
   selectedMatchId.value = null
+})
+
+const sortedMatches = computed(() => {
+  const list = matches.value ?? []
+  return [...list].sort((a, b) => {
+    const da = degreeRank[a.degree ?? 'ninguno'] ?? 99
+    const db = degreeRank[b.degree ?? 'ninguno'] ?? 99
+    if (da !== db) return da - db
+    return (b.confidence ?? 0) - (a.confidence ?? 0)
+  })
 })
 
 const activeMatchId = computed(() => hoveredMatchId.value ?? selectedMatchId.value)
@@ -128,7 +140,7 @@ const depthMap = computed(() => {
       <div class="w-5/12 overflow-hidden">
         <MatchesPanel
           :section-id="selectedSectionId"
-          :matches="matches ?? []"
+          :matches="sortedMatches"
           :loading="matchesStatus === 'pending'"
           :hovered-match-id="hoveredMatchId"
           :selected-match-id="selectedMatchId"
