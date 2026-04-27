@@ -27,6 +27,13 @@ useSeoMeta({ title: () => `${target.value?.title ?? ''} — Vinculante` })
 const selectedSectionId = ref<number | null>(null)
 const hoveredMatchId = ref<number | null>(null)
 const selectedMatchId = ref<number | null>(null)
+const hideUnmatched = ref(false)
+
+const filteredSections = computed(() => {
+  const all = sections.value ?? []
+  if (!hideUnmatched.value) return all
+  return all.filter(s => (matchCounts.value?.[s.id] ?? 0) > 0)
+})
 
 const degreeRank: Record<string, number> = { alto: 0, medio: 1, bajo: 2, ninguno: 3 }
 
@@ -120,12 +127,25 @@ const depthMap = computed(() => {
     <div v-else class="flex flex-1 overflow-hidden">
       <!-- Left: sections list -->
       <div class="w-7/12 border-r border-default overflow-y-auto">
+        <!-- Filter bar -->
+        <div class="px-4 py-2 border-b border-default sticky top-0 bg-default z-10 flex items-center justify-between">
+          <span class="text-xs text-muted">{{ filteredSections.length }} secciones</span>
+          <USwitch
+            v-model="hideUnmatched"
+            label="Ocultar sin vinculación"
+            size="xs"
+          />
+        </div>
+
         <div v-if="!sections?.length" class="text-center py-16 text-muted text-sm">
           Este documento no tiene secciones.
         </div>
+        <div v-else-if="filteredSections.length === 0" class="text-center py-16 text-muted text-sm">
+          Ninguna sección con vinculaciones.
+        </div>
 
         <SectionItem
-          v-for="section in sections"
+          v-for="section in filteredSections"
           :key="section.id"
           :section="section"
           :depth="depthMap.get(section.id) ?? 0"
