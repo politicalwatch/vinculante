@@ -134,7 +134,7 @@ const depthMap = computed(() => {
           :selected-match-id="selectedMatchId"
           @hover-match="hoveredMatchId = $event"
           @leave-match="hoveredMatchId = null"
-          @select-match="selectedMatchId = $event"
+          @select-match="selectedMatchId = selectedMatchId === $event ? null : $event"
         />
       </div>
     </div>
