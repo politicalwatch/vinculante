@@ -1,7 +1,17 @@
 <script setup lang="ts">
 import type { Match } from '~/types/api'
 
-const props = defineProps<{ match: Match }>()
+const props = defineProps<{
+  match: Match
+  selected?: boolean
+  hovered?: boolean
+}>()
+
+defineEmits<{
+  hover: []
+  leave: []
+  click: []
+}>()
 
 const degreeColor = computed(() => props.match.degree === 'alto' ? 'primary' : 'neutral')
 const degreeLabel = computed(() => props.match.degree === 'alto' ? 'Alto' : 'Medio')
@@ -11,7 +21,16 @@ const confidencePct = computed(() =>
 </script>
 
 <template>
-  <UCard :ui="{ root: 'w-full shrink-0' }">
+  <UCard
+    :ui="{ root: 'w-full shrink-0 cursor-pointer transition-all' }"
+    :class="[
+      selected ? 'ring-2 ring-primary' : '',
+      hovered && !selected ? 'bg-primary/5' : ''
+    ]"
+    @mouseenter="$emit('hover')"
+    @mouseleave="$emit('leave')"
+    @click="$emit('click')"
+  >
     <div class="flex flex-col gap-3">
       <!-- Header row: degree + confidence -->
       <div class="flex items-center gap-2">

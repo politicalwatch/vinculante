@@ -17,6 +17,8 @@ if (targetError.value) {
 useSeoMeta({ title: () => `${target.value?.title ?? ''} — Vinculante` })
 
 const selectedSectionId = ref<number | null>(null)
+const hoveredMatchId = ref<number | null>(null)
+const selectedMatchId = ref<number | null>(null)
 
 const { data: matches, status: matchesStatus } = useAsyncData(
   'section-matches',
@@ -32,6 +34,19 @@ const { data: matches, status: matchesStatus } = useAsyncData(
 function selectSection(sectionId: number) {
   selectedSectionId.value = sectionId
 }
+
+watch(selectedSectionId, () => {
+  hoveredMatchId.value = null
+  selectedMatchId.value = null
+})
+
+const activeMatchId = computed(() => hoveredMatchId.value ?? selectedMatchId.value)
+
+const activeSpans = computed<[number, number][]>(() => {
+  if (activeMatchId.value === null) return []
+  const match = matches.value?.find(m => m.id === activeMatchId.value)
+  return match?.section_spans ?? []
+})
 
 // Compute depth per section for indentation
 const depthMap = computed(() => {
@@ -95,6 +110,7 @@ const depthMap = computed(() => {
           :section="section"
           :depth="depthMap.get(section.id) ?? 0"
           :active="selectedSectionId === section.id"
+          :spans="selectedSectionId === section.id ? activeSpans : []"
           @click="selectSection(section.id)"
         />
       </div>
@@ -105,6 +121,11 @@ const depthMap = computed(() => {
           :section-id="selectedSectionId"
           :matches="matches ?? []"
           :loading="matchesStatus === 'pending'"
+          :hovered-match-id="hoveredMatchId"
+          :selected-match-id="selectedMatchId"
+          @hover-match="hoveredMatchId = $event"
+          @leave-match="hoveredMatchId = null"
+          @select-match="selectedMatchId = $event"
         />
       </div>
     </div>

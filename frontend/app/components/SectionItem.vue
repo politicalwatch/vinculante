@@ -1,13 +1,42 @@
 <script setup lang="ts">
 import type { Section } from '~/types/api'
 
-defineProps<{
+const props = defineProps<{
   section: Section
   depth: number
   active: boolean
+  spans?: [number, number][]
 }>()
 
 defineEmits<{ click: [] }>()
+
+const segments = computed(() => {
+  const text = props.section.text
+  const spans = props.spans ?? []
+  if (!spans.length) return [{ text, hl: false }]
+
+  const sorted = [...spans]
+    .map(([s, e]) => [Math.max(0, s), Math.min(text.length, e)] as const)
+    .filter(([s, e]) => e > s)
+    .sort((a, b) => a[0] - b[0])
+
+  const merged: [number, number][] = []
+  for (const [s, e] of sorted) {
+    const last = merged[merged.length - 1]
+    if (last && s <= last[1]) last[1] = Math.max(last[1], e)
+    else merged.push([s, e])
+  }
+
+  const out: { text: string; hl: boolean }[] = []
+  let i = 0
+  for (const [s, e] of merged) {
+    if (s > i) out.push({ text: text.slice(i, s), hl: false })
+    out.push({ text: text.slice(s, e), hl: true })
+    i = e
+  }
+  if (i < text.length) out.push({ text: text.slice(i), hl: false })
+  return out
+})
 </script>
 
 <template>
@@ -21,7 +50,13 @@ defineEmits<{ click: [] }>()
       {{ [section.section_number, section.section_type].filter(Boolean).join(' · ') }}
     </div>
     <p class="text-sm text-default whitespace-pre-line">
-      {{ section.text }}
+      <template v-for="(seg, i) in segments" :key="i">
+        <mark
+          v-if="seg.hl"
+          class="bg-yellow-200 dark:bg-yellow-500/30 text-inherit rounded-sm p-0"
+        >{{ seg.text }}</mark>
+        <span v-else>{{ seg.text }}</span>
+      </template>
     </p>
   </button>
 </template>

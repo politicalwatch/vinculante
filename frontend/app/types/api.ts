@@ -41,6 +41,6 @@ export interface Match {
   explanation: string | null
   confidence: number | null
   status: MatchStatus
-  section_spans: unknown[] | null
+  section_spans: [number, number][] | null
   proposal: Proposal
 }

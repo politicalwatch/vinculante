@@ -5,6 +5,14 @@ defineProps<{
   sectionId: number | null
   matches: Match[]
   loading: boolean
+  hoveredMatchId: number | null
+  selectedMatchId: number | null
+}>()
+
+defineEmits<{
+  'hover-match': [id: number]
+  'leave-match': [id: number]
+  'select-match': [id: number]
 }>()
 </script>
 
@@ -46,7 +54,16 @@ defineProps<{
 
       <!-- Matches list -->
       <div v-else class="overflow-y-auto flex-1 p-4 flex flex-col gap-3">
-        <MatchCard v-for="match in matches" :key="match.id" :match="match" />
+        <MatchCard
+          v-for="match in matches"
+          :key="match.id"
+          :match="match"
+          :selected="match.id === selectedMatchId"
+          :hovered="match.id === hoveredMatchId"
+          @hover="$emit('hover-match', match.id)"
+          @leave="$emit('leave-match', match.id)"
+          @click="$emit('select-match', match.id)"
+        />
       </div>
     </template>
   </div>
