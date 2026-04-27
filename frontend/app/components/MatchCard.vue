@@ -13,7 +13,7 @@ defineEmits<{
   click: []
 }>()
 
-const degreeColor = computed(() => props.match.degree === 'alto' ? 'primary' : 'neutral')
+const degreeColor = computed(() => props.match.degree === 'alto' ? 'success' : 'warning')
 const degreeLabel = computed(() => props.match.degree === 'alto' ? 'Alto' : 'Medio')
 const confidencePct = computed(() =>
   props.match.confidence !== null ? `${Math.round(props.match.confidence * 100)}%` : null

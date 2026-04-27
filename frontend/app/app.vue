@@ -19,30 +19,30 @@ useSeoMeta({
 
 <template>
   <UApp>
-    <UHeader>
-      <template #left>
-        <NuxtLink to="/" class="font-semibold text-lg text-highlighted">
-          Vinculante
-        </NuxtLink>
-      </template>
+    <div class="flex flex-col h-screen overflow-hidden">
+      <UHeader>
+        <template #left>
+          <NuxtLink to="/" class="font-semibold text-lg text-highlighted">
+            Vinculante
+          </NuxtLink>
+        </template>
 
-      <template #right>
-        <UColorModeButton />
-      </template>
-    </UHeader>
+        <template #right>
+          <UColorModeButton />
+        </template>
+      </UHeader>
 
-    <UMain>
-      <NuxtPage />
-    </UMain>
+      <UMain class="flex-1 min-h-0 overflow-y-auto">
+        <NuxtPage />
+      </UMain>
 
-    <USeparator />
-
-    <UFooter>
-      <template #left>
-        <p class="text-sm text-muted">
-          © {{ new Date().getFullYear() }} Political Watch
-        </p>
-      </template>
-    </UFooter>
+      <UFooter class="border-t border-default shrink-0">
+        <template #left>
+          <p class="text-sm text-muted">
+            © {{ new Date().getFullYear() }} Political Watch
+          </p>
+        </template>
+      </UFooter>
+    </div>
   </UApp>
 </template>

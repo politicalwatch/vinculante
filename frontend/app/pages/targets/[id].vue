@@ -98,7 +98,7 @@ const depthMap = computed(() => {
 </script>
 
 <template>
-  <div class="h-[calc(100vh-4rem)] flex flex-col">
+  <div class="h-full flex flex-col">
     <!-- Target header -->
     <div class="border-b border-default px-6 py-4 shrink-0">
       <NuxtLink to="/" class="text-sm text-muted hover:text-default flex items-center gap-1 mb-2">
