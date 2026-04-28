@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     # LLM
     llm_provider: str = "anthropic"
     llm_model: str = "claude-sonnet-4-6"
+    llm_temperature: float = 0.0
     anthropic_api_key: str = ""
     openai_api_key: str = ""
     google_api_key: str = ""
