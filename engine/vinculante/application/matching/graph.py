@@ -11,7 +11,6 @@ from .schemas import MatchScore
 
 class CandidateDict(TypedDict):
     id: int
-    text: str
     section_text: str
 
 
@@ -34,7 +33,7 @@ def build_matching_graph(section_repo, embedder, llm, settings: Settings):
             k=settings.matching_top_k,
         )
         candidates: list[CandidateDict] = [
-            {"id": s.id, "text": s.plain_text or s.text, "section_text": s.text}
+            {"id": s.id, "section_text": s.text}
             for s in sections
         ]
         return {"candidates": candidates}
@@ -46,7 +45,7 @@ def build_matching_graph(section_repo, embedder, llm, settings: Settings):
     ) -> MatchScore | None:
         prompt = MATCH_PROMPT.format(
             proposal_text=proposal_text,
-            section_text=candidate["text"],
+            section_text=candidate["section_text"],
         )
         async with semaphore:
             try:

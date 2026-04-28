@@ -63,7 +63,7 @@ def test_tracer_saves_match_with_llm_fields(db_session, embedder):
     match_repo = MatchRepository(db_session)
 
     section = section_repo.save(
-        Section(text="s", plain_text="fragmento legal relevante", target_id=target.id,
+        Section(text="s", clear_language="fragmento legal relevante", target_id=target.id,
                 embedding=_embed(embedder, "fragmento legal relevante"))
     )
     proposal = proposal_repo.save(
@@ -92,13 +92,15 @@ def test_tracer_saves_match_with_llm_fields(db_session, embedder):
     assert m.status == MatchStatus.pending
 
 
-def test_below_threshold_saves_no_match(db_session, embedder):
+def test_below_threshold_is_persisted(db_session, embedder):
+    """Low-confidence matches are stored so the threshold can be tuned post-hoc."""
     target = _make_target(db_session)
     section_repo = SectionRepository(db_session)
     proposal_repo = ProposalRepository(db_session)
+    match_repo = MatchRepository(db_session)
 
     section_repo.save(
-        Section(text="s", plain_text="texto", target_id=target.id,
+        Section(text="s", clear_language="texto", target_id=target.id,
                 embedding=_embed(embedder, "texto"))
     )
     proposal_repo.save(
@@ -110,21 +112,28 @@ def test_below_threshold_saves_no_match(db_session, embedder):
     service = MatcherService(
         proposal_repo=proposal_repo,
         section_repo=section_repo,
-        match_repo=MatchRepository(db_session),
+        match_repo=match_repo,
         embedder=embedder, llm=llm,
         settings=_settings(matching_confidence_threshold=0.5),
     )
-    assert service.run(target_id=target.id) == []
-    assert MatchRepository(db_session).get_all() == []
+    matches = service.run(target_id=target.id)
+
+    assert len(matches) == 1
+    assert matches[0].degree == "bajo"
+    assert matches[0].confidence == pytest.approx(0.3)
+    # Accepted-only accessor applies the threshold and excludes it.
+    assert match_repo.get_accepted_by_target(target.id, min_confidence=0.5) == []
 
 
-def test_degree_ninguno_saves_no_match(db_session, embedder):
+def test_degree_ninguno_is_persisted(db_session, embedder):
+    """Ninguno matches are stored for debugging but excluded by accepted-only accessor."""
     target = _make_target(db_session)
     section_repo = SectionRepository(db_session)
     proposal_repo = ProposalRepository(db_session)
+    match_repo = MatchRepository(db_session)
 
     section_repo.save(
-        Section(text="s", plain_text="texto", target_id=target.id,
+        Section(text="s", clear_language="texto", target_id=target.id,
                 embedding=_embed(embedder, "texto"))
     )
     proposal_repo.save(
@@ -136,11 +145,16 @@ def test_degree_ninguno_saves_no_match(db_session, embedder):
     service = MatcherService(
         proposal_repo=proposal_repo,
         section_repo=section_repo,
-        match_repo=MatchRepository(db_session),
+        match_repo=match_repo,
         embedder=embedder, llm=llm,
         settings=_settings(),
     )
-    assert service.run(target_id=target.id) == []
+    matches = service.run(target_id=target.id)
+
+    assert len(matches) == 1
+    assert matches[0].degree == "ninguno"
+    assert matches[0].explanation == "sin relación"
+    assert match_repo.get_accepted_by_target(target.id) == []
 
 
 def test_multiple_candidates_all_saved(db_session, embedder):
@@ -151,7 +165,7 @@ def test_multiple_candidates_all_saved(db_session, embedder):
 
     for i in range(3):
         section_repo.save(
-            Section(text=f"s{i}", plain_text=f"texto {i}", target_id=target.id,
+            Section(text=f"s{i}", clear_language=f"texto {i}", target_id=target.id,
                     embedding=_embed(embedder, f"texto {i}"))
         )
     proposal_repo.save(
@@ -181,11 +195,11 @@ def test_sections_scoped_to_target(db_session, embedder):
     match_repo = MatchRepository(db_session)
 
     section_repo.save(
-        Section(text="s1", plain_text="s1", target_id=t1.id,
+        Section(text="s1", clear_language="s1", target_id=t1.id,
                 embedding=_embed(embedder, "s1"))
     )
     section_repo.save(
-        Section(text="s2", plain_text="s2", target_id=t2.id,
+        Section(text="s2", clear_language="s2", target_id=t2.id,
                 embedding=_embed(embedder, "s2"))
     )
     proposal_repo.save(
@@ -215,7 +229,7 @@ def test_proposals_scoped_to_target(db_session, embedder):
     match_repo = MatchRepository(db_session)
 
     section_repo.save(
-        Section(text="s", plain_text="s", target_id=t1.id,
+        Section(text="s", clear_language="s", target_id=t1.id,
                 embedding=_embed(embedder, "s"))
     )
     proposal_repo.save(Proposal(text="p1", target_id=t1.id, embedding=_embed(embedder, "p1")))
@@ -243,7 +257,7 @@ def test_skip_matched_skips_proposals_with_existing_matches(db_session, embedder
     match_repo = MatchRepository(db_session)
 
     section = section_repo.save(
-        Section(text="s", plain_text="s", target_id=target.id,
+        Section(text="s", clear_language="s", target_id=target.id,
                 embedding=_embed(embedder, "s"))
     )
     proposal = proposal_repo.save(

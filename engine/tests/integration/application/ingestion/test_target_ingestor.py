@@ -35,7 +35,7 @@ def test_ingests_target_document_with_metadata_and_sections(db_session, chunker)
     sections = section_repo.get_by_target(target.id)
     assert len(sections) >= 1
     assert all(s.target_id == target.id for s in sections)
-    assert all(s.text and s.plain_text == s.text for s in sections)
+    assert all(s.text and s.clear_language == s.text for s in sections)
     all_text = " ".join(s.text for s in sections)
     assert "Artículo 1" in all_text
     assert "Transparencia" in all_text

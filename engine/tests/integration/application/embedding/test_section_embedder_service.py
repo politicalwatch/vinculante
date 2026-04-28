@@ -44,12 +44,12 @@ def test_target_id_filter_embeds_only_that_targets_sections(db_session, embedder
 def test_uses_clear_language_when_set_otherwise_falls_back_to_text(db_session, embedder):
     target = _make_target(db_session)
     repo = SectionRepository(db_session)
-    with_plain = Section(text="dirty", clear_language="clean", target_id=target.id)
-    without_plain = Section(text="raw", clear_language=None, target_id=target.id)
-    repo.bulk_save([with_plain, without_plain])
+    with_clear = Section(text="dirty", clear_language="clean", target_id=target.id)
+    without_clear = Section(text="raw", clear_language=None, target_id=target.id)
+    repo.bulk_save([with_clear, without_clear])
 
     SectionEmbedderService(section_repo=repo, embedder=embedder).embed_sections()
 
     refreshed = {s.id: s for s in repo.get_all()}
-    assert list(refreshed[with_plain.id].embedding) == list(embedder.embed_query("clean"))
-    assert list(refreshed[without_plain.id].embedding) == list(embedder.embed_query("raw"))
+    assert list(refreshed[with_clear.id].embedding) == list(embedder.embed_query("clean"))
+    assert list(refreshed[without_clear.id].embedding) == list(embedder.embed_query("raw"))
