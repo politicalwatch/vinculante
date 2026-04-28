@@ -28,7 +28,8 @@ class TargetIngestor:
         sections = [
             Section(
                 text=chunk["text"],
-                plain_text=chunk["text"],
+                text_markdown=chunk.get("text_markdown"),
+                clear_language=chunk["text"],
                 page_number=chunk.get("metadata", {}).get("page_number"),
                 section_type=chunk.get("metadata", {}).get("dl_meta", {}).get("doc_items", [{}])[0].get("label"),
                 target_id=target.id,

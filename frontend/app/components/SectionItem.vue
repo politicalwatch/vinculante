@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Section } from '~/types/api'
+import { highlightQuotes, removeHighlights } from '~/utils/highlight'
 
 const props = defineProps<{
   section: Section
@@ -11,33 +12,23 @@ const props = defineProps<{
 
 defineEmits<{ click: [] }>()
 
-const segments = computed(() => {
-  const text = props.section.text
-  const spans = props.spans ?? []
-  if (!spans.length) return [{ text, hl: false }]
+const contentRef = ref<HTMLElement | null>(null)
 
-  const sorted = [...spans]
-    .map(([s, e]) => [Math.max(0, s), Math.min(text.length, e)] as const)
-    .filter(([s, e]) => e > s)
-    .sort((a, b) => a[0] - b[0])
+const quotes = computed(() =>
+  (props.spans ?? []).map(([s, e]) => props.section.text.slice(s, e)).filter(q => q.length >= 5)
+)
 
-  const merged: [number, number][] = []
-  for (const [s, e] of sorted) {
-    const last = merged[merged.length - 1]
-    if (last && s <= last[1]) last[1] = Math.max(last[1], e)
-    else merged.push([s, e])
-  }
-
-  const out: { text: string, hl: boolean }[] = []
-  let i = 0
-  for (const [s, e] of merged) {
-    if (s > i) out.push({ text: text.slice(i, s), hl: false })
-    out.push({ text: text.slice(s, e), hl: true })
-    i = e
-  }
-  if (i < text.length) out.push({ text: text.slice(i), hl: false })
-  return out
-})
+watch(
+  [quotes, contentRef],
+  ([qs, el]) => {
+    if (!el) return
+    removeHighlights(el)
+    if (qs.length) {
+      nextTick(() => { if (el) highlightQuotes(el, qs) })
+    }
+  },
+  { immediate: true }
+)
 </script>
 
 <template>
@@ -52,21 +43,24 @@ const segments = computed(() => {
       :color="active ? 'primary' : 'neutral'"
       variant="subtle"
       size="md"
-      class="absolute top-3 right-3 font-bold  font-mono rounded-full"
+      class="absolute top-3 right-3 font-bold font-mono rounded-full"
     >
       {{ matchCount }}
     </UBadge>
-    <div v-if="section.section_number || section.section_type" class="text-xs text-muted mb-0.5 font-medium uppercase tracking-wide">
-      {{ [section.section_number, section.section_type].filter(Boolean).join(' · ') }}
+    <div v-if="section.section_number" class="text-xs text-muted mb-4 font-medium uppercase tracking-wide">
+      {{ section.section_number }}
     </div>
-    <p class="text-sm text-default whitespace-pre-line pr-10">
-      <template v-for="(seg, i) in segments" :key="i">
-        <mark
-          v-if="seg.hl"
-          class="bg-yellow-200 dark:bg-yellow-500/30 text-inherit rounded-sm p-0"
-        >{{ seg.text }}</mark>
-        <span v-else>{{ seg.text }}</span>
-      </template>
-    </p>
+    <div
+      ref="contentRef"
+      class="text-sm text-default pr-10 prose prose-sm dark:prose-invert max-w-none
+             [&_h1]:!text-2xl [&_h2]:!text-xl [&_h3]:!text-lg [&_h4]:!text-base [&_h5]:!text-sm [&_h6]:!text-sm
+             [&_h1]:!font-semibold [&_h2]:!font-semibold [&_h3]:!font-semibold [&_h4]:!font-semibold
+             [&_h1]:!mt-0 [&_h2]:!mt-0 [&_h3]:!mt-0 [&_h4]:!mt-0
+             [&_h1]:!mb-6 [&_h2]:!mb-4 [&_h3]:!mb-2 [&_h4]:!mb-1
+             [&_p]:!my-1 [&_p]:!leading-relaxed [&_ul]:!my-2 [&_ol]:!my-2 [&_li]:!my-2 [&_li]:!leading-relaxed"
+    >
+      <MDC v-if="section.text_markdown" :value="section.text_markdown" />
+      <p v-else class="whitespace-pre-line">{{ section.text }}</p>
+    </div>
   </button>
 </template>

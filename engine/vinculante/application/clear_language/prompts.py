@@ -1,4 +1,4 @@
-PLAIN_TEXT_PROMPT = """Eres un redactor especializado en lenguaje claro. Reescribe el siguiente fragmento
+CLEAR_LANGUAGE_PROMPT = """Eres un redactor especializado en lenguaje claro. Reescribe el siguiente fragmento
 de un texto legal en español usando un lenguaje claro y directo, accesible para
 ciudadanía no experta, conservando íntegramente el contenido y el significado jurídico.
 

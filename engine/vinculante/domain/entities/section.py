@@ -10,7 +10,8 @@ class Section(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     text: Mapped[str] = mapped_column(String, nullable=False)
-    plain_text: Mapped[str | None] = mapped_column(String)
+    text_markdown: Mapped[str | None] = mapped_column(String)
+    clear_language: Mapped[str | None] = mapped_column(String)
     page_number: Mapped[int | None] = mapped_column(Integer)
     section_type: Mapped[str | None] = mapped_column(String)
     section_number: Mapped[str | None] = mapped_column(String)

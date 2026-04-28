@@ -32,7 +32,7 @@ class SectionEmbedderService:
         total = 0
         for i in tqdm(range(0, len(unembedded), self.batch_size), desc="Embedding sections"):
             batch: list[Section] = unembedded[i : i + self.batch_size]
-            texts = [s.plain_text or s.text for s in batch]
+            texts = [s.clear_language or s.text for s in batch]
             embeddings = self.embedder.embed_documents(texts)
             for section, embedding in zip(batch, embeddings, strict=True):
                 section.embedding = embedding

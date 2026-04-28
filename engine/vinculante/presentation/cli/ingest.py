@@ -4,7 +4,7 @@ import typer
 
 from vinculante.application.ingestion.proposal_ingestor import ProposalIngestor
 from vinculante.application.ingestion.target_ingestor import TargetIngestor
-from vinculante.application.plain_text.generator_service import PlainTextGeneratorService
+from vinculante.application.clear_language.generator_service import ClearLanguageGeneratorService
 from vinculante.infrastructure.chunking.docling_chunker import DoclingChunker
 from vinculante.infrastructure.config.settings import get_settings
 from vinculante.infrastructure.db.repositories.proposals import ProposalRepository
@@ -63,6 +63,6 @@ def ingest_target(
         typer.echo(f"Ingested target document '{target.title}' (id={target.id})")
 
         llm = create_llm_from_env(settings)
-        generator = PlainTextGeneratorService(section_repo=section_repo, llm=llm)
+        generator = ClearLanguageGeneratorService(section_repo=section_repo, llm=llm)
         count = generator.generate(target_id=target.id)
-    typer.echo(f"Generated plain_text for {count} sections")
+    typer.echo(f"Generated clear_language for {count} sections")

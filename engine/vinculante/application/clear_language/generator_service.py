@@ -1,9 +1,9 @@
 from tqdm import tqdm
 
-from .prompts import PLAIN_TEXT_PROMPT
+from .prompts import CLEAR_LANGUAGE_PROMPT
 
 
-class PlainTextGeneratorService:
+class ClearLanguageGeneratorService:
     def __init__(self, section_repo, llm, batch_size: int = 20):
         self._repo = section_repo
         self._llm = llm
@@ -16,16 +16,16 @@ class PlainTextGeneratorService:
             else self._repo.get_all()
         )
         if not force:
-            sections = [s for s in sections if s.plain_text is None or s.plain_text == s.text]
+            sections = [s for s in sections if s.clear_language is None or s.clear_language == s.text]
 
         count = 0
-        for i in tqdm(range(0, len(sections), self._batch_size), desc="plain-text", unit="batch"):
+        for i in tqdm(range(0, len(sections), self._batch_size), desc="clear-language", unit="batch"):
             batch = sections[i : i + self._batch_size]
             for s in batch:
-                prior = s.plain_text
-                result = self._llm.invoke(PLAIN_TEXT_PROMPT.format(text=s.text))
-                s.plain_text = result.content.strip()
-                if s.plain_text != prior:
+                prior = s.clear_language
+                result = self._llm.invoke(CLEAR_LANGUAGE_PROMPT.format(text=s.text))
+                s.clear_language = result.content.strip()
+                if s.clear_language != prior:
                     s.embedding = None
             self._repo.bulk_save(batch)
             count += len(batch)

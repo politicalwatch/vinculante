@@ -14,7 +14,8 @@ export interface TargetDocument {
 export interface Section {
   id: number
   text: string
-  plain_text: string | null
+  text_markdown: string | null
+  clear_language: string | null
   page_number: number | null
   section_type: string | null
   section_number: string | null

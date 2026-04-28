@@ -4,7 +4,8 @@ from pydantic import BaseModel
 class SectionRead(BaseModel):
     id: int
     text: str
-    plain_text: str | None = None
+    text_markdown: str | None = None
+    clear_language: str | None = None
     page_number: int | None = None
     section_type: str | None = None
     section_number: str | None = None

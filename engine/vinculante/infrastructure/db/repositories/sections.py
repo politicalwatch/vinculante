@@ -9,7 +9,12 @@ class SectionRepository(BaseRepository[Section]):
     model = Section
 
     def get_by_target(self, target_id: int) -> list[Section]:
-        return list(self.db.query(Section).filter(Section.target_id == target_id).all())
+        return list(
+            self.db.query(Section)
+            .filter(Section.target_id == target_id)
+            .order_by(Section.id)
+            .all()
+        )
 
     def find_similar(
         self,

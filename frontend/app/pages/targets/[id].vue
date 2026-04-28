@@ -48,13 +48,30 @@ const { data: matches, status: matchesStatus } = useAsyncData(
   { watch: [selectedSectionId] }
 )
 
+const sectionsPanel = ref<HTMLElement | null>(null)
+
 function selectSection(sectionId: number) {
   selectedSectionId.value = sectionId
+}
+
+function scrollToSelectedSection() {
+  const id = selectedSectionId.value
+  if (id === null) return
+  nextTick(() => {
+    sectionsPanel.value
+      ?.querySelector<HTMLElement>(`[data-section-id="${id}"]`)
+      ?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  })
 }
 
 watch(selectedSectionId, () => {
   hoveredMatchId.value = null
   selectedMatchId.value = null
+  scrollToSelectedSection()
+})
+
+watch(selectedMatchId, (id) => {
+  if (id !== null) scrollToSelectedSection()
 })
 
 const sortedMatches = computed(() => {
@@ -105,7 +122,7 @@ const depthMap = computed(() => {
         <UIcon name="i-lucide-chevron-left" class="size-4" />
         Todos los documentos
       </NuxtLink>
-      <h1 class="text-xl font-semibold text-highlighted">
+      <h1 class="text-2xl font-semibold text-highlighted">
         {{ target?.title }}
       </h1>
       <p class="text-sm text-muted mt-0.5">
@@ -126,7 +143,7 @@ const depthMap = computed(() => {
     <!-- Split view -->
     <div v-else class="flex flex-1 overflow-hidden">
       <!-- Left: sections list -->
-      <div class="w-7/12 border-r border-default overflow-y-auto">
+      <div ref="sectionsPanel" class="w-7/12 border-r border-default overflow-y-auto">
         <!-- Filter bar -->
         <div class="px-4 py-2 border-b border-default sticky top-0 bg-default z-10 flex items-center justify-between">
           <span class="text-xs text-muted">{{ filteredSections.length }} secciones</span>
@@ -147,6 +164,7 @@ const depthMap = computed(() => {
         <SectionItem
           v-for="section in filteredSections"
           :key="section.id"
+          :data-section-id="section.id"
           :section="section"
           :depth="depthMap.get(section.id) ?? 0"
           :active="selectedSectionId === section.id"
