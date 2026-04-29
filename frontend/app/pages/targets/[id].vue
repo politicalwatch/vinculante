@@ -32,7 +32,7 @@ const hideUnmatched = ref(false)
 const filteredSections = computed(() => {
   const all = sections.value ?? []
   if (!hideUnmatched.value) return all
-  return all.filter(s => (matchCounts.value?.[s.id] ?? 0) > 0)
+  return all.filter(s => !s.is_matchable || (matchCounts.value?.[s.id] ?? 0) > 0)
 })
 
 const degreeRank: Record<string, number> = { alto: 0, medio: 1, bajo: 2, ninguno: 3 }

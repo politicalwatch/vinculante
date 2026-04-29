@@ -21,6 +21,7 @@ export interface Section {
   section_number: string | null
   parent_id: number | null
   target_id: number
+  is_matchable: boolean
 }
 
 export interface Proposal {

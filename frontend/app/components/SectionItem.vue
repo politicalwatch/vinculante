@@ -32,7 +32,26 @@ watch(
 </script>
 
 <template>
+  <div
+    v-if="!section.is_matchable"
+    class="px-4 py-3 border-b border-default bg-elevated/40 select-none"
+    :style="{ paddingLeft: `${16 + depth * 16}px` }"
+  >
+    <div
+      class="text-default font-semibold uppercase tracking-wide text-xs prose prose-sm dark:prose-invert max-w-none
+             [&_h1]:!text-base [&_h2]:!text-sm [&_h3]:!text-xs [&_h4]:!text-xs
+             [&_h1]:!font-semibold [&_h2]:!font-semibold [&_h3]:!font-semibold [&_h4]:!font-semibold
+             [&_h1]:!my-0 [&_h2]:!my-0 [&_h3]:!my-0 [&_h4]:!my-0
+             [&_h1]:!uppercase [&_h2]:!uppercase [&_h3]:!uppercase [&_h4]:!uppercase
+             [&_h1]:!tracking-wide [&_h2]:!tracking-wide [&_h3]:!tracking-wide [&_h4]:!tracking-wide"
+    >
+      <MDC v-if="section.text_markdown" :value="section.text_markdown" />
+      <span v-else>{{ section.text }}</span>
+    </div>
+  </div>
+
   <button
+    v-else
     class="w-full text-left px-4 py-3 border-b border-default transition-colors hover:bg-elevated relative"
     :class="active ? 'bg-primary/10 border-l-2 border-l-primary' : ''"
     :style="{ paddingLeft: `${16 + depth * 16}px` }"
@@ -47,7 +66,7 @@ watch(
     >
       {{ matchCount }}
     </UBadge>
-    <div v-if="section.section_number" class="text-xs text-muted mb-4 font-medium uppercase tracking-wide">
+    <div v-if="section.section_number" class="text-xs text-muted mb-4 font-light uppercase tracking-wide">
       {{ section.section_number }}
     </div>
     <div
