@@ -13,6 +13,7 @@ from vinculante.domain.ports.repositories import (
 from vinculante.infrastructure.config.settings import Settings
 
 from .graph import build_matching_graph
+from .grounding import verify_quotes
 
 
 class MatcherService:
@@ -55,17 +56,27 @@ class MatcherService:
             candidates = result.get("candidates", [])
             scores = result.get("scores", [])
             for cand, score in zip(candidates, scores, strict=False):
-                if score is None or score.degree == "ninguno":
+                if score is None:
                     continue
-                if score.confidence < self._settings.matching_confidence_threshold:
-                    continue
+                degree = score.degree
+                explanation = (score.explanation or "").replace("\x00", "")
+                spans: list[tuple[int, int]] | None = None
+                if degree != "ninguno":
+                    verified = verify_quotes(score.evidence_quotes, cand["section_text"])
+                    if not verified:
+                        degree = "ninguno"
+                        preview = (score.evidence_quotes[0][:80] if score.evidence_quotes else "")
+                        explanation = f"[grounding failed: {preview!r}] {explanation}"
+                    else:
+                        spans = verified
                 to_save.append(Match(
                     proposal_id=proposal.id,
                     section_id=cand["id"],
-                    degree=score.degree,
-                    explanation=score.explanation,
+                    degree=degree,
+                    explanation=explanation,
                     confidence=score.confidence,
                     status=MatchStatus.pending,
+                    section_spans=[list(s) for s in spans] if spans else None,
                 ))
             if to_save:
                 self.match_repo.bulk_save(to_save)
