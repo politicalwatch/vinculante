@@ -1,6 +1,14 @@
+import unicodedata
+
 from vinculante.domain.entities import Section, TargetDocument
 from vinculante.domain.ports.chunking import ChunkerProtocol
 from vinculante.domain.ports.repositories import SectionRepositoryProtocol, TargetRepositoryProtocol
+
+
+def _normalize(s: str) -> str:
+    s = unicodedata.normalize("NFKD", s)
+    s = "".join(c for c in s if not unicodedata.combining(c))
+    return s.casefold().strip()
 
 
 class TargetIngestor:
@@ -24,17 +32,24 @@ class TargetIngestor:
         target = TargetDocument(title=title, author=author, version=version)
         target = self.target_repo.save(target)
 
+        title_norm = _normalize(title)
         chunks = self.chunker.chunk(file_path)
-        sections = [
-            Section(
+        sections: list[Section] = []
+        for chunk in chunks:
+            metadata = chunk.get("metadata", {})
+            is_heading_only = bool(metadata.get("is_heading_only"))
+            if is_heading_only and _normalize(chunk["text"]) == title_norm:
+                continue
+            dl_meta = metadata.get("dl_meta", {})
+            section_type = dl_meta.get("doc_items", [{}])[0].get("label")
+            sections.append(Section(
                 text=chunk["text"],
                 text_markdown=chunk.get("text_markdown"),
                 clear_language=chunk["text"],
-                page_number=chunk.get("metadata", {}).get("page_number"),
-                section_type=chunk.get("metadata", {}).get("dl_meta", {}).get("doc_items", [{}])[0].get("label"),
+                page_number=metadata.get("page_number"),
+                section_type=section_type,
+                is_matchable=not is_heading_only,
                 target_id=target.id,
-            )
-            for chunk in chunks
-        ]
+            ))
         self.section_repo.bulk_save(sections)
         return target

@@ -35,7 +35,15 @@ def test_ingests_target_document_with_metadata_and_sections(db_session, chunker)
     sections = section_repo.get_by_target(target.id)
     assert len(sections) >= 1
     assert all(s.target_id == target.id for s in sections)
-    assert all(s.text and s.clear_language == s.text for s in sections)
     all_text = " ".join(s.text for s in sections)
     assert "Artículo 1" in all_text
     assert "Transparencia" in all_text
+
+    heading_sections = [s for s in sections if not s.is_matchable]
+    body_sections = [s for s in sections if s.is_matchable]
+    assert len(heading_sections) >= 1
+    assert all(s.section_type == "section_header" for s in heading_sections)
+    assert all(s.clear_language == s.text for s in heading_sections)
+    assert all(s.is_matchable for s in body_sections)
+    heading_texts = " ".join(s.text for s in heading_sections)
+    assert "Capítulo" in heading_texts

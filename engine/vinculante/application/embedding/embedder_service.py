@@ -25,7 +25,7 @@ class SectionEmbedderService:
             if target_id
             else self.section_repo.get_all()
         )
-        unembedded = [s for s in sections if s.embedding is None]
+        unembedded = [s for s in sections if s.embedding is None and s.is_matchable]
         if not unembedded:
             return 0
 

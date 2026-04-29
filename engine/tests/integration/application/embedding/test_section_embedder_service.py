@@ -41,6 +41,21 @@ def test_target_id_filter_embeds_only_that_targets_sections(db_session, embedder
     assert all(s.embedding is None for s in all_sections if s.target_id == t2.id)
 
 
+def test_skips_non_matchable_sections(db_session, embedder):
+    target = _make_target(db_session)
+    repo = SectionRepository(db_session)
+    body = Section(text="body", clear_language="body", is_matchable=True, target_id=target.id)
+    heading = Section(text="Cap I", clear_language="Cap I", is_matchable=False, target_id=target.id)
+    repo.bulk_save([body, heading])
+
+    count = SectionEmbedderService(section_repo=repo, embedder=embedder).embed_sections(target_id=target.id)
+
+    assert count == 1
+    all_sections = repo.get_by_target(target.id)
+    assert all(s.embedding is not None for s in all_sections if s.is_matchable)
+    assert all(s.embedding is None for s in all_sections if not s.is_matchable)
+
+
 def test_uses_clear_language_when_set_otherwise_falls_back_to_text(db_session, embedder):
     target = _make_target(db_session)
     repo = SectionRepository(db_session)

@@ -15,6 +15,7 @@ class ClearLanguageGeneratorService:
             if target_id is not None
             else self._repo.get_all()
         )
+        sections = [s for s in sections if s.is_matchable]
         if not force:
             sections = [s for s in sections if s.clear_language is None or s.clear_language == s.text]
 

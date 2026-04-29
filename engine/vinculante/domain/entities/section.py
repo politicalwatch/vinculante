@@ -1,4 +1,4 @@
-from sqlalchemy import ForeignKey, Integer, String
+from sqlalchemy import Boolean, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from pgvector.sqlalchemy import Vector
 
@@ -15,6 +15,7 @@ class Section(Base):
     page_number: Mapped[int | None] = mapped_column(Integer)
     section_type: Mapped[str | None] = mapped_column(String)
     section_number: Mapped[str | None] = mapped_column(String)
+    is_matchable: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, server_default="true")
     parent_id: Mapped[int | None] = mapped_column(ForeignKey("sections.id"))
     target_id: Mapped[int] = mapped_column(ForeignKey("target_documents.id"), nullable=False)
     embedding = mapped_column(Vector(None))

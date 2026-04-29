@@ -11,5 +11,6 @@ class SectionRead(BaseModel):
     section_number: str | None = None
     parent_id: int | None = None
     target_id: int
+    is_matchable: bool = True
 
     model_config = {"from_attributes": True}

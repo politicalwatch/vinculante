@@ -24,5 +24,6 @@ class SectionRepository(BaseRepository[Section]):
     ) -> list[Section]:
         stmt = select(Section).filter(Section.embedding.isnot(None))
         stmt = stmt.filter(Section.target_id == target_id)
+        stmt = stmt.filter(Section.is_matchable.is_(True))
         stmt = stmt.order_by(Section.embedding.l2_distance(embedding)).limit(k)
         return list(self.db.scalars(stmt).all())

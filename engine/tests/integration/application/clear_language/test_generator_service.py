@@ -76,6 +76,18 @@ def test_clears_embedding_when_clear_language_changes(db_session):
     assert refreshed.embedding is None
 
 
+def test_skips_non_matchable_sections(db_session):
+    target = _make_target(db_session)
+    repo = SectionRepository(db_session)
+    heading = repo.save(Section(text="Cap I", clear_language="Cap I", is_matchable=False, target_id=target.id))
+
+    llm = FakeListChatModel(responses=["should not be called"])
+    count = ClearLanguageGeneratorService(section_repo=repo, llm=llm).generate(target_id=target.id)
+
+    assert count == 0
+    assert repo.get_by_id(heading.id).clear_language == "Cap I"
+
+
 def test_target_id_filter_leaves_other_targets_untouched(db_session):
     t1 = _make_target(db_session, title="t1")
     t2 = _make_target(db_session, title="t2")
