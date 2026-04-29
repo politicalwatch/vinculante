@@ -40,6 +40,8 @@ def _settings(**overrides) -> Settings:
         matching_top_k=5,
         matching_confidence_threshold=0.5,
         matching_concurrency=2,
+        matching_strategy="one-to-one",
+        matching_prompt_version="v5",
     )
     return Settings(**{**base, **overrides})
 
@@ -52,8 +54,8 @@ def _embed(embedder: DeterministicFakeEmbedding, text: str) -> list[float]:
     return embedder.embed_query(text)
 
 
-def _score(degree: str, explanation: str, confidence: float) -> MatchScore:
-    return MatchScore(degree=degree, explanation=explanation, confidence=confidence)
+def _score(degree: str, explanation: str, confidence: float, evidence_quotes: list[str] | None = None) -> MatchScore:
+    return MatchScore(degree=degree, explanation=explanation, confidence=confidence, evidence_quotes=evidence_quotes or [])
 
 
 def test_tracer_saves_match_with_llm_fields(db_session, embedder):
@@ -63,15 +65,15 @@ def test_tracer_saves_match_with_llm_fields(db_session, embedder):
     match_repo = MatchRepository(db_session)
 
     section = section_repo.save(
-        Section(text="s", clear_language="fragmento legal relevante", target_id=target.id,
-                embedding=_embed(embedder, "fragmento legal relevante"))
+        Section(text="fragmento legal relevante de prueba", clear_language="fragmento legal relevante de prueba", target_id=target.id,
+                embedding=_embed(embedder, "fragmento legal relevante de prueba"))
     )
     proposal = proposal_repo.save(
         Proposal(text="propuesta ciudadana", target_id=target.id,
                  embedding=_embed(embedder, "propuesta ciudadana"))
     )
 
-    llm = FakeStructuredLLM(responses=[_score("alto", "cubre directamente", 0.9)])
+    llm = FakeStructuredLLM(responses=[_score("alto", "cubre directamente", 0.9, evidence_quotes=["fragmento legal relevante"])])
     service = MatcherService(
         proposal_repo=proposal_repo,
         section_repo=section_repo,
@@ -100,15 +102,15 @@ def test_below_threshold_is_persisted(db_session, embedder):
     match_repo = MatchRepository(db_session)
 
     section_repo.save(
-        Section(text="s", clear_language="texto", target_id=target.id,
-                embedding=_embed(embedder, "texto"))
+        Section(text="texto del fragmento legal", clear_language="texto del fragmento legal", target_id=target.id,
+                embedding=_embed(embedder, "texto del fragmento legal"))
     )
     proposal_repo.save(
         Proposal(text="propuesta", target_id=target.id,
                  embedding=_embed(embedder, "propuesta"))
     )
 
-    llm = FakeStructuredLLM(responses=[_score("bajo", "relación débil", 0.3)])
+    llm = FakeStructuredLLM(responses=[_score("bajo", "relación débil", 0.3, evidence_quotes=["texto del fragmento"])])
     service = MatcherService(
         proposal_repo=proposal_repo,
         section_repo=section_repo,
@@ -165,15 +167,15 @@ def test_multiple_candidates_all_saved(db_session, embedder):
 
     for i in range(3):
         section_repo.save(
-            Section(text=f"s{i}", clear_language=f"texto {i}", target_id=target.id,
-                    embedding=_embed(embedder, f"texto {i}"))
+            Section(text=f"texto del fragmento {i}", clear_language=f"texto del fragmento {i}", target_id=target.id,
+                    embedding=_embed(embedder, f"texto del fragmento {i}"))
         )
     proposal_repo.save(
         Proposal(text="propuesta", target_id=target.id,
                  embedding=_embed(embedder, "propuesta"))
     )
 
-    llm = FakeStructuredLLM(responses=[_score("medio", "relación parcial", 0.7)])
+    llm = FakeStructuredLLM(responses=[_score("medio", "relación parcial", 0.7, evidence_quotes=["texto del fragmento"])])
     service = MatcherService(
         proposal_repo=proposal_repo,
         section_repo=section_repo,
