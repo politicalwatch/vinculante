@@ -1,10 +1,17 @@
+import json
 from pathlib import Path
 
 import typer
 
-from vinculante.application.evaluation.evaluator_service import EvaluatorService
+from vinculante.application.evaluation.evaluator_service import (
+    Diagnostics,
+    EvaluationReport,
+    EvaluatorService,
+)
+from vinculante.application.evaluation.metrics import AggregateMetrics, ArticleMetrics
 from vinculante.application.evaluation.report_writer import write_report
 from vinculante.application.evaluation.retrieval_audit import (
+    ArticleRetrievalMetrics,
     RetrievalAuditReport,
     run_retrieval_audit,
     write_retrieval_report,
@@ -135,6 +142,53 @@ def _print_retrieval_report(report: RetrievalAuditReport) -> None:
         )
     else:
         typer.echo(f"  [i] Matcher effective top_k: {report.effective_top_k} (no matchable sections)")
+
+
+def _load_match_report(p: dict) -> EvaluationReport:
+    return EvaluationReport(
+        domain=p["domain"],
+        target_id=p["target_id"],
+        article_metrics=[ArticleMetrics(**m) for m in p["article_metrics"]],
+        aggregate=AggregateMetrics(**p["aggregate"]),
+        diagnostics=Diagnostics(**p["diagnostics"]),
+        raw_matches=[],
+    )
+
+
+def _load_retrieval_report(p: dict) -> RetrievalAuditReport:
+    return RetrievalAuditReport(
+        domain=p["domain"],
+        target_id=p["target_id"],
+        n_pairs=p["n_pairs"],
+        n_matchable_sections=p.get("n_matchable_sections", 0),
+        effective_top_k=p.get("effective_top_k", 0),
+        recall_at_k={int(k): v for k, v in p["recall_at_k"].items()},
+        distance_metric=p["distance_metric"],
+        article_metrics=[
+            ArticleRetrievalMetrics(
+                article=m["article"],
+                n_pairs=m["n_pairs"],
+                hits_at_k={int(k): v for k, v in m["hits_at_k"].items()},
+                recall_at_k={int(k): v for k, v in m["recall_at_k"].items()},
+            )
+            for m in p["article_metrics"]
+        ],
+    )
+
+
+@app.command("show")
+def show_run(
+    path: Path = typer.Argument(..., exists=True, help="Path to a saved run JSON"),
+):
+    """Print tables for a saved match-eval or retrieval-audit run JSON."""
+    payload = json.loads(path.read_text())
+    if "aggregate" in payload:
+        _print_report(_load_match_report(payload))
+    elif "distance_metric" in payload:
+        _print_retrieval_report(_load_retrieval_report(payload))
+    else:
+        typer.echo(f"[!] Unrecognized run JSON: {path}")
+        raise typer.Exit(1)
 
 
 @app.command("retrieval")
