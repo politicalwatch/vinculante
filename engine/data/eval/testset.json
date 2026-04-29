@@ -1,0 +1,336 @@
+{
+  "version": 1,
+  "cases": [
+    {
+      "domain": "educacion",
+      "target": "targets/PILOTO2_ Proyecto de Ley e insumos_EDUCACION.pdf",
+      "proposals": "proposals/educacion.csv",
+      "expected": [
+        {
+          "article": "Artículo 1. Objeto",
+          "proposal_refs": [
+            "educacion-4",
+            "educacion-16",
+            "educacion-18",
+            "educacion-19",
+            "educacion-20"
+          ]
+        },
+        {
+          "article": "Artículo 2. Ámbito de aplicación",
+          "proposal_refs": [
+            "educacion-7",
+            "educacion-15",
+            "educacion-17",
+            "educacion-18",
+            "educacion-20"
+          ]
+        },
+        {
+          "article": "Artículo 3. Incorporación de profesionales especializados en salud mental y bienestar emocional",
+          "proposal_refs": [
+            "educacion-1",
+            "educacion-2",
+            "educacion-3",
+            "educacion-12",
+            "educacion-13",
+            "educacion-14"
+          ]
+        },
+        {
+          "article": "Artículo 4. Programas de prevención, sensibilización y formación",
+          "proposal_refs": [
+            "educacion-4",
+            "educacion-5",
+            "educacion-6",
+            "educacion-7",
+            "educacion-8",
+            "educacion-16",
+            "educacion-19"
+          ]
+        },
+        {
+          "article": "Artículo 5. Protocolos de actuación y atención temprana",
+          "proposal_refs": [
+            "educacion-9",
+            "educacion-10",
+            "educacion-11",
+            "educacion-14",
+            "educacion-15",
+            "educacion-20"
+          ]
+        }
+      ]
+    },
+    {
+      "domain": "vivienda",
+      "target": "targets/PILOTO2_ Proyecto de Ley e insumos_VIVIENDA.pdf",
+      "proposals": "proposals/vivienda.csv",
+      "expected": [
+        {
+          "article": "Artículo 1. Objeto",
+          "proposal_refs": [
+            "vivienda-1",
+            "vivienda-9",
+            "vivienda-10",
+            "vivienda-12",
+            "vivienda-16",
+            "vivienda-19"
+          ]
+        },
+        {
+          "article": "Artículo 2. Ámbito de aplicación",
+          "proposal_refs": [
+            "vivienda-2",
+            "vivienda-19",
+            "vivienda-20"
+          ]
+        },
+        {
+          "article": "Artículo 3. Limitación extraordinaria de la actualización de la renta en zonas de mercado residencial tensionado",
+          "proposal_refs": [
+            "vivienda-3",
+            "vivienda-1",
+            "vivienda-2",
+            "vivienda-9",
+            "vivienda-11",
+            "vivienda-17"
+          ]
+        },
+        {
+          "article": "Artículo 4. Incremento y destino del parque público de vivienda en alquiler asequible",
+          "proposal_refs": [
+            "vivienda-4",
+            "vivienda-5",
+            "vivienda-6",
+            "vivienda-12",
+            "vivienda-15",
+            "vivienda-18",
+            "vivienda-19"
+          ]
+        },
+        {
+          "article": "Artículo 5. Ayudas al alquiler y garantías de permanencia en la vivienda habitual",
+          "proposal_refs": [
+            "vivienda-5",
+            "vivienda-3",
+            "vivienda-7",
+            "vivienda-8",
+            "vivienda-13",
+            "vivienda-14",
+            "vivienda-18"
+          ]
+        }
+      ]
+    },
+    {
+      "domain": "transporte",
+      "target": "targets/PILOTO2_Transporte.pdf",
+      "proposals": "proposals/transporte.csv",
+      "expected": [
+        {
+          "article": "Artículo 8. Bonificaciones tarifarias.",
+          "proposal_refs": [
+            "transporte-1",
+            "transporte-41",
+            "transporte-42"
+          ]
+        },
+        {
+          "article": "Artículo 9. Tarifas de integración.",
+          "proposal_refs": [
+            "transporte-5"
+          ]
+        },
+        {
+          "article": "Artículo 12. Electrificación de flotas urbanas.",
+          "proposal_refs": [
+            "transporte-3",
+            "transporte-44"
+          ]
+        },
+        {
+          "article": "Artículo 15. Accesibilidad universal.",
+          "proposal_refs": [
+            "transporte-2",
+            "transporte-43"
+          ]
+        },
+        {
+          "article": "Artículo 17. Sistemas de información en tiempo real.",
+          "proposal_refs": [
+            "transporte-4"
+          ]
+        },
+        {
+          "article": "Artículo 23. Indemnizaciones por retrasos.",
+          "proposal_refs": [
+            "transporte-6"
+          ]
+        },
+        {
+          "article": "Artículo 26. Transporte de bicicletas.",
+          "proposal_refs": [
+            "transporte-7"
+          ]
+        },
+        {
+          "article": "Artículo 38. Destino de las multas.",
+          "proposal_refs": [
+            "transporte-8"
+          ]
+        }
+      ]
+    },
+    {
+      "domain": "clima",
+      "target": "targets/PILOTO2_Clima.pdf",
+      "proposals": "proposals/clima.csv",
+      "expected": [
+        {
+          "article": "Artículo 1. Objeto.",
+          "proposal_refs": [
+            "clima-1"
+          ]
+        },
+        {
+          "article": "Artículo 2. Principios rectores.",
+          "proposal_refs": [
+            "clima-13"
+          ]
+        },
+        {
+          "article": "Artículo 5. Autoconsumo eléctrico.",
+          "proposal_refs": [
+            "clima-2",
+            "clima-41",
+            "clima-42",
+            "clima-43"
+          ]
+        },
+        {
+          "article": "Artículo 6. Comunidades energéticas locales.",
+          "proposal_refs": [
+            "clima-12"
+          ]
+        },
+        {
+          "article": "Artículo 7. Energía eólica.",
+          "proposal_refs": [
+            "clima-14"
+          ]
+        },
+        {
+          "article": "Artículo 10. Cierre del carbón y planificación.",
+          "proposal_refs": [
+            "clima-8"
+          ]
+        },
+        {
+          "article": "Artículo 11. Zonas de Bajas Emisiones.",
+          "proposal_refs": [
+            "clima-3",
+            "clima-44",
+            "clima-45",
+            "clima-46"
+          ]
+        },
+        {
+          "article": "Artículo 13. Puntos de recarga en gasolineras.",
+          "proposal_refs": [
+            "clima-11"
+          ]
+        },
+        {
+          "article": "Artículo 14. Flota pública.",
+          "proposal_refs": [
+            "clima-9"
+          ]
+        },
+        {
+          "article": "Artículo 15. Rehabilitación energética de edificios.",
+          "proposal_refs": [
+            "clima-4",
+            "clima-47",
+            "clima-48"
+          ]
+        },
+        {
+          "article": "Artículo 18. Alumbrado público eficiente.",
+          "proposal_refs": [
+            "clima-6"
+          ]
+        },
+        {
+          "article": "Artículo 22. Zonas verdes urbanas.",
+          "proposal_refs": [
+            "clima-22",
+            "clima-49",
+            "clima-50"
+          ]
+        },
+        {
+          "article": "Artículo 23. Reforestación y sumideros de carbono.",
+          "proposal_refs": [
+            "clima-15"
+          ]
+        },
+        {
+          "article": "Artículo 24. Gestión del agua y regadíos.",
+          "proposal_refs": [
+            "clima-16"
+          ]
+        },
+        {
+          "article": "Artículo 28. Refugios climáticos en municipios.",
+          "proposal_refs": [
+            "clima-7"
+          ]
+        },
+        {
+          "article": "Artículo 29. Restauración de humedales y turberas.",
+          "proposal_refs": [
+            "clima-21"
+          ]
+        },
+        {
+          "article": "Artículo 31. Convenios de transición justa.",
+          "proposal_refs": [
+            "clima-20"
+          ]
+        },
+        {
+          "article": "Artículo 32. Fiscalidad verde.",
+          "proposal_refs": [
+            "clima-10"
+          ]
+        },
+        {
+          "article": "Artículo 33. Educación ambiental.",
+          "proposal_refs": [
+            "clima-5",
+            "clima-51"
+          ]
+        },
+        {
+          "article": "Artículo 36. Inversiones financieras y riesgos climáticos.",
+          "proposal_refs": [
+            "clima-17"
+          ]
+        },
+        {
+          "article": "Artículo 37. Asambleas ciudadanas por el clima.",
+          "proposal_refs": [
+            "clima-19"
+          ]
+        },
+        {
+          "article": "Artículo 38. Huella de carbono empresarial.",
+          "proposal_refs": [
+            "clima-18"
+          ]
+        }
+      ]
+    }
+  ]
+}
