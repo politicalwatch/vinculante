@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from vinculante.domain.entities import Section
@@ -15,6 +15,14 @@ class SectionRepository(BaseRepository[Section]):
             .order_by(Section.id)
             .all()
         )
+
+    def count_matchable_by_target(self, target_id: int) -> int:
+        stmt = (
+            select(func.count(Section.id))
+            .filter(Section.target_id == target_id)
+            .filter(Section.is_matchable.is_(True))
+        )
+        return self.db.scalar(stmt) or 0
 
     def find_similar(
         self,

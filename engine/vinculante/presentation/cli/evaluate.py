@@ -111,24 +111,30 @@ def run_evaluation(
             typer.echo(f"\n  Run saved → {out_path}\n")
 
 
-_RET_HDR = "{:<55} {:>6} {:>7} {:>7} {:>7} {:>7}"
-_RET_ROW = "{:<55} {:>6} {:>7.2f} {:>7.2f} {:>7.2f} {:>7.2f}"
-
-
 def _print_retrieval_report(report: RetrievalAuditReport) -> None:
+    ks = sorted(report.recall_at_k)
+    _hdr = "{:<55} {:>6}" + " {:>7}" * len(ks)
+    _row = "{:<55} {:>6}" + " {:>7.2f}" * len(ks)
+
     typer.echo(
         f"\n{'='*40} {report.domain.upper()} retrieval"
         f" (target_id={report.target_id}, metric={report.distance_metric}) {'='*40}"
     )
-    typer.echo(_RET_HDR.format("Article", "pairs", "@1", "@2", "@3", "@5"))
-    typer.echo("-" * 90)
+    typer.echo(_hdr.format("Article", "pairs", *[f"@{k}" for k in ks]))
+    typer.echo("-" * (63 + 8 * len(ks)))
     for m in report.article_metrics:
-        r = m.recall_at_k
-        typer.echo(_RET_ROW.format(m.article[:54], m.n_pairs, r[1], r[2], r[3], r[5]))
-    typer.echo("-" * 90)
-    r = report.recall_at_k
-    typer.echo(_RET_ROW.format("OVERALL", report.n_pairs, r[1], r[2], r[3], r[5]))
+        typer.echo(_row.format(m.article[:54], m.n_pairs, *[m.recall_at_k[k] for k in ks]))
+    typer.echo("-" * (63 + 8 * len(ks)))
+    typer.echo(_row.format("OVERALL", report.n_pairs, *[report.recall_at_k[k] for k in ks]))
     typer.echo(f"\n  [i] Distance metric: {report.distance_metric} | Pairs: {report.n_pairs}")
+    if report.n_matchable_sections:
+        pct = report.effective_top_k / report.n_matchable_sections
+        typer.echo(
+            f"  [i] Matcher effective top_k: {report.effective_top_k}"
+            f" ({pct:.0%} of {report.n_matchable_sections} matchable sections)"
+        )
+    else:
+        typer.echo(f"  [i] Matcher effective top_k: {report.effective_top_k} (no matchable sections)")
 
 
 @app.command("retrieval")
@@ -164,7 +170,7 @@ def run_retrieval_evaluation(
                 typer.echo(f"[!] No target found for domain '{case.domain}'. Skipping.")
                 continue
 
-            report = run_retrieval_audit(case, target.id, section_repo, proposal_repo, embedder)
+            report = run_retrieval_audit(case, target.id, section_repo, proposal_repo, embedder, settings)
             _print_retrieval_report(report)
 
             out_path = write_retrieval_report(report, run_dir)

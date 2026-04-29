@@ -7,13 +7,15 @@ from pathlib import Path
 
 from vinculante.application.evaluation.resolver import resolve_articles
 from vinculante.application.evaluation.testset import EvalCase
+from vinculante.application.matching.top_k import compute_top_k
 from vinculante.domain.ports.embeddings import EmbedderProtocol
 from vinculante.domain.ports.repositories import (
     ProposalRepositoryProtocol,
     SectionRepositoryProtocol,
 )
+from vinculante.infrastructure.config.settings import Settings
 
-_KS = [1, 2, 3, 5]
+_KS = [1, 3, 5, 10, 20]
 _DISTANCE_METRIC = "l2"
 
 
@@ -30,6 +32,8 @@ class RetrievalAuditReport:
     domain: str
     target_id: int
     n_pairs: int
+    n_matchable_sections: int
+    effective_top_k: int
     recall_at_k: dict[int, float]
     distance_metric: str
     article_metrics: list[ArticleRetrievalMetrics]
@@ -41,8 +45,11 @@ def run_retrieval_audit(
     section_repo: SectionRepositoryProtocol,
     proposal_repo: ProposalRepositoryProtocol,
     embedder: EmbedderProtocol,
+    settings: Settings,
 ) -> RetrievalAuditReport:
     sections = section_repo.get_by_target(target_id)
+    n_matchable_sections = sum(1 for s in sections if s.is_matchable)
+    effective_top_k = compute_top_k(n_matchable_sections, settings)
     proposals = proposal_repo.get_by_target(target_id)
 
     article_section_map = resolve_articles(sections, [e.article for e in case.expected])
@@ -94,6 +101,8 @@ def run_retrieval_audit(
         domain=case.domain,
         target_id=target_id,
         n_pairs=total_pairs,
+        n_matchable_sections=n_matchable_sections,
+        effective_top_k=effective_top_k,
         recall_at_k=overall_recall,
         distance_metric=_DISTANCE_METRIC,
         article_metrics=article_metrics,
@@ -110,6 +119,8 @@ def write_retrieval_report(report: RetrievalAuditReport, out_dir: Path) -> Path:
         "target_id": report.target_id,
         "distance_metric": report.distance_metric,
         "n_pairs": report.n_pairs,
+        "n_matchable_sections": report.n_matchable_sections,
+        "effective_top_k": report.effective_top_k,
         "recall_at_k": {str(k): v for k, v in report.recall_at_k.items()},
         "article_metrics": [
             {

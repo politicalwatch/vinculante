@@ -37,7 +37,9 @@ def _settings(**overrides) -> Settings:
     base = dict(
         db_url="postgresql+psycopg2://x:x@localhost/x",
         cache_redis_host="redis://localhost",
-        matching_top_k=5,
+        matching_top_k_pct=0.10,
+        matching_top_k_min=5,
+        matching_top_k_max=20,
         matching_confidence_threshold=0.5,
         matching_concurrency=2,
         matching_strategy="one-to-one",
@@ -181,7 +183,7 @@ def test_multiple_candidates_all_saved(db_session, embedder):
         section_repo=section_repo,
         match_repo=match_repo,
         embedder=embedder, llm=llm,
-        settings=_settings(matching_top_k=3),
+        settings=_settings(matching_top_k_min=3, matching_top_k_max=3),
     )
     matches = service.run(target_id=target.id)
 
@@ -214,7 +216,7 @@ def test_sections_scoped_to_target(db_session, embedder):
         section_repo=section_repo,
         match_repo=match_repo,
         embedder=embedder, llm=llm,
-        settings=_settings(matching_top_k=5),
+        settings=_settings(),
     )
     matches = service.run(target_id=t1.id)
 
@@ -243,7 +245,7 @@ def test_proposals_scoped_to_target(db_session, embedder):
         section_repo=section_repo,
         match_repo=match_repo,
         embedder=embedder, llm=llm,
-        settings=_settings(matching_top_k=5),
+        settings=_settings(),
     )
     matches = service.run(target_id=t1.id)
 

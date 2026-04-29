@@ -14,6 +14,7 @@ from vinculante.infrastructure.config.settings import Settings
 
 from .graph import build_matching_graph
 from .grounding import verify_quotes
+from .top_k import compute_top_k
 
 
 class MatcherService:
@@ -30,6 +31,7 @@ class MatcherService:
     ) -> None:
         self.proposal_repo = proposal_repo
         self.match_repo = match_repo
+        self._section_repo = section_repo
         self._settings = settings
         self._graph = build_matching_graph(section_repo, embedder, llm, settings)
 
@@ -41,6 +43,9 @@ class MatcherService:
         if skip_matched:
             proposals = [p for p in proposals if not self.match_repo.get_by_proposal(p.id)]
 
+        n_sections = self._section_repo.count_matchable_by_target(target_id)
+        effective_top_k = compute_top_k(n_sections, self._settings)
+
         all_matches: list[Match] = []
         for proposal in tqdm(proposals, desc="matching", unit="proposal"):
             result = await self._graph.ainvoke(
@@ -48,6 +53,7 @@ class MatcherService:
                     "proposal_id": proposal.id,
                     "proposal_text": proposal.text,
                     "target_id": target_id,
+                    "effective_top_k": effective_top_k,
                     "candidates": [],
                     "scores": [],
                 }
