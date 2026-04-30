@@ -54,8 +54,8 @@ const histogramOptions = {
     legend: { display: false },
     tooltip: {
       callbacks: {
-        title: (items: any[]) => `${items[0].label} vinculación${items[0].label !== '1' ? 'es' : ''}`,
-        label: (item: any) => ` ${item.raw} sección${item.raw !== 1 ? 'es' : ''}`,
+        title: (items: any[]) => items[0].label === '1' ? '1 vinculación' : `${items[0].label} vinculaciones`,
+        label: (item: any) => item.raw === 1 ? ' 1 sección' : ` ${item.raw} secciones`,
       },
     },
   },
