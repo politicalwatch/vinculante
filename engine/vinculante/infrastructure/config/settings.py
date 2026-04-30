@@ -27,7 +27,9 @@ class Settings(BaseSettings):
     embedding_model: str = "text-embedding-3-small"
 
     # Matching
-    matching_top_k: int = 5
+    matching_top_k_pct: float = 0.10
+    matching_top_k_min: int = 5
+    matching_top_k_max: int = 20
     matching_confidence_threshold: float = 0.5
     matching_concurrency: int = 4
 
