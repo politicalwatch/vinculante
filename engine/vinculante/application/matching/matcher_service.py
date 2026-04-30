@@ -9,12 +9,14 @@ from vinculante.domain.ports.repositories import (
     MatchRepositoryProtocol,
     ProposalRepositoryProtocol,
     SectionRepositoryProtocol,
+    TargetRepositoryProtocol,
 )
 from vinculante.infrastructure.config.settings import Settings
 
 from .graph import build_matching_graph
 from .grounding import verify_quotes
 from .top_k import compute_top_k
+from vinculante.application.stats.target_stats import compute_target_stats
 
 
 class MatcherService:
@@ -25,6 +27,7 @@ class MatcherService:
         proposal_repo: ProposalRepositoryProtocol,
         section_repo: SectionRepositoryProtocol,
         match_repo: MatchRepositoryProtocol,
+        target_repo: TargetRepositoryProtocol,
         embedder: EmbedderProtocol,
         llm: LLMProvider,
         settings: Settings,
@@ -32,6 +35,7 @@ class MatcherService:
         self.proposal_repo = proposal_repo
         self.match_repo = match_repo
         self._section_repo = section_repo
+        self._target_repo = target_repo
         self._settings = settings
         self._graph = build_matching_graph(section_repo, embedder, llm, settings)
 
@@ -87,4 +91,10 @@ class MatcherService:
             if to_save:
                 self.match_repo.bulk_save(to_save)
             all_matches.extend(to_save)
+
+        sections = self._section_repo.get_by_target(target_id)
+        all_target_matches = self.match_repo.get_accepted_by_target(target_id)
+        stats = compute_target_stats(sections, all_target_matches, total_proposals=len(proposals))
+        self._target_repo.update_stats(target_id, stats)
+
         return all_matches

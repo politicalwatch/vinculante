@@ -22,6 +22,12 @@ class TargetRepository(BaseRepository[TargetDocument]):
                 return t
         return None
 
+    def update_stats(self, target_id: int, stats: dict) -> None:
+        target = self.get_by_id(target_id)
+        if target:
+            target.stats = stats
+            self.db.commit()
+
     def get_all_with_counts(self) -> list[dict]:
         proposal_subq = (
             self.db.query(
