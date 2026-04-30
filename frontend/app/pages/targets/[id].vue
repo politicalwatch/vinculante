@@ -28,6 +28,7 @@ const selectedSectionId = ref<number | null>(null)
 const hoveredMatchId = ref<number | null>(null)
 const selectedMatchId = ref<number | null>(null)
 const hideUnmatched = ref(false)
+const statsOpen = ref(false)
 
 const filteredSections = computed(() => {
   const all = sections.value ?? []
@@ -122,14 +123,35 @@ const depthMap = computed(() => {
         <UIcon name="i-lucide-chevron-left" class="size-4" />
         Todos los documentos
       </NuxtLink>
-      <h1 class="text-2xl font-semibold text-highlighted">
-        {{ target?.title }}
-      </h1>
-      <p class="text-sm text-muted mt-0.5">
-        {{ target?.author }}
-        <template v-if="target?.date"> · {{ target.date }}</template>
-        <template v-if="target?.version"> · v{{ target.version }}</template>
-      </p>
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <h1 class="text-2xl font-semibold text-highlighted">
+            {{ target?.title }}
+          </h1>
+          <p class="text-sm text-muted mt-0.5">
+            {{ target?.author }}
+            <template v-if="target?.date"> · {{ target.date }}</template>
+            <template v-if="target?.version"> · v{{ target.version }}</template>
+          </p>
+        </div>
+        <UModal
+          v-if="target?.stats"
+          v-model:open="statsOpen"
+          title="Estadísticas de vinculación del documento"
+          :ui="{ content: 'sm:max-w-5xl' }"
+        >
+          <UButton
+            icon="i-lucide-chart-bar"
+            color="neutral"
+            variant="ghost"
+            size="sm"
+            label="Mostrar estadísticas"
+          />
+          <template #body>
+            <StatsPanel :stats="target.stats" />
+          </template>
+        </UModal>
+      </div>
     </div>
 
     <UAlert
