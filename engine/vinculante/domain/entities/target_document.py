@@ -1,6 +1,6 @@
 import datetime
 
-from sqlalchemy import Date, Integer, String
+from sqlalchemy import Date, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -16,5 +16,6 @@ class TargetDocument(Base):
     date: Mapped[datetime.date | None] = mapped_column(Date)
     version: Mapped[str | None] = mapped_column(String)
     stats: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    summary: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     sections: Mapped[list["Section"]] = relationship(back_populates="target_document")

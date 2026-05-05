@@ -15,5 +15,6 @@ class TargetDocumentRead(TargetDocumentBase):
     proposal_count: int = 0
     match_count: int = 0
     stats: dict | None = None
+    summary: str | None = None
 
     model_config = {"from_attributes": True}

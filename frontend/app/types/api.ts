@@ -43,6 +43,7 @@ export interface TargetDocument {
   proposal_count: number
   match_count: number
   stats: TargetStats | null
+  summary: string | null
 }
 
 export interface Section {
