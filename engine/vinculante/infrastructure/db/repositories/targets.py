@@ -3,6 +3,7 @@ import unicodedata
 from sqlalchemy import func
 
 from vinculante.domain.entities import Match, Proposal, Section, TargetDocument
+
 from .base import BaseRepository
 
 
@@ -26,6 +27,12 @@ class TargetRepository(BaseRepository[TargetDocument]):
         target = self.get_by_id(target_id)
         if target:
             target.stats = stats
+            self.db.commit()
+
+    def update_summary(self, target_id: int, summary: str) -> None:
+        target = self.get_by_id(target_id)
+        if target:
+            target.summary = summary
             self.db.commit()
 
     def get_all_with_counts(self) -> list[dict]:
