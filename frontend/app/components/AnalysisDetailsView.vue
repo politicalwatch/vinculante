@@ -7,16 +7,13 @@ const props = defineProps<{
 
 const api = useApi()
 
-const [
-  { data: sections, error: sectionsError },
-  { data: matchCounts }
-] = await Promise.all([
-  useFetch<Section[]>('/sections', { $fetch: api, query: { target_id: props.targetId } }),
-  useFetch<Record<number, number>>('/matches/counts', {
-    $fetch: api,
-    query: { target_id: props.targetId, degree: ['medio', 'alto'] }
-  })
-])
+const { data: sections, error: sectionsError, status: sectionsStatus } =
+  useFetch<Section[]>('/sections', { $fetch: api, query: { target_id: props.targetId } })
+
+const { data: matchCounts } = useFetch<Record<number, number>>('/matches/counts', {
+  $fetch: api,
+  query: { target_id: props.targetId, degree: ['medio', 'alto'] }
+})
 
 const selectedSectionId = ref<number | null>(null)
 const hoveredMatchId = ref<number | null>(null)
@@ -86,7 +83,6 @@ const activeSpans = computed<[number, number][]>(() => {
   return match?.section_spans ?? []
 })
 
-// Compute depth per section for indentation
 const depthMap = computed(() => {
   const map = new Map<number, number>()
   const secs = sections.value ?? []
@@ -119,10 +115,15 @@ const depthMap = computed(() => {
 
   <div v-else class="flex flex-1 overflow-hidden">
     <!-- Left: sections list -->
-    <div ref="sectionsPanel" class="w-7/12 border-r border-default overflow-y-auto">
+    <div
+      ref="sectionsPanel"
+      class="w-7/12 border-r border-default overflow-y-auto"
+    >
       <!-- Filter bar -->
       <div class="px-4 py-2 border-b border-default sticky top-0 bg-default z-10 flex items-center justify-between">
-        <span class="text-xs text-muted">{{ filteredSections.length }} secciones</span>
+        <span class="text-xs text-muted">
+          {{ sectionsStatus === 'pending' ? '—' : `${filteredSections.length} secciones` }}
+        </span>
         <USwitch
           v-model="hideUnmatched"
           label="Ocultar sin vinculación"
@@ -130,24 +131,55 @@ const depthMap = computed(() => {
         />
       </div>
 
-      <div v-if="!sections?.length" class="text-center py-16 text-muted text-sm">
-        Este documento no tiene secciones.
-      </div>
-      <div v-else-if="filteredSections.length === 0" class="text-center py-16 text-muted text-sm">
-        Ninguna sección con vinculaciones.
-      </div>
+      <Transition
+        enter-active-class="transition-opacity duration-200 ease-out"
+        enter-from-class="opacity-0"
+        leave-active-class="transition-opacity duration-150 ease-in"
+        leave-to-class="opacity-0"
+        mode="out-in"
+      >
+        <div
+          v-if="sectionsStatus === 'pending'"
+          key="loading"
+          class="flex flex-col"
+        >
+          <div
+            v-for="n in 6"
+            :key="n"
+            class="px-4 py-3 border-b border-default flex flex-col gap-2"
+          >
+            <USkeleton class="h-3 w-16 bg-accented" />
+            <USkeleton class="h-4 w-3/4 bg-accented" />
+            <USkeleton class="h-3 w-full bg-accented" />
+            <USkeleton class="h-3 w-5/6 bg-accented" />
+          </div>
+        </div>
 
-      <SectionItem
-        v-for="section in filteredSections"
-        :key="section.id"
-        :data-section-id="section.id"
-        :section="section"
-        :depth="depthMap.get(section.id) ?? 0"
-        :active="selectedSectionId === section.id"
-        :spans="selectedSectionId === section.id ? activeSpans : []"
-        :match-count="matchCounts?.[section.id] ?? 0"
-        @click="selectSection(section.id)"
-      />
+        <div
+          v-else
+          key="loaded"
+          class="flex flex-col"
+        >
+          <div v-if="!sections?.length" class="text-center py-16 text-muted text-sm">
+            Este documento no tiene secciones.
+          </div>
+          <div v-else-if="filteredSections.length === 0" class="text-center py-16 text-muted text-sm">
+            Ninguna sección con vinculaciones.
+          </div>
+
+          <SectionItem
+            v-for="section in filteredSections"
+            :key="section.id"
+            :data-section-id="section.id"
+            :section="section"
+            :depth="depthMap.get(section.id) ?? 0"
+            :active="selectedSectionId === section.id"
+            :spans="selectedSectionId === section.id ? activeSpans : []"
+            :match-count="matchCounts?.[section.id] ?? 0"
+            @click="selectSection(section.id)"
+          />
+        </div>
+      </Transition>
     </div>
 
     <!-- Right: matches panel -->

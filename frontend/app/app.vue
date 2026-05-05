@@ -19,6 +19,7 @@ useSeoMeta({
 
 <template>
   <UApp>
+    <NuxtLoadingIndicator color="var(--ui-primary)" />
     <div class="flex flex-col h-screen overflow-hidden">
       <UHeader>
         <template #left>

@@ -65,13 +65,25 @@ const tabs: TabsItem[] = [
       </div>
     </div>
 
-    <OverviewView
-      v-if="view === 'overview'"
-      :target="target"
-    />
-    <AnalysisDetailsView
-      v-else
-      :target-id="id"
-    />
+    <Transition
+      enter-active-class="transition-opacity duration-150 ease-out"
+      enter-from-class="opacity-0"
+      leave-active-class="transition-opacity duration-100 ease-in"
+      leave-to-class="opacity-0"
+      mode="out-in"
+    >
+      <KeepAlive>
+        <OverviewView
+          v-if="view === 'overview'"
+          key="overview"
+          :target="target"
+        />
+        <AnalysisDetailsView
+          v-else
+          key="analysis"
+          :target-id="id"
+        />
+      </KeepAlive>
+    </Transition>
   </div>
 </template>
