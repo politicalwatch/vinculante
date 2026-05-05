@@ -21,5 +21,27 @@ def create_llm_from_env(settings: Settings | None = None) -> BaseChatModel:
     return _PROVIDERS[provider](s)
 
 
+def create_summary_llm_from_env(settings: Settings | None = None) -> BaseChatModel:
+    """Create LLM for summary generation, with optional provider/model overrides."""
+    from vinculante.infrastructure.config.settings import get_settings
+    s = settings or get_settings()
+    provider = (s.summary_llm_provider or s.llm_provider).lower()
+    model = s.summary_llm_model or s.llm_model
+    if provider not in _PROVIDERS:
+        raise ValueError(f"Unknown summary LLM provider: {provider!r}. Valid: {list(_PROVIDERS)}")
+    overridden = s.model_copy(update={
+        "llm_provider": provider,
+        "llm_model": model,
+        "llm_temperature": s.summary_temperature,
+    })
+    return _PROVIDERS[provider](overridden)
+
+
 # Import providers to trigger registration
-from vinculante.infrastructure.llm import anthropic, openai, google, mistral, ollama  # noqa: E402, F401
+from vinculante.infrastructure.llm import (  # noqa: E402, F401
+    anthropic,
+    google,
+    mistral,
+    ollama,
+    openai,
+)

@@ -39,6 +39,12 @@ class Settings(BaseSettings):
     matching_prompt_version: str = "v5"
     matching_critic_prompt_version: str = "v2"
 
+    # Summary
+    summary_llm_provider: str = ""
+    summary_llm_model: str = ""
+    summary_temperature: float = 0.3
+    summary_prompt_version: str = "v1"
+
 
 
 @lru_cache
