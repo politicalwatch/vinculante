@@ -4,6 +4,7 @@ from vinculante.infrastructure.config.settings import get_settings
 from vinculante.infrastructure.db.repositories.matches import MatchRepository
 from vinculante.infrastructure.db.repositories.proposals import ProposalRepository
 from vinculante.infrastructure.db.repositories.sections import SectionRepository
+from vinculante.infrastructure.db.repositories.targets import TargetRepository
 from vinculante.infrastructure.db.session import SessionLocal
 from vinculante.infrastructure.embeddings.factory import create_embedder_from_env
 from vinculante.infrastructure.llm.factory import create_llm_from_env
@@ -26,6 +27,7 @@ def run_matching(
             proposal_repo=ProposalRepository(db),
             section_repo=SectionRepository(db),
             match_repo=MatchRepository(db),
+            target_repo=TargetRepository(db),
             embedder=embedder,
             llm=llm,
             settings=settings,

@@ -1,4 +1,5 @@
 from functools import lru_cache
+from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -32,6 +33,12 @@ class Settings(BaseSettings):
     matching_top_k_max: int = 20
     matching_confidence_threshold: float = 0.5
     matching_concurrency: int = 4
+    matching_strategy: Literal[
+        "one-to-one", "one-to-many", "pipeline", "one-to-many-critic"
+    ] = "one-to-one"
+    matching_prompt_version: str = "v5"
+    matching_critic_prompt_version: str = "v2"
+
 
 
 @lru_cache
