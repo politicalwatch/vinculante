@@ -22,8 +22,8 @@ useSeoMeta({
     <div class="flex flex-col h-screen overflow-hidden">
       <UHeader>
         <template #left>
-          <NuxtLink to="/" class="font-semibold text-lg text-highlighted">
-            Vinculante
+          <NuxtLink to="/" aria-label="Vinculante" class="block">
+            <img src="/logo.svg" alt="Vinculante" class="h-7 w-auto" />
           </NuxtLink>
         </template>
 
