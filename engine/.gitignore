@@ -1,6 +1,10 @@
 data/eval/raw/
 data/eval/runs/
-data/real/
+data/real/*
 !data/real/.gitkeep
-!data/real/**/.gitkeep
+!data/real/*/
+data/real/*/*
+!data/real/*/.gitkeep
+data/export/*
+!data/export/.gitkeep
 __pycache__/
