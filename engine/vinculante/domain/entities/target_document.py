@@ -1,10 +1,14 @@
 import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Date, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..base import Base
+
+if TYPE_CHECKING:
+    from .section import Section
 
 
 class TargetDocument(Base):

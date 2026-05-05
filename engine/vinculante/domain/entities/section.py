@@ -1,8 +1,14 @@
+from typing import TYPE_CHECKING
+
+from pgvector.sqlalchemy import Vector
 from sqlalchemy import Boolean, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from pgvector.sqlalchemy import Vector
 
 from ..base import Base
+
+if TYPE_CHECKING:
+    from .match import Match
+    from .target_document import TargetDocument
 
 
 class Section(Base):

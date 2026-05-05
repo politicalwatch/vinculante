@@ -1,10 +1,15 @@
 import enum
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Enum, Float, ForeignKey, String
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..base import Base
+
+if TYPE_CHECKING:
+    from .proposal import Proposal
+    from .section import Section
 
 
 class MatchStatus(str, enum.Enum):

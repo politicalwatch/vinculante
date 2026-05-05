@@ -1,8 +1,14 @@
+from typing import TYPE_CHECKING
+
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..base import Base
+
+if TYPE_CHECKING:
+    from .match import Match
+    from .target_document import TargetDocument
 
 
 class Proposal(Base):
