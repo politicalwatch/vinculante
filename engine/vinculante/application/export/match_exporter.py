@@ -4,6 +4,12 @@ from vinculante.domain.entities import MatchStatus
 from vinculante.domain.ports.repositories import MatchRepositoryProtocol
 
 
+def _section_title(text: str | None) -> str | None:
+    if not text:
+        return None
+    return text.split("\n", 1)[0].lstrip("#").strip() or None
+
+
 class MatchExporter:
     def __init__(self, match_repo: MatchRepositoryProtocol) -> None:
         self.match_repo = match_repo
@@ -27,12 +33,14 @@ class MatchExporter:
         df = pd.DataFrame([
             {
                 "section_id": m.section_id,
+                "section_title": _section_title(m.section.text) if m.section else None,
                 "proposal_id": m.proposal_id,
+                "proposal_text": m.proposal.text if m.proposal else None,
                 "match_id": m.id,
                 "degree": m.degree,
-                "explanation": m.explanation,
                 "confidence": m.confidence,
                 "status": m.status.value if m.status else None,
+                "explanation": m.explanation,
             }
             for m in matches
         ])
