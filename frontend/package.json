@@ -8,7 +8,11 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
-    "typecheck": "nuxt typecheck"
+    "typecheck": "nuxt typecheck",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@iconify-json/lucide": "^1.2.102",
@@ -22,8 +26,12 @@
   },
   "devDependencies": {
     "@nuxt/eslint": "^1.15.2",
+    "@playwright/test": "^1.59.1",
+    "@vitest/coverage-v8": "^4.1.5",
     "eslint": "^10.2.0",
+    "happy-dom": "^20.9.0",
     "typescript": "^6.0.2",
+    "vitest": "^4.1.5",
     "vue-tsc": "^3.2.6"
   }
 }
