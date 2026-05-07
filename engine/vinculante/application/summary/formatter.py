@@ -11,20 +11,25 @@ def format_summary(
     lines: list[str] = []
 
     if overview:
-        lines += ["## Principales ejes", "", overview.intro, ""]
+        lines += ["## Resumen de la ley", "", overview.intro, ""]
         if overview.axes:
             for axis in overview.axes:
                 lines.append(f"- {axis}")
             lines.append("")
 
-    if synthesis and synthesis.vision_general:
-        lines += ["## Visión general", "", synthesis.vision_general, ""]
+    has_synthesis = synthesis and synthesis.vision_general
+    has_themes = themes and themes.clusters
 
-    if themes and themes.clusters:
-        lines += ["## Áreas de mayor vinculación", ""]
-        for cluster in themes.clusters:
-            lines.append(f"- **{cluster.label}**: {cluster.description}")
-        lines.append("")
+    if has_synthesis or has_themes:
+        lines += ["## Resumen de las vinculaciones detectadas", ""]
+        if has_synthesis:
+            lines += [synthesis.vision_general, ""]
+        if has_themes:
+            if has_synthesis:
+                lines += ["Las áreas con mayor vinculación son:", ""]
+            for cluster in themes.clusters:
+                lines.append(f"- **{cluster.label}**: {cluster.description}")
+            lines.append("")
 
     if highlights and highlights.highlights:
         lines += ["## Vinculaciones destacadas", ""]
@@ -39,7 +44,7 @@ def format_summary(
         [gaps.orphan_observations, gaps.unmatched_clusters, gaps.gaps_narrative]
     )
     if has_gaps:
-        lines += ["## Lagunas detectadas", ""]
+        lines += ["## Propuestas no recogidas", ""]
         if gaps.orphan_observations:
             lines += [gaps.orphan_observations, ""]
         if gaps.unmatched_clusters:

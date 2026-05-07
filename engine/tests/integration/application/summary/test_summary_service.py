@@ -127,7 +127,7 @@ def test_tracer_run_returns_markdown_and_persists(db_session, embedder):
 
     assert isinstance(result, str)
     assert len(result) > 0
-    assert "## Principales ejes" in result
+    assert "## Resumen de la ley" in result
 
     persisted = TargetRepository(db_session).get_by_id(target.id)
     assert persisted.summary == result

@@ -10,7 +10,7 @@ participación ciudadana frente a un documento normativo. Escribe la síntesis f
 
 {themes_block}
 
-# Lagunas detectadas
+# Propuestas no recogidas
 
 {gaps_narrative}
 

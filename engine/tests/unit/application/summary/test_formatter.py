@@ -9,7 +9,6 @@ from vinculante.application.summary.schemas import (
     ThemeAnalysis,
 )
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -48,25 +47,25 @@ def test_format_summary_all_none_returns_empty():
     assert format_summary(None, None, None, None, None) == ""
 
 
-def test_format_summary_only_overview_contains_principals_ejes():
+def test_format_summary_only_overview_contains_resumen_ley():
     result = format_summary(_overview(), None, None, None, None)
-    assert "## Principales ejes" in result
+    assert "## Resumen de la ley" in result
     assert "intro text" in result
     assert "- eje 1" in result
 
 
 def test_format_summary_only_overview_no_other_sections():
     result = format_summary(_overview(), None, None, None, None)
-    assert "## Visión general" not in result
+    assert "## Resumen de las vinculaciones detectadas" not in result
     assert "## Áreas de mayor vinculación" not in result
     assert "## Vinculaciones destacadas" not in result
-    assert "## Lagunas detectadas" not in result
+    assert "## Propuestas no recogidas" not in result
     assert "## Observaciones" not in result
 
 
 def test_format_summary_only_synthesis_vision_general():
     result = format_summary(None, None, None, None, _synthesis(vision="la visión"))
-    assert "## Visión general" in result
+    assert "## Resumen de las vinculaciones detectadas" in result
     assert "la visión" in result
 
 
@@ -84,7 +83,15 @@ def test_format_summary_synthesis_with_observaciones():
 
 def test_format_summary_only_themes():
     result = format_summary(None, _themes(["Vivienda"]), None, None, None)
-    assert "## Áreas de mayor vinculación" in result
+    assert "## Resumen de las vinculaciones detectadas" in result
+    assert "## Áreas de mayor vinculación" not in result
+    assert "**Vivienda**" in result
+    assert "Las áreas con mayor vinculación son:" not in result
+
+
+def test_format_summary_synthesis_and_themes_show_lead_in():
+    result = format_summary(None, _themes(["Vivienda"]), None, None, _synthesis(vision="la visión"))
+    assert "Las áreas con mayor vinculación son:" in result
     assert "**Vivienda**" in result
 
 
@@ -96,28 +103,29 @@ def test_format_summary_only_highlights():
 
 def test_format_summary_gaps_all_empty_fields_no_section():
     result = format_summary(None, None, None, _gaps("", "", ""), None)
-    assert "## Lagunas detectadas" not in result
+    assert "## Propuestas no recogidas" not in result
 
 
 def test_format_summary_gaps_only_narrative():
     result = format_summary(None, None, None, _gaps(narrative="hay lagunas"), None)
-    assert "## Lagunas detectadas" in result
+    assert "## Propuestas no recogidas" in result
     assert "hay lagunas" in result
 
 
 def test_format_summary_gaps_only_orphan():
     result = format_summary(None, None, None, _gaps(orphan="secciones sin vinculación"), None)
-    assert "## Lagunas detectadas" in result
+    assert "## Propuestas no recogidas" in result
 
 
 def test_format_summary_section_order():
     result = format_summary(_overview(), _themes(), _highlights(), _gaps(narrative="g"), _synthesis())
-    ejes_pos = result.index("## Principales ejes")
-    vision_pos = result.index("## Visión general")
-    areas_pos = result.index("## Áreas de mayor vinculación")
+    resumen_ley_pos = result.index("## Resumen de la ley")
+    resumen_vinc_pos = result.index("## Resumen de las vinculaciones detectadas")
+    lead_in_pos = result.index("Las áreas con mayor vinculación son:")
     vinculaciones_pos = result.index("## Vinculaciones destacadas")
-    lagunas_pos = result.index("## Lagunas detectadas")
-    assert ejes_pos < vision_pos < areas_pos < vinculaciones_pos < lagunas_pos
+    propuestas_pos = result.index("## Propuestas no recogidas")
+    assert resumen_ley_pos < resumen_vinc_pos < lead_in_pos < vinculaciones_pos < propuestas_pos
+    assert "## Áreas de mayor vinculación" not in result
 
 
 def test_format_summary_no_trailing_blank_line():
