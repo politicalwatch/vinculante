@@ -20,22 +20,50 @@ def _overview(intro: str = "intro text", axes: list[str] | None = None) -> Docum
 
 def _themes(labels: list[str] | None = None) -> ThemeAnalysis:
     labels = labels or ["Tema A"]
-    return ThemeAnalysis(clusters=[ThematicCluster(label=l, description=f"desc {l}") for l in labels])
+    return ThemeAnalysis(
+        clusters=[ThematicCluster(label=lbl, description=f"desc {lbl}") for lbl in labels]
+    )
 
 
-def _highlights(n: int = 1) -> HighlightExtraction:
-    return HighlightExtraction(highlights=[
-        Highlight(author_label="aut", proposal_claim="claim", section_ref="Sección 1 (p. 1)", relevance="relevant")
-        for _ in range(n)
-    ])
+def _highlight(author: str = "aut") -> Highlight:
+    return Highlight(
+        author_label=author,
+        proposal_claim="claim",
+        section_ref="Sección 1 (p. 1)",
+        relevance="relevant",
+    )
 
 
-def _gaps(orphan: str = "", unmatched: str = "", narrative: str = "") -> GapAnalysis:
-    return GapAnalysis(orphan_observations=orphan, unmatched_clusters=unmatched, gaps_narrative=narrative)
+def _highlights(
+    citizen: int = 0,
+    academia: int = 0,
+    citizen_intro: str = "Las propuestas ciudadanas destacan:",
+    academia_intro: str = "Las propuestas académicas reflejan:",
+) -> HighlightExtraction:
+    return HighlightExtraction(
+        citizen_intro=citizen_intro if citizen else "",
+        citizen_highlights=[_highlight("propuesta ciudadana") for _ in range(citizen)],
+        academia_intro=academia_intro if academia else "",
+        academia_highlights=[_highlight("Univ X") for _ in range(academia)],
+    )
 
 
-def _synthesis(vision: str = "vision texto", observaciones: list[str] | None = None) -> Synthesis:
-    return Synthesis(vision_general=vision, observaciones=observaciones or [])
+def _gaps(
+    orphan: str = "",
+    citizen: str = "",
+    academia: str = "",
+    narrative: str = "",
+) -> GapAnalysis:
+    return GapAnalysis(
+        orphan_observations=orphan,
+        citizen_unmatched=citizen,
+        academia_unmatched=academia,
+        gaps_narrative=narrative,
+    )
+
+
+def _synthesis(vision: str = "vision texto") -> Synthesis:
+    return Synthesis(vision_general=vision)
 
 
 # ---------------------------------------------------------------------------
@@ -69,16 +97,9 @@ def test_format_summary_only_synthesis_vision_general():
     assert "la visión" in result
 
 
-def test_format_summary_synthesis_no_observaciones_section_when_empty():
-    result = format_summary(None, None, None, None, _synthesis(observaciones=[]))
+def test_format_summary_no_observaciones_section():
+    result = format_summary(None, None, None, None, _synthesis())
     assert "## Observaciones" not in result
-
-
-def test_format_summary_synthesis_with_observaciones():
-    result = format_summary(None, None, None, None, _synthesis(observaciones=["obs 1", "obs 2"]))
-    assert "## Observaciones" in result
-    assert "- obs 1" in result
-    assert "- obs 2" in result
 
 
 def test_format_summary_only_themes():
@@ -95,14 +116,38 @@ def test_format_summary_synthesis_and_themes_show_lead_in():
     assert "**Vivienda**" in result
 
 
-def test_format_summary_only_highlights():
-    result = format_summary(None, None, _highlights(), None, None)
+def test_format_summary_highlights_citizen_only():
+    result = format_summary(None, None, _highlights(citizen=1), None, None)
     assert "## Vinculaciones destacadas" in result
-    assert "**aut**" in result
+    assert "Las propuestas ciudadanas destacan:" in result
+    assert "**propuesta ciudadana**" in result
+    assert "Las propuestas académicas reflejan:" not in result
+
+
+def test_format_summary_highlights_academia_only():
+    result = format_summary(None, None, _highlights(academia=1), None, None)
+    assert "## Vinculaciones destacadas" in result
+    assert "Las propuestas académicas reflejan:" in result
+    assert "**Univ X**" in result
+    assert "Las propuestas ciudadanas destacan:" not in result
+
+
+def test_format_summary_highlights_both_groups():
+    result = format_summary(None, None, _highlights(citizen=1, academia=1), None, None)
+    assert "## Vinculaciones destacadas" in result
+    assert "Las propuestas ciudadanas destacan:" in result
+    assert "Las propuestas académicas reflejan:" in result
+    assert "**propuesta ciudadana**" in result
+    assert "**Univ X**" in result
+
+
+def test_format_summary_highlights_empty_no_section():
+    result = format_summary(None, None, _highlights(), None, None)
+    assert "## Vinculaciones destacadas" not in result
 
 
 def test_format_summary_gaps_all_empty_fields_no_section():
-    result = format_summary(None, None, None, _gaps("", "", ""), None)
+    result = format_summary(None, None, None, _gaps(), None)
     assert "## Propuestas no recogidas" not in result
 
 
@@ -112,13 +157,39 @@ def test_format_summary_gaps_only_narrative():
     assert "hay lagunas" in result
 
 
-def test_format_summary_gaps_only_orphan():
-    result = format_summary(None, None, None, _gaps(orphan="secciones sin vinculación"), None)
+def test_format_summary_gaps_only_citizen():
+    result = format_summary(None, None, None, _gaps(citizen="ciudadanos sin vinculación"), None)
     assert "## Propuestas no recogidas" in result
+    assert "ciudadanos sin vinculación" in result
+
+
+def test_format_summary_gaps_only_academia():
+    result = format_summary(None, None, None, _gaps(academia="academia sin vinculación"), None)
+    assert "## Propuestas no recogidas" in result
+    assert "academia sin vinculación" in result
+
+
+def test_format_summary_gaps_full_four_fields_in_order():
+    result = format_summary(
+        None, None, None,
+        _gaps(orphan="huérfanas", citizen="ciudadanos", academia="académicos", narrative="síntesis"),
+        None,
+    )
+    orphan_pos = result.index("huérfanas")
+    citizen_pos = result.index("ciudadanos")
+    academia_pos = result.index("académicos")
+    narrative_pos = result.index("síntesis")
+    assert orphan_pos < citizen_pos < academia_pos < narrative_pos
 
 
 def test_format_summary_section_order():
-    result = format_summary(_overview(), _themes(), _highlights(), _gaps(narrative="g"), _synthesis())
+    result = format_summary(
+        _overview(),
+        _themes(),
+        _highlights(citizen=1),
+        _gaps(narrative="g"),
+        _synthesis(),
+    )
     resumen_ley_pos = result.index("## Resumen de la ley")
     resumen_vinc_pos = result.index("## Resumen de las vinculaciones detectadas")
     lead_in_pos = result.index("Las áreas con mayor vinculación son:")
@@ -126,6 +197,7 @@ def test_format_summary_section_order():
     propuestas_pos = result.index("## Propuestas no recogidas")
     assert resumen_ley_pos < resumen_vinc_pos < lead_in_pos < vinculaciones_pos < propuestas_pos
     assert "## Áreas de mayor vinculación" not in result
+    assert "## Observaciones" not in result
 
 
 def test_format_summary_no_trailing_blank_line():

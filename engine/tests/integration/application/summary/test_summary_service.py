@@ -72,11 +72,26 @@ def _full_responses() -> dict[type, BaseModel]:
     return {
         DocumentOverview: DocumentOverview(intro="overview intro", axes=["eje 1"]),
         ThemeAnalysis: ThemeAnalysis(clusters=[ThematicCluster(label="Vivienda", description="desc")]),
-        HighlightExtraction: HighlightExtraction(highlights=[
-            Highlight(author_label="autor", proposal_claim="propuesta", section_ref="Sección 1 (p. 1)", relevance="rel")
-        ]),
-        GapAnalysis: GapAnalysis(orphan_observations="", unmatched_clusters="", gaps_narrative="laguna importante"),
-        Synthesis: Synthesis(vision_general="síntesis general", observaciones=[]),
+        HighlightExtraction: HighlightExtraction(
+            citizen_intro="Las propuestas ciudadanas destacan:",
+            citizen_highlights=[
+                Highlight(
+                    author_label="propuesta ciudadana",
+                    proposal_claim="propuesta",
+                    section_ref="Sección 1 (p. 1)",
+                    relevance="rel",
+                )
+            ],
+            academia_intro="",
+            academia_highlights=[],
+        ),
+        GapAnalysis: GapAnalysis(
+            orphan_observations="",
+            citizen_unmatched="",
+            academia_unmatched="",
+            gaps_narrative="laguna importante",
+        ),
+        Synthesis: Synthesis(vision_general="síntesis general"),
     }
 
 

@@ -87,7 +87,7 @@ def build_summary_graph(
 
         highlight_candidates = [
             m for m in accepted
-            if m.degree == "alto" and m.section_spans
+            if m.section_spans
         ]
         orphans = find_orphan_sections(sections, accepted)
         unmatched = find_unmatched_proposals_with_ninguno(proposals, all_matches)

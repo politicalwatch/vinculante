@@ -31,32 +31,43 @@ def format_summary(
                 lines.append(f"- **{cluster.label}**: {cluster.description}")
             lines.append("")
 
-    if highlights and highlights.highlights:
+    if highlights and (highlights.citizen_highlights or highlights.academia_highlights):
         lines += ["## Vinculaciones destacadas", ""]
-        for h in highlights.highlights:
-            lines.append(
-                f"- **{h.author_label}** — {h.proposal_claim}. "
-                f"Vinculada con **{h.section_ref}**: {h.relevance}"
-            )
-        lines.append("")
+        if highlights.citizen_highlights:
+            if highlights.citizen_intro:
+                lines += [highlights.citizen_intro, ""]
+            for h in highlights.citizen_highlights:
+                lines.append(
+                    f"- **{h.author_label}** — {h.proposal_claim}. "
+                    f"Vinculada con **{h.section_ref}**: {h.relevance}"
+                )
+            lines.append("")
+        if highlights.academia_highlights:
+            if highlights.academia_intro:
+                lines += [highlights.academia_intro, ""]
+            for h in highlights.academia_highlights:
+                lines.append(
+                    f"- **{h.author_label}** — {h.proposal_claim}. "
+                    f"Vinculada con **{h.section_ref}**: {h.relevance}"
+                )
+            lines.append("")
 
-    has_gaps = gaps and any(
-        [gaps.orphan_observations, gaps.unmatched_clusters, gaps.gaps_narrative]
-    )
+    has_gaps = gaps and any([
+        gaps.orphan_observations,
+        gaps.citizen_unmatched,
+        gaps.academia_unmatched,
+        gaps.gaps_narrative,
+    ])
     if has_gaps:
         lines += ["## Propuestas no recogidas", ""]
         if gaps.orphan_observations:
             lines += [gaps.orphan_observations, ""]
-        if gaps.unmatched_clusters:
-            lines += [gaps.unmatched_clusters, ""]
+        if gaps.citizen_unmatched:
+            lines += [gaps.citizen_unmatched, ""]
+        if gaps.academia_unmatched:
+            lines += [gaps.academia_unmatched, ""]
         if gaps.gaps_narrative:
             lines += [gaps.gaps_narrative, ""]
-
-    if synthesis and synthesis.observaciones:
-        lines += ["## Observaciones", ""]
-        for obs in synthesis.observaciones:
-            lines.append(f"- {obs}")
-        lines.append("")
 
     while lines and lines[-1] == "":
         lines.pop()
