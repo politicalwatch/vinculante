@@ -17,7 +17,7 @@ defineEmits<{
 
 const authorTypeOptions = [
   { label: 'Todos', value: 'all' },
-  { label: 'Ciudadanía', value: 'citizens' },
+  { label: 'Ciudadanía', value: 'citizen' },
   { label: 'Academia', value: 'academia' }
 ]
 const authorTypeFilter = ref('all')

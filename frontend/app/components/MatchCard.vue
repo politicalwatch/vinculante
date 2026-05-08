@@ -20,7 +20,7 @@ const confidencePct = computed(() =>
 )
 
 const authorTypeLabels: Record<string, string> = {
-  citizens: 'Ciudadanía',
+  citizen: 'Ciudadanía',
   academia: 'Academia'
 }
 const authorTypeLabel = computed(() => {

@@ -21,7 +21,7 @@ def test_ingests_csv_rows_and_maps_all_fields(db_session):
     p = proposals["ref-1"]
     assert p.text == "Regular la IA"
     assert p.author == "Alice"
-    assert p.author_type == "ciudadania"
+    assert p.author_type == "citizen"
     assert p.topic == "digital"
     assert p.subtopic == "ia"
     assert p.source_file == file_path
