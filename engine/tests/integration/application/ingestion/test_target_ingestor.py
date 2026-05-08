@@ -47,3 +47,6 @@ def test_ingests_target_document_with_metadata_and_sections(db_session, chunker)
     assert all(s.is_matchable for s in body_sections)
     heading_texts = " ".join(s.text for s in heading_sections)
     assert "Capítulo" in heading_texts
+
+    assert any(s.page_number is not None for s in sections)
+    assert any(s.meta is not None and "doc_items" in s.meta for s in sections)

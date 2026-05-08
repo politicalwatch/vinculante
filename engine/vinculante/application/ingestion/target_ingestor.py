@@ -40,14 +40,18 @@ class TargetIngestor:
             is_heading_only = bool(metadata.get("is_heading_only"))
             if is_heading_only and _normalize(chunk["text"]) == title_norm:
                 continue
-            dl_meta = metadata.get("dl_meta", {})
-            section_type = dl_meta.get("doc_items", [{}])[0].get("label")
+            raw_meta = metadata.get("dl_meta", {})
+            doc_items = raw_meta.get("doc_items", [])
+            section_type = doc_items[0].get("label") if doc_items else None
+            prov = doc_items[0].get("prov", []) if doc_items else []
+            page_number = prov[0].get("page_no") if prov else None
             sections.append(Section(
                 text=chunk["text"],
                 text_markdown=chunk.get("text_markdown"),
                 clear_language=chunk["text"],
-                page_number=metadata.get("page_number"),
+                page_number=page_number,
                 section_type=section_type,
+                meta=raw_meta or None,
                 is_matchable=not is_heading_only,
                 target_id=target.id,
             ))
