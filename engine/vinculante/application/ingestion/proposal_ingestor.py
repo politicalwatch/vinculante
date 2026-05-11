@@ -28,13 +28,18 @@ class ProposalIngestor:
         self.repo = repo
         self.loader = loader
 
-    def ingest(self, file_path: str, target_id: int | None = None) -> list[Proposal]:
+    def ingest(
+        self,
+        file_path: str,
+        target_id: int | None = None,
+        author_type: str | None = None,
+    ) -> list[Proposal]:
         rows = self.loader.load(file_path)
         proposals = [
             Proposal(
                 text=row["text"],
                 author=row.get("author") or None,
-                author_type=normalize_author_type(row.get("author_type")),
+                author_type=normalize_author_type(row.get("author_type") or author_type),
                 reference=row.get("reference") or None,
                 topic=row.get("topic") or None,
                 subtopic=row.get("subtopic") or None,
