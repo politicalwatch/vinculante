@@ -39,11 +39,14 @@ class MatcherService:
         self._settings = settings
         self._graph = build_matching_graph(section_repo, embedder, llm, settings)
 
-    def run(self, target_id: int, skip_matched: bool = False) -> list[Match]:
-        return asyncio.run(self._run_async(target_id, skip_matched))
+    def run(self, target_id: int, topic: str | None = None, skip_matched: bool = False) -> list[Match]:
+        return asyncio.run(self._run_async(target_id, topic, skip_matched))
 
-    async def _run_async(self, target_id: int, skip_matched: bool) -> list[Match]:
+    async def _run_async(self, target_id: int, topic: str | None = None, skip_matched: bool = False) -> list[Match]:
         proposals = self.proposal_repo.get_by_target(target_id)
+        total_proposals = len(proposals)
+        if topic:
+            proposals = [p for p in proposals if p.topic and p.topic.strip().casefold() == topic.strip().casefold()]
         if skip_matched:
             proposals = [p for p in proposals if not self.match_repo.get_by_proposal(p.id)]
 
@@ -94,7 +97,7 @@ class MatcherService:
 
         sections = self._section_repo.get_by_target(target_id)
         all_target_matches = self.match_repo.get_accepted_by_target(target_id)
-        stats = compute_target_stats(sections, all_target_matches, total_proposals=len(proposals))
+        stats = compute_target_stats(sections, all_target_matches, total_proposals=total_proposals)
         self._target_repo.update_stats(target_id, stats)
 
         return all_matches

@@ -17,12 +17,17 @@ app = typer.Typer(help="Run the matching pipeline.")
 @app.command("run")
 def run_matching(
     target_id: int = typer.Option(..., help="Target document to match proposals against"),
+    topic: str | None = typer.Option(
+        None, "--topic", help="Only match proposals whose topic matches (case-insensitive exact)"
+    ),
     skip_matched: bool = typer.Option(False, help="Skip proposals that already have matches"),
-    skip_summary: bool = typer.Option(
-        False, help="Skip executive summary generation after matching"
+    skip_summary: bool | None = typer.Option(
+        None, "--skip-summary/--no-skip-summary",
+        help="Skip executive summary generation after matching (default: True when --topic is set)",
     ),
 ):
     """Match all proposals to sections using vector similarity + LLM."""
+    skip = skip_summary if skip_summary is not None else bool(topic)
     settings = get_settings()
     embedder = create_embedder_from_env(settings)
     llm = create_llm_from_env(settings)
@@ -36,10 +41,10 @@ def run_matching(
             llm=llm,
             settings=settings,
         )
-        matches = match_service.run(target_id=target_id, skip_matched=skip_matched)
+        matches = match_service.run(target_id=target_id, topic=topic, skip_matched=skip_matched)
         typer.echo(f"Created {len(matches)} matches")
 
-        if not skip_summary:
+        if not skip:
             typer.echo("Generating executive summary…")
             summary_llm = create_summary_llm_from_env(settings)
             summary_service = SummaryService(
