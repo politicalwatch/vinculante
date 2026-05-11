@@ -37,6 +37,7 @@ const authorTypeLabel = computed(() => {
       selected ? 'ring-2 ring-primary' : '',
       hovered && !selected ? 'bg-primary/5' : ''
     ]"
+    :data-reference="match.proposal.reference"
     @mouseenter="$emit('hover')"
     @mouseleave="$emit('leave')"
     @click="$emit('click')"
@@ -63,8 +64,8 @@ const authorTypeLabel = computed(() => {
       <!-- Proposal metadata -->
       <div class="text-xs text-muted flex flex-wrap gap-x-3 gap-y-1">
         <span v-if="match.proposal.author">{{ match.proposal.author }}</span>
-        <span v-if="match.proposal.reference">{{ match.proposal.reference }}</span>
         <span v-if="match.proposal.topic">{{ match.proposal.topic }}</span>
+        <span v-if="match.proposal.subtopic">{{ match.proposal.subtopic }}</span>
       </div>
 
       <!-- Explanation collapsible -->
