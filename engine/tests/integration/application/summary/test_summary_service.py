@@ -181,7 +181,10 @@ def test_highlights_short_circuit_when_no_section_spans(db_session, embedder):
     assert "## Vinculaciones destacadas" not in result
 
 
-def test_all_nodes_fail_returns_empty_and_logs_warning(db_session, embedder, caplog):
+def test_all_nodes_fail_returns_empty_and_logs_warning(db_session, embedder):
+    from unittest.mock import patch
+    import vinculante.application.summary.summary_service as svc_mod
+
     target = _make_target(db_session)
     section = SectionRepository(db_session).save(
         Section(text="texto", target_id=target.id, embedding=_embed(embedder, "texto"))
@@ -196,12 +199,13 @@ def test_all_nodes_fail_returns_empty_and_logs_warning(db_session, embedder, cap
     failing = {schema: RuntimeError("boom") for schema in (DocumentOverview, ThemeAnalysis, HighlightExtraction, GapAnalysis, Synthesis)}
     llm = FakeStructuredLLM(failing)
 
-    import logging
-    with caplog.at_level(logging.WARNING):
+    with patch.object(svc_mod, "logger") as mock_logger:
         result = _make_service(db_session, llm).run(target.id)
 
     assert result == ""
-    assert "empty" in caplog.text.lower() or "Summary generation" in caplog.text
+    assert mock_logger.warning.called
+    warning_msg = mock_logger.warning.call_args[0][0]
+    assert "empty" in warning_msg.lower() or "Summary generation" in warning_msg
 
 
 def test_missing_target_raises_value_error(db_session):

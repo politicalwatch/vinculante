@@ -80,6 +80,7 @@ def test_tracer_saves_match_with_llm_fields(db_session, embedder):
         proposal_repo=proposal_repo,
         section_repo=section_repo,
         match_repo=match_repo,
+        target_repo=TargetRepository(db_session),
         embedder=embedder,
         llm=llm,
         settings=_settings(),
@@ -117,6 +118,7 @@ def test_below_threshold_is_persisted(db_session, embedder):
         proposal_repo=proposal_repo,
         section_repo=section_repo,
         match_repo=match_repo,
+        target_repo=TargetRepository(db_session),
         embedder=embedder, llm=llm,
         settings=_settings(matching_confidence_threshold=0.5),
     )
@@ -150,6 +152,7 @@ def test_degree_ninguno_is_persisted(db_session, embedder):
         proposal_repo=proposal_repo,
         section_repo=section_repo,
         match_repo=match_repo,
+        target_repo=TargetRepository(db_session),
         embedder=embedder, llm=llm,
         settings=_settings(),
     )
@@ -182,6 +185,7 @@ def test_multiple_candidates_all_saved(db_session, embedder):
         proposal_repo=proposal_repo,
         section_repo=section_repo,
         match_repo=match_repo,
+        target_repo=TargetRepository(db_session),
         embedder=embedder, llm=llm,
         settings=_settings(matching_top_k_min=3, matching_top_k_max=3),
     )
@@ -215,6 +219,7 @@ def test_sections_scoped_to_target(db_session, embedder):
         proposal_repo=proposal_repo,
         section_repo=section_repo,
         match_repo=match_repo,
+        target_repo=TargetRepository(db_session),
         embedder=embedder, llm=llm,
         settings=_settings(),
     )
@@ -244,6 +249,7 @@ def test_proposals_scoped_to_target(db_session, embedder):
         proposal_repo=proposal_repo,
         section_repo=section_repo,
         match_repo=match_repo,
+        target_repo=TargetRepository(db_session),
         embedder=embedder, llm=llm,
         settings=_settings(),
     )
@@ -275,6 +281,7 @@ def test_skip_matched_skips_proposals_with_existing_matches(db_session, embedder
         proposal_repo=proposal_repo,
         section_repo=section_repo,
         match_repo=match_repo,
+        target_repo=TargetRepository(db_session),
         embedder=embedder, llm=llm,
         settings=_settings(),
     )

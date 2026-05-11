@@ -42,7 +42,8 @@ def test_ingests_target_document_with_metadata_and_sections(db_session, chunker)
     heading_sections = [s for s in sections if not s.is_matchable]
     body_sections = [s for s in sections if s.is_matchable]
     assert len(heading_sections) >= 1
-    assert all(s.section_type == "section_header" for s in heading_sections)
+    _non_matchable_types = {"exposicion_motivos", "preambulo", "titulo", "capitulo", "seccion", "disp_transitoria", "disp_derogatoria", "disp_final"}
+    assert all(s.section_type in _non_matchable_types for s in heading_sections)
     assert all(s.clear_language == s.text for s in heading_sections)
     assert all(s.is_matchable for s in body_sections)
     heading_texts = " ".join(s.text for s in heading_sections)
