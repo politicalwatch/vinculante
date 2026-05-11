@@ -53,12 +53,15 @@ class ProposalEmbedderService:
         self.embedder = embedder
         self.batch_size = batch_size
 
-    def embed_proposals(self, source_file: str | None = None) -> int:
-        proposals = (
-            self.proposal_repo.get_by_source_file(source_file)
-            if source_file
-            else self.proposal_repo.get_all()
-        )
+    def embed_proposals(self, source_file: str | None = None, target_id: int | None = None) -> int:
+        if source_file and target_id:
+            raise ValueError("source_file and target_id are mutually exclusive")
+        if target_id:
+            proposals = self.proposal_repo.get_by_target(target_id)
+        elif source_file:
+            proposals = self.proposal_repo.get_by_source_file(source_file)
+        else:
+            proposals = self.proposal_repo.get_all()
         unembedded = [p for p in proposals if p.embedding is None]
         if not unembedded:
             return 0

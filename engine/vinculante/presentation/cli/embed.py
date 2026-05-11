@@ -30,12 +30,15 @@ def embed_sections(
 @app.command("proposals")
 def embed_proposals(
     source_file: str = typer.Option(None, help="Embed only proposals from this source file"),
+    target_id: int = typer.Option(None, help="Embed only proposals of this target document"),
 ):
     """Embed all unembedded proposals and store vectors in the database."""
+    if source_file and target_id:
+        raise typer.BadParameter("--source-file and --target-id are mutually exclusive")
     settings = get_settings()
     embedder = create_embedder_from_env(settings)
     with SessionLocal() as db:
         proposal_repo = ProposalRepository(db)
         service = ProposalEmbedderService(proposal_repo=proposal_repo, embedder=embedder)
-        count = service.embed_proposals(source_file=source_file)
+        count = service.embed_proposals(source_file=source_file, target_id=target_id)
     typer.echo(f"Embedded {count} proposals")
