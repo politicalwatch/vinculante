@@ -3,6 +3,12 @@ import re
 from docling.document_converter import DocumentConverter
 from docling_core.transforms.chunker import HierarchicalChunker
 
+_INLINE_MD_RE = re.compile(r"[\*_]+")
+
+
+def _strip_inline_md(s: str) -> str:
+    return _INLINE_MD_RE.sub("", s)
+
 # Spanish legal-document structural keywords. When docling's layout pass fuses
 # adjacent headings into a single section_header item (e.g. document title +
 # first chapter), we re-split the text on these keywords.
@@ -15,6 +21,8 @@ LEGAL_HEADING_KEYWORDS = (
     "Parte",
     "Anexo",
     "Disposición",
+    "Artículo",
+    "Exposición",
 )
 _HEADING_SPLIT_RE = re.compile(
     r"(?<=\S)\s+(?=(?:" + "|".join(LEGAL_HEADING_KEYWORDS) + r")\b)"
@@ -44,12 +52,6 @@ class DoclingChunker:
 
         body_chunks = list(self._chunker.chunk(dl_doc))
 
-        # Heading texts already attached to a body chunk — those are not standalone.
-        consumed_headings: set[str] = set()
-        for ch in body_chunks:
-            for h in ch.meta.headings or []:
-                consumed_headings.add(h)
-
         # Map first doc_item self_ref -> chunk index, so reading-order traversal
         # can splice each body chunk in at the right position.
         chunk_by_first_ref: dict[str, int] = {}
@@ -71,10 +73,8 @@ class DoclingChunker:
                     continue
                 level = getattr(item, "level", 1) or 1
                 for piece in _split_merged_heading(text):
-                    if piece in consumed_headings:
-                        continue
                     results.append({
-                        "text": piece,
+                        "text": _strip_inline_md(piece),
                         "text_markdown": ("#" * (level + 1)) + " " + piece,
                         "metadata": {
                             "is_heading_only": True,
@@ -89,8 +89,8 @@ class DoclingChunker:
             emitted_chunks.add(idx)
             ch = body_chunks[idx]
             results.append({
-                "text": self._chunker.contextualize(ch),
-                "text_markdown": self._to_markdown(ch),
+                "text": _strip_inline_md(ch.text),
+                "text_markdown": ch.text,
                 "metadata": {
                     "dl_meta": ch.meta.export_json_dict(),
                     "headings": list(ch.meta.headings or []),
@@ -99,13 +99,3 @@ class DoclingChunker:
             })
 
         return results
-
-    def _to_markdown(self, chunk) -> str:
-        parts = []
-        for i, heading in enumerate(chunk.meta.headings or []):
-            level = "#" * (i + 2)
-            parts.append(f"{level} {heading}")
-        if parts:
-            parts.append("")
-        parts.append(chunk.text)
-        return "\n\n".join(parts)

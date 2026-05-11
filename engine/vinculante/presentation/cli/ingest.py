@@ -43,7 +43,7 @@ def ingest_proposals(
 
 @app.command("target")
 def ingest_target(
-    file: Path = typer.Option(..., help="Path to docx to ingest as target document"),
+    file: Path = typer.Option(..., help="Path to .docx or .pdf to ingest as target document"),
     title: str = typer.Option(..., help="Document title"),
     author: str = typer.Option(..., help="Document author"),
     version: str = typer.Option(None, help="Document version"),
