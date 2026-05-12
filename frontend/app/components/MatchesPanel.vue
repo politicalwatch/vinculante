@@ -29,6 +29,12 @@ const degreeOptions = [
 ]
 const degreeFilter = ref('all')
 
+const matchesList = ref<HTMLElement | null>(null)
+let savedMatchesScroll = 0
+
+onDeactivated(() => { savedMatchesScroll = matchesList.value?.scrollTop ?? 0 })
+onActivated(() => { nextTick(() => { if (matchesList.value) matchesList.value.scrollTop = savedMatchesScroll }) })
+
 const filteredMatches = computed(() => {
   return props.matches.filter((m) => {
     if (authorTypeFilter.value !== 'all' && m.proposal.author_type !== authorTypeFilter.value) return false
@@ -111,7 +117,7 @@ const filteredMatches = computed(() => {
       </div>
 
       <!-- Matches list -->
-      <div v-else class="overflow-y-auto flex-1 p-4 flex flex-col gap-3">
+      <div v-else ref="matchesList" class="overflow-y-auto flex-1 p-4 flex flex-col gap-3">
         <MatchCard
           v-for="match in filteredMatches"
           :key="match.id"

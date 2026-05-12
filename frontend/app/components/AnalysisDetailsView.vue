@@ -40,6 +40,10 @@ const { data: matches, status: matchesStatus } = useAsyncData(
 )
 
 const sectionsPanel = ref<HTMLElement | null>(null)
+let savedSectionsScroll = 0
+
+onDeactivated(() => { savedSectionsScroll = sectionsPanel.value?.scrollTop ?? 0 })
+onActivated(() => { nextTick(() => { if (sectionsPanel.value) sectionsPanel.value.scrollTop = savedSectionsScroll }) })
 
 function selectSection(sectionId: number) {
   selectedSectionId.value = sectionId
