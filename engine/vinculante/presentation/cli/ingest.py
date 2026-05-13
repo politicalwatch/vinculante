@@ -1,5 +1,6 @@
 import csv
 from pathlib import Path
+from typing import Optional
 
 import typer
 
@@ -38,34 +39,51 @@ class _PreviewDumpingLoader:
         return rows
 
 
-def _loader_for(path: Path):
+def _loader_for(path: Path, use_report_loader: bool):
     suffix = path.suffix.lower()
     if suffix == ".csv":
         return CsvLoader()
     if suffix in (".xlsx", ".xls"):
         return XlsxLoader()
+    if use_report_loader:
+        if suffix in (".docx", ".pdf"):
+            from vinculante.infrastructure.loaders.report_loader import ReportLoader
+            settings = get_settings()
+            llm = create_llm_from_env(settings)
+            return ReportLoader(llm=llm, settings=settings)
+        raise typer.BadParameter(
+            f"--use-report-loader only supports .docx and .pdf (got {suffix})"
+        )
     if suffix == ".docx":
         return DocxLoader()
+    if suffix == ".pdf":
+        raise typer.BadParameter("PDF proposals require --use-report-loader")
     raise typer.BadParameter(f"Unsupported proposals file extension: {suffix}")
 
 
 @app.command("proposals")
 def ingest_proposals(
-    file: Path = typer.Option(..., help="Path to csv/xlsx/docx with proposals"),
-    target_id: int = typer.Option(None, help="Link ingested proposals to this target document"),
-    author_type: str = typer.Option(
+    file: Path = typer.Option(..., help="Path to csv/xlsx/docx/pdf with proposals"),
+    target_id: Optional[int] = typer.Option(None, help="Link ingested proposals to this target document"),
+    author_type: Optional[str] = typer.Option(
         None,
         help="Default author_type for rows missing it in the file",
     ),
+    use_report_loader: bool = typer.Option(
+        False,
+        "--use-report-loader",
+        help="Parse the input as a long-form report (PDF/DOCX) with the "
+             "LLM-assisted ReportLoader. Required for PDF input.",
+    ),
     preview_csv: bool = typer.Option(
-        False, help="Write a sidecar .preview.csv next to the input file (docx only)"
+        False, help="Write a sidecar .preview.csv next to the input file"
     ),
 ):
     """Load proposals from a file into the database."""
-    loader = _loader_for(file)
+    loader = _loader_for(file, use_report_loader)
     if preview_csv:
-        if file.suffix.lower() != ".docx":
-            raise typer.BadParameter("--preview-csv is only supported for .docx input")
+        if file.suffix.lower() not in (".docx", ".pdf"):
+            raise typer.BadParameter("--preview-csv is only supported for .docx and .pdf input")
         loader = _PreviewDumpingLoader(loader, file.with_suffix(".preview.csv"))
     with SessionLocal() as db:
         repo = ProposalRepository(db)
