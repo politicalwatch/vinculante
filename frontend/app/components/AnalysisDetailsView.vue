@@ -22,7 +22,7 @@ const selectedMatchId = ref<number | null>(null)
 const hideUnmatched = ref(false)
 
 const isMobile = useMediaQuery('(max-width: 767px)')
-const matchesOpen = ref(false)
+const matchesOpen = defineModel<boolean>('matchesOpen', { default: false })
 
 const filteredSections = computed(() => {
   const all = sections.value ?? []
@@ -217,7 +217,7 @@ const depthMap = computed(() => {
     :modal="false"
     :overlay="false"
     :ui="{
-      content: 'h-[70dvh]',
+      content: 'h-[60dvh]',
       container: 'p-0 gap-0 overflow-hidden',
       body: 'p-0 overflow-hidden'
     }"

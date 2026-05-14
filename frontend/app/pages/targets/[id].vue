@@ -18,6 +18,7 @@ if (targetError.value) {
 useSeoMeta({ title: () => `${target.value?.title ?? ''} — Vinculante` })
 
 const view = ref<'overview' | 'analysis'>('overview')
+const matchesDrawerOpen = ref(false)
 
 const tabs: TabsItem[] = [
   { label: 'Resumen', value: 'overview', icon: 'i-lucide-file-text' },
@@ -27,8 +28,11 @@ const tabs: TabsItem[] = [
 
 <template>
   <div class="h-full flex flex-col">
-    <!-- Target header -->
-    <div class="border-b border-default px-4 md:px-6 py-4 shrink-0">
+    <!-- Target header (hidden on mobile while matches drawer is open) -->
+    <div
+      class="border-b border-default px-4 md:px-6 py-4 shrink-0"
+      :class="matchesDrawerOpen && 'hidden md:block'"
+    >
       <NuxtLink
         to="/"
         class="text-sm text-muted hover:text-default flex items-center gap-1 mb-2"
@@ -84,6 +88,7 @@ const tabs: TabsItem[] = [
           v-else
           key="analysis"
           :target-id="id"
+          v-model:matches-open="matchesDrawerOpen"
         />
       </KeepAlive>
     </Transition>
