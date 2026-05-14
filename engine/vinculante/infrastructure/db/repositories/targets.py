@@ -65,6 +65,7 @@ class TargetRepository(BaseRepository[TargetDocument]):
             )
             .outerjoin(proposal_subq, proposal_subq.c.target_id == TargetDocument.id)
             .outerjoin(match_subq, match_subq.c.target_id == TargetDocument.id)
+            .order_by(TargetDocument.id.desc())
             .all()
         )
 
