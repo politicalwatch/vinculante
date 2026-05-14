@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useMediaQuery } from '@vueuse/core'
 import type { Match, Section } from '~/types/api'
 
 const props = defineProps<{
@@ -19,6 +20,9 @@ const selectedSectionId = ref<number | null>(null)
 const hoveredMatchId = ref<number | null>(null)
 const selectedMatchId = ref<number | null>(null)
 const hideUnmatched = ref(false)
+
+const isMobile = useMediaQuery('(max-width: 767px)')
+const matchesOpen = ref(false)
 
 const filteredSections = computed(() => {
   const all = sections.value ?? []
@@ -55,14 +59,19 @@ function scrollToSelectedSection() {
   nextTick(() => {
     sectionsPanel.value
       ?.querySelector<HTMLElement>(`[data-section-id="${id}"]`)
-      ?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+      ?.scrollIntoView({ behavior: 'smooth', block: isMobile.value ? 'start' : 'nearest' })
   })
 }
 
-watch(selectedSectionId, () => {
+watch(selectedSectionId, (id) => {
   hoveredMatchId.value = null
   selectedMatchId.value = null
   scrollToSelectedSection()
+  if (id !== null && isMobile.value) matchesOpen.value = true
+})
+
+watch(matchesOpen, (open) => {
+  if (!open) selectedSectionId.value = null
 })
 
 watch(selectedMatchId, (id) => {
@@ -121,7 +130,7 @@ const depthMap = computed(() => {
     <!-- Left: sections list -->
     <div
       ref="sectionsPanel"
-      class="w-7/12 border-r border-default overflow-y-auto"
+      class="w-full md:w-7/12 md:border-r border-default overflow-y-auto"
     >
       <!-- Filter bar -->
       <div class="px-4 py-2 border-b border-default sticky top-0 bg-default z-10 flex items-center justify-between">
@@ -175,6 +184,7 @@ const depthMap = computed(() => {
             v-for="section in filteredSections"
             :key="section.id"
             :data-section-id="section.id"
+            class="scroll-mt-10"
             :section="section"
             :depth="depthMap.get(section.id) ?? 0"
             :active="selectedSectionId === section.id"
@@ -186,8 +196,8 @@ const depthMap = computed(() => {
       </Transition>
     </div>
 
-    <!-- Right: matches panel -->
-    <div class="w-5/12 overflow-hidden">
+    <!-- Right: matches panel (desktop only) -->
+    <div class="hidden md:block w-5/12 overflow-hidden">
       <MatchesPanel
         :section-id="selectedSectionId"
         :matches="sortedMatches"
@@ -200,4 +210,29 @@ const depthMap = computed(() => {
       />
     </div>
   </div>
+
+  <!-- Mobile: matches drawer -->
+  <UDrawer
+    v-model:open="matchesOpen"
+    :modal="false"
+    :overlay="false"
+    :ui="{
+      content: 'h-[70dvh]',
+      container: 'p-0 gap-0 overflow-hidden',
+      body: 'p-0 overflow-hidden'
+    }"
+  >
+    <template #body>
+      <MatchesPanel
+        :section-id="selectedSectionId"
+        :matches="sortedMatches"
+        :loading="matchesStatus === 'pending'"
+        :hovered-match-id="hoveredMatchId"
+        :selected-match-id="selectedMatchId"
+        @hover-match="hoveredMatchId = $event"
+        @leave-match="hoveredMatchId = null"
+        @select-match="selectedMatchId = selectedMatchId === $event ? null : $event"
+      />
+    </template>
+  </UDrawer>
 </template>

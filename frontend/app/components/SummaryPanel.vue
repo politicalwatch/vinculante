@@ -5,7 +5,7 @@ defineProps<{
 </script>
 
 <template>
-  <div class="h-full overflow-y-auto px-6 py-5">
+  <div class="md:h-full md:overflow-y-auto px-6 py-5">
     <div v-if="summary" class="prose prose-sm max-w-none dark:prose-invert">
       <MDC :value="summary" />
     </div>

@@ -28,7 +28,7 @@ const tabs: TabsItem[] = [
 <template>
   <div class="h-full flex flex-col">
     <!-- Target header -->
-    <div class="border-b border-default px-6 py-4 shrink-0">
+    <div class="border-b border-default px-4 md:px-6 py-4 shrink-0">
       <NuxtLink
         to="/"
         class="text-sm text-muted hover:text-default flex items-center gap-1 mb-2"
@@ -39,8 +39,8 @@ const tabs: TabsItem[] = [
         />
         Todos los documentos
       </NuxtLink>
-      <div class="flex items-start justify-between gap-4">
-        <div>
+      <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-3 md:gap-4">
+        <div class="min-w-0">
           <h1 class="text-2xl font-semibold text-highlighted">
             {{ target?.title }}
           </h1>
@@ -54,14 +54,16 @@ const tabs: TabsItem[] = [
             </template>
           </p>
         </div>
-        <UTabs
-          v-model="view"
-          :items="tabs"
-          :content="false"
-          color="neutral"
-          variant="pill"
-          size="sm"
-        />
+        <div class="flex justify-center md:justify-end shrink-0">
+          <UTabs
+            v-model="view"
+            :items="tabs"
+            :content="false"
+            color="neutral"
+            variant="pill"
+            size="sm"
+          />
+        </div>
       </div>
     </div>
 

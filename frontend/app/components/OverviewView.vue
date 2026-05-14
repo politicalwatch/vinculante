@@ -7,11 +7,11 @@ defineProps<{
 </script>
 
 <template>
-  <div class="flex flex-1 overflow-hidden">
-    <div class="w-1/2 border-r border-default">
+  <div class="flex flex-col md:flex-row flex-1 overflow-y-auto md:overflow-hidden">
+    <div class="w-full md:w-1/2 order-2 md:order-1 border-t md:border-t-0 md:border-r border-default">
       <SummaryPanel :summary="target?.summary ?? null" />
     </div>
-    <div class="w-1/2 overflow-y-auto">
+    <div class="w-full md:w-1/2 order-1 md:order-2 md:overflow-y-auto">
       <StatsPanel :stats="target?.stats ?? null" />
     </div>
   </div>

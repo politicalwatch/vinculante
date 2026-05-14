@@ -38,7 +38,7 @@ useSeoMeta({
         <NuxtPage />
       </UMain>
 
-      <UFooter class="border-t border-default shrink-0">
+      <UFooter class="border-t border-default shrink-0" :ui="{ container: 'py-2 sm:py-4 lg:flex lg:items-center lg:justify-between lg:gap-x-3' }">
         <template #left>
           <p class="text-sm text-muted">
             © {{ new Date().getFullYear() }} Political Watch

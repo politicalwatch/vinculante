@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "nuxt build",
-    "dev": "nuxt dev",
+    "dev": "nuxt dev --host",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
@@ -20,7 +20,7 @@
     "@nuxt/ui": "^4.6.1",
     "@nuxtjs/mdc": "^0.21.1",
     "chart.js": "^4.5.1",
-    "nuxt": "^4.4.4",
+    "nuxt": "^4.4.5",
     "tailwindcss": "^4.2.2",
     "vue-chartjs": "^5.3.3"
   },
