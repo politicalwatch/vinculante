@@ -24,7 +24,8 @@ useSeoMeta({
       <UHeader>
         <template #left>
           <NuxtLink to="/" aria-label="Vinculante" class="block">
-            <img src="/logo.svg" alt="Vinculante" class="h-7 w-auto" />
+            <img src="/logo.svg" alt="Vinculante" class="h-7 w-auto block dark:hidden" />
+            <img src="/logo-white.svg" alt="Vinculante" aria-hidden="true" class="h-7 w-auto hidden dark:block" />
           </NuxtLink>
         </template>
 
