@@ -25,8 +25,11 @@ class ExtractedProposal(BaseModel):
     )
     text: str = Field(
         description=(
-            "Texto de la propuesta, VERBATIM o paráfrasis muy cercana al documento original. "
-            "Incluye 2-4 oraciones de justificación o contexto si están presentes en el fragmento."
+            "Texto VERBATIM de la propuesta tal como aparece en el documento original. "
+            "Copia las oraciones exactamente, incluyendo todo el desarrollo, justificación, "
+            "listas con viñetas y ejemplos. NO resumas, NO parafrasees, NO recortes listas. "
+            "Si la propuesta va precedida por una línea 'Título. <frase>', incluye esa frase "
+            "verbatim como primera oración (sin el prefijo 'Título.')."
         )
     )
     indicators: list[str] = Field(

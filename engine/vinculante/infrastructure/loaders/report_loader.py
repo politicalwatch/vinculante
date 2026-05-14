@@ -2,7 +2,9 @@ import logging
 import re
 import unicodedata
 
-from docling.document_converter import DocumentConverter
+from docling.datamodel.base_models import InputFormat
+from docling.datamodel.pipeline_options import PdfPipelineOptions
+from docling.document_converter import DocumentConverter, PdfFormatOption
 
 from vinculante.application.ingestion.report_schemas import (
     AuthorExtraction,
@@ -24,6 +26,19 @@ _SUBITEM_RE = re.compile(
     re.IGNORECASE,
 )
 _NESTED_NUM_RE = re.compile(r"^\s*\d+\.\d+")
+
+# Vertical-keyed Medida/Título/Descripción table layout (committee/government reports)
+_MEDIDA_HEADER_RE = re.compile(
+    r"^\s*(medida|propuesta|recomendaci[oó]n|criterio)\s+(n[uú]mero\s+)?\d+\b",
+    re.IGNORECASE,
+)
+_TITULO_PREFIX_RE = re.compile(r"^\s*t[ií]tulo\s*[\.\:]\s*", re.IGNORECASE)
+_DESC_PREFIX_RE   = re.compile(r"^\s*descripci[oó]n\s*[\.\:]\s*", re.IGNORECASE)
+# Combined: strips "Título. " / "Descripción: " at start of any line (table cells + LLM output)
+_FIELD_PREFIX_RE  = re.compile(
+    r"^\s*(t[ií]tulo\s*[\.\:]|descripci[oó]n\s*[\.\:])\s*",
+    re.IGNORECASE | re.MULTILINE,
+)
 
 # Max characters from start of document for author extraction (~2 pages)
 _AUTHOR_WINDOW = 2500
@@ -51,12 +66,21 @@ documento. Una propuesta es cualquier demanda o medida específica con un verbo 
 recomendación o compromiso (debe, deberá, se recomienda, se propone, hay que, sugerimos, etc.).
 
 Para cada propuesta extrae:
-- text: Texto VERBATIM o paráfrasis muy cercana, con 2-4 oraciones de justificación o contexto \
-si están presentes. Preferir la versión más detallada cuando la misma propuesta aparezca en \
-varias secciones (p.ej., resumen y cuerpo del documento).
-- title: Identificador corto si existe (e.g., "Medida 3", "Propuesta 1"). null si no hay.
+- text: Texto VERBATIM del documento. Copia las oraciones exactamente como aparecen, incluyendo \
+todo el desarrollo, justificación, listas con viñetas y ejemplos. NO resumas ni parafrasees. \
+Preferir el texto más completo cuando la misma propuesta aparezca en varias secciones. \
+Si la propuesta va precedida por una línea "Título. <frase>" en el documento, incluye esa \
+frase verbatim como primera oración de text (sin el prefijo "Título."). \
+Si la propuesta va seguida de una enumeración con viñetas (•, -) o de párrafos de aclaración \
+inmediatamente posteriores (definiciones tipo "Se entiende como X a:…", matizaciones, ámbitos \
+de aplicación), inclúyelos verbatim como parte del mismo text. NO los separes en propuestas \
+distintas.
+- title: Identificador del CONTENIDO de la propuesta si aparece explícitamente \
+(e.g., "Etiquetado en dispositivos digitales", "Estado emprendedor"). \
+NO uses etiquetas de numeración como "Medida 3" o "Medida número 5" — déjalo en null en ese caso.
 - topic: Primera parte del encabezado más cercano (la parte ANTES de " / " si hay dos niveles). \
-Cópialo tal como aparece en el texto, SIN el prefijo ##.
+Cópialo tal como aparece en el texto, SIN el prefijo ##. Ignora etiquetas de numeración \
+como "Medida número N" al elegir el topic; usa el encabezado temático más cercano.
 - subtopic: Segunda parte del encabezado (la parte DESPUÉS de " / ") si existe y es diferente al topic. \
 null si solo hay un nivel de encabezado. SIN el prefijo ##.
 
@@ -179,6 +203,19 @@ def _compute_topic_subtopic(headings: list[str]) -> tuple[str | None, str | None
     return non_empty[-2], non_empty[-1]
 
 
+def _strip_field_prefixes(text: str) -> str:
+    return _FIELD_PREFIX_RE.sub("", text)
+
+
+def _looks_like_full_title(text: str) -> bool:
+    """True when a medida-label heading has meaningful content beyond the 'Medida N' prefix."""
+    m = _MEDIDA_HEADER_RE.match(text)
+    if not m:
+        return False
+    remainder = text[m.end():].strip()
+    return len(re.findall(r'\w{2,}', remainder)) >= 1
+
+
 class ReportLoader:
     """Loads proposals from long-form reports (PDF or DOCX).
 
@@ -197,7 +234,13 @@ class ReportLoader:
         llm = llm or create_llm_from_env(s)
         self._author_llm = llm.with_structured_output(AuthorExtraction)
         self._extract_llm = llm.with_structured_output(ExtractedProposalList)
-        self._converter = DocumentConverter()
+        # do_table_structure=False prevents Docling's table structure recognition
+        # from truncating long table cells (e.g. multi-paragraph description cells
+        # in committee-report PDFs). Content flows as text/list items instead.
+        _pdf_opts = PdfPipelineOptions(do_table_structure=False)
+        self._converter = DocumentConverter(
+            format_options={InputFormat.PDF: PdfFormatOption(pipeline_options=_pdf_opts)}
+        )
 
     def load(self, file_path: str) -> list[dict]:
         conv_res = self._converter.convert(file_path)
@@ -260,6 +303,10 @@ class ReportLoader:
                 if not text:
                     continue
                 flush()
+                if label == "section_header" and _MEDIDA_HEADER_RE.match(text) \
+                        and not _looks_like_full_title(text):
+                    buf.append(text)
+                    continue
                 if level is not None and level >= 2:
                     # DOCX: trust explicit hierarchy (level 2=theme, level 3+=subitem)
                     if level >= 3:
@@ -282,7 +329,7 @@ class ReportLoader:
                     try:
                         md = item.export_to_markdown(dl_doc)
                         if md:
-                            buf.append(md)
+                            buf.append(_strip_field_prefixes(md))
                     except Exception:
                         _logger.exception("table markdown export failed")
             elif text:
@@ -311,7 +358,7 @@ class ReportLoader:
         for p in proposals:
             if not _is_verbatim(p.text, prose_blob):
                 _logger.debug("Extracted text not verbatim in source: %.80s...", p.text)
-            text = p.text
+            text = _strip_field_prefixes(p.text)
             if p.indicators:
                 text += "\n\nIndicadores: " + "; ".join(p.indicators)
             if p.targets:
@@ -339,7 +386,10 @@ class ReportLoader:
             table_data = table_item.data
         except AttributeError:
             return []
-        if table_data is None or table_data.num_cols not in (2, 3):
+        if table_data is None:
+            return []
+
+        if table_data.num_cols not in (2, 3):
             return []
 
         grid = _build_table_grid(table_data)
@@ -347,8 +397,12 @@ class ReportLoader:
             return []
 
         header = [_normalize(cell) for cell in grid[0]]
-        title_col = next((i for i, h in enumerate(header) if any(kw in h for kw in _TITLE_KW)), None)
-        body_col = next((i for i, h in enumerate(header) if any(kw in h for kw in _BODY_KW)), None)
+        title_col = next(
+            (i for i, h in enumerate(header) if any(kw in h for kw in _TITLE_KW)), None
+        )
+        body_col = next(
+            (i for i, h in enumerate(header) if any(kw in h for kw in _BODY_KW)), None
+        )
 
         if title_col is None or body_col is None or title_col == body_col:
             return []

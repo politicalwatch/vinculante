@@ -26,6 +26,7 @@ from vinculante.infrastructure.loaders.report_loader import (
     _make_ref,
     _normalize,
     _slugify,
+    _strip_field_prefixes,
 )
 
 REAL_SAMPLES = Path(__file__).parents[4] / "data" / "real" / "proposals" / "academia"
@@ -475,6 +476,174 @@ def test_sibling_subitem_prose_preserved():
     llm_row = next(r for r in rows if "sociólogos" in r["text"])
     assert tier1_row["subtopic"] == "1. Ciencias Políticas"
     assert llm_row["subtopic"] == "2. Sociología"
+
+
+def test_llm_path_skips_duplicate_title():
+    """LLM path: no double-prepend when p.text already begins with p.title."""
+    proposals = [
+        ExtractedProposal(
+            title="Etiquetado digital",
+            text="Etiquetado digital. Se prohibirá el acceso de menores a videojuegos con cajas.",
+            topic="Videojuegos",
+        )
+    ]
+    llm = _make_llm(proposals=proposals)
+
+    prose = "Etiquetado digital. Se prohibirá el acceso de menores a videojuegos con cajas. " * 3
+    body = _make_text_item(prose)
+    loader = _make_loader_with_items([(_make_heading_item("Videojuegos"), 0), (body, 0)], llm=llm)
+
+    rows = loader.load("fake.pdf")
+
+    assert len(rows) == 1
+    assert rows[0]["text"].startswith("Etiquetado digital.")
+    assert not rows[0]["text"].startswith("Etiquetado digital\n\nEtiquetado digital")
+
+
+def test_llm_path_skips_medida_label_title():
+    """LLM path: 'Medida N' / 'Medida número N' labels are NOT prepended to text."""
+    proposals = [
+        ExtractedProposal(
+            title="Medida 7",
+            text="Los fabricantes deberán configurar protecciones por defecto para menores.",
+            topic="Medidas de regulación",
+        )
+    ]
+    llm = _make_llm(proposals=proposals)
+
+    prose = "Los fabricantes deberán configurar protecciones por defecto para menores. " * 3
+    body = _make_text_item(prose)
+    loader = _make_loader_with_items(
+        [(_make_heading_item("Medidas de regulación"), 0), (body, 0)], llm=llm
+    )
+
+    rows = loader.load("fake.pdf")
+
+    assert len(rows) == 1
+    assert not rows[0]["text"].startswith("Medida 7")
+    assert "fabricantes" in rows[0]["text"]
+
+
+def test_section_header_medida_label_kept_inline():
+    """section_header 'Medida número N' is treated as inline text, not a heading update."""
+    medida_label = _make_heading_item("Medida número 2", level=1)
+    body = _make_text_item("Los dispositivos deben incluir sistemas de control parental.")
+
+    proposals = [
+        ExtractedProposal(
+            text="Los dispositivos deben incluir sistemas de control parental.",
+            topic="Medidas de regulación de la industria",
+        )
+    ]
+    llm = _make_llm(proposals=proposals)
+
+    theme = _make_heading_item("Medidas de regulación de la industria", level=1)
+    loader = _make_loader_with_items(
+        [(theme, 0), (medida_label, 0), (body, 0)], llm=llm
+    )
+
+    # Capture what the LLM receives
+    extract_chain = llm.with_structured_output.side_effect(ExtractedProposalList)
+    rows = loader.load("fake.pdf")
+
+    # The label must appear inline in the LLM blob (not as a ## heading)
+    assert extract_chain.invoke.called
+    call_text = extract_chain.invoke.call_args[0][0]
+    assert "Medida número 2" in call_text
+    assert "## Medida número 2" not in call_text
+    # topic should come from the LLM response (semantic heading, not the label)
+    assert rows[0]["topic"] == "Medidas de regulación de la industria"
+
+
+# ---------------------------------------------------------------------------
+# Field-prefix stripping (_strip_field_prefixes + integration in LLM path)
+# ---------------------------------------------------------------------------
+
+
+def test_strip_field_prefixes_titulo():
+    assert _strip_field_prefixes("Título. Sistemas de verificación de edad.") == \
+        "Sistemas de verificación de edad."
+
+
+def test_strip_field_prefixes_descripcion():
+    assert _strip_field_prefixes("Descripción: imposición a todos los actores.") == \
+        "imposición a todos los actores."
+
+
+def test_strip_field_prefixes_midline_not_stripped():
+    """Mid-line occurrences are NOT stripped (only line-start via MULTILINE)."""
+    text = "El texto dice Título. X y más cosas."
+    assert _strip_field_prefixes(text) == text
+
+
+def test_llm_path_strips_titulo_prefix():
+    """LLM output: 'Título. X…' → resulting text starts with 'X', no prefix."""
+    proposals = [
+        ExtractedProposal(
+            text="Título. Sistemas de verificación de edad.\n\nLos fabricantes deberán integrar SVE.",
+            topic="Medidas de regulación",
+        )
+    ]
+    llm = _make_llm(proposals=proposals)
+    prose = "Título. Sistemas de verificación de edad. Los fabricantes deberán integrar SVE. " * 3
+    body = _make_text_item(prose)
+    loader = _make_loader_with_items(
+        [(_make_heading_item("Medidas de regulación"), 0), (body, 0)], llm=llm
+    )
+    rows = loader.load("fake.pdf")
+    assert len(rows) == 1
+    assert not rows[0]["text"].startswith("Título.")
+    assert rows[0]["text"].startswith("Sistemas de verificación de edad.")
+
+
+def test_llm_path_no_duplicate_when_titulo_prefix():
+    """p.title = título sentence, p.text starts with 'Título. <same>' → no duplication."""
+    proposals = [
+        ExtractedProposal(
+            title="Sistemas de verificación de edad",
+            text="Título. Sistemas de verificación de edad.\n\nLos fabricantes deberán integrar SVE.",
+            topic="Medidas de regulación",
+        )
+    ]
+    llm = _make_llm(proposals=proposals)
+    prose = "Título. Sistemas de verificación de edad. Los fabricantes deberán integrar SVE. " * 3
+    body = _make_text_item(prose)
+    loader = _make_loader_with_items(
+        [(_make_heading_item("Medidas de regulación"), 0), (body, 0)], llm=llm
+    )
+    rows = loader.load("fake.pdf")
+    assert len(rows) == 1
+    text = rows[0]["text"]
+    assert text.startswith("Sistemas de verificación de edad.")
+    assert "Sistemas de verificación de edad.\n\nSistemas de verificación" not in text
+
+
+def test_table_markdown_reaches_llm_and_output_is_stripped():
+    """Table markdown with 'Título. X' cells passes to LLM; output strip cleans the result."""
+    grid = [
+        ["Nombre", "Apellidos", "Universidad"],
+        ["Ana", "García López", "UCM"],
+    ]
+    table_item = _make_table_item(grid)
+    table_item.export_to_markdown.return_value = (
+        "| Título. Sistemas de verificación | Descripción: imposición |\n"
+        "| --- | --- |"
+    )
+    # LLM sees the table markdown and returns text with prefix (realistic)
+    proposals = [ExtractedProposal(
+        text="Título. Sistemas de verificación.\nDescripción: imposición a todos.",
+        topic="Temas",
+    )]
+    llm = _make_llm(proposals=proposals)
+    loader = _make_loader_with_items([(_make_heading_item("Temas"), 0), (table_item, 0)], llm=llm)
+
+    rows = loader.load("fake.pdf")
+
+    # Output-level strip removes the prefixes from the final row text
+    assert len(rows) == 1
+    assert not rows[0]["text"].startswith("Título.")
+    assert "Descripción:" not in rows[0]["text"]
+    assert "Sistemas de verificación." in rows[0]["text"]
 
 
 # ---------------------------------------------------------------------------
