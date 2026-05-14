@@ -29,7 +29,7 @@ defineProps<{ target: TargetDocument }>()
         </div>
         <div class="flex items-center gap-1.5 text-sm text-muted">
           <UIcon name="i-lucide-link" class="size-4 shrink-0" />
-          <span><strong class="text-default">{{ target.match_count }}</strong> coincidencias</span>
+          <span><strong class="text-default">{{ target.match_count }}</strong> vinculaciones</span>
         </div>
       </div>
     </div>

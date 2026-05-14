@@ -18,14 +18,14 @@ defineEmits<{
 const authorTypeOptions = [
   { label: 'Todos', value: 'all' },
   { label: 'Ciudadanía', value: 'citizen' },
-  { label: 'Academia', value: 'academia' }
+  { label: 'Grupo de expertos', value: 'academia' }
 ]
 const authorTypeFilter = ref('all')
 
 const degreeOptions = [
   { label: 'Todos', value: 'all' },
-  { label: 'Alto', value: 'alto' },
-  { label: 'Medio', value: 'medio' }
+  { label: 'Fuerte', value: 'alto' },
+  { label: 'Débil', value: 'medio' }
 ]
 const degreeFilter = ref('all')
 
@@ -50,14 +50,14 @@ const filteredMatches = computed(() => {
     <div v-if="sectionId === null" class="flex flex-col items-center justify-center h-full gap-3 px-8 text-center">
       <UIcon name="i-lucide-mouse-pointer-click" class="size-10 text-muted" />
       <p class="text-muted text-sm">
-        Selecciona una sección para ver sus coincidencias con las propuestas ciudadanas.
+        Selecciona una sección para ver sus vinculaciones con las propuestas ciudadanas.
       </p>
     </div>
 
     <template v-else>
       <div class="px-4 py-3 border-b border-default shrink-0">
         <h2 class="text-sm font-semibold text-highlighted">
-          Coincidencias
+          Vinculaciones
         </h2>
         <p class="text-xs text-muted mt-0.5">
           Propuestas con grado medio o alto
@@ -85,7 +85,7 @@ const filteredMatches = computed(() => {
           />
         </div>
         <span class="text-xs text-muted ml-auto">
-          Mostrando {{ filteredMatches.length }} de {{ matches.length }} coincidencias
+          Mostrando {{ filteredMatches.length }} de {{ matches.length }} vinculaciones
         </span>
       </div>
 
@@ -101,7 +101,7 @@ const filteredMatches = computed(() => {
       >
         <UIcon name="i-lucide-search-x" class="size-8 text-muted" />
         <p class="text-sm text-muted">
-          Sin coincidencias medio o alto para esta sección.
+          Sin vinculaciones de grado medio o alto para esta sección.
         </p>
       </div>
 
@@ -112,7 +112,7 @@ const filteredMatches = computed(() => {
       >
         <UIcon name="i-lucide-filter-x" class="size-8 text-muted" />
         <p class="text-sm text-muted">
-          Sin coincidencias para este filtro.
+          Sin vinculaciones para este filtro.
         </p>
       </div>
 

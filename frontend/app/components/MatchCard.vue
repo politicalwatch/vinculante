@@ -14,14 +14,14 @@ defineEmits<{
 }>()
 
 const degreeColor = computed(() => props.match.degree === 'alto' ? 'success' : 'warning')
-const degreeLabel = computed(() => props.match.degree === 'alto' ? 'Alto' : 'Medio')
+const degreeLabel = computed(() => props.match.degree === 'alto' ? 'Fuerte' : 'Débil')
 const confidencePct = computed(() =>
   props.match.confidence !== null ? `${Math.round(props.match.confidence * 100)}%` : null
 )
 
 const authorTypeLabels: Record<string, string> = {
   citizen: 'Ciudadanía',
-  academia: 'Academia'
+  academia: 'Grupo de expertos',
 }
 const authorTypeLabel = computed(() => {
   const t = props.match.proposal.author_type

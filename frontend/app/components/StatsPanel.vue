@@ -71,14 +71,14 @@ const perSectionData = computed(() => {
     labels: list.map((_, i) => String(i + 1)),
     datasets: [
       {
-        label: 'Alto',
+        label: 'Fuerte',
         data: list.map(s => s.alto),
         backgroundColor: 'rgba(34, 197, 94, 0.75)',
         stack: 'matches',
         borderWidth: 0,
       },
       {
-        label: 'Medio',
+        label: 'Débil',
         data: list.map(s => s.medio),
         backgroundColor: 'rgba(234, 179, 8, 0.75)',
         stack: 'matches',
@@ -155,7 +155,7 @@ const perSectionOptions = computed(() => ({
         <div class="flex flex-col gap-2.5">
           <div>
             <div class="flex items-baseline justify-between mb-1">
-              <span class="text-xs text-muted">Alto</span>
+              <span class="text-xs text-muted">Fuerte</span>
               <span class="text-xs tabular-nums text-default font-medium">{{ stats.degree.alto.count }}</span>
             </div>
             <div class="h-2 rounded-full bg-elevated overflow-hidden">
@@ -164,7 +164,7 @@ const perSectionOptions = computed(() => ({
           </div>
           <div>
             <div class="flex items-baseline justify-between mb-1">
-              <span class="text-xs text-muted">Medio</span>
+              <span class="text-xs text-muted">Débil</span>
               <span class="text-xs tabular-nums text-default font-medium">{{ stats.degree.medio.count }}</span>
             </div>
             <div class="h-2 rounded-full bg-elevated overflow-hidden">
@@ -184,11 +184,11 @@ const perSectionOptions = computed(() => ({
           </div>
           <div class="flex items-baseline gap-2">
             <span class="text-lg font-semibold text-success tabular-nums">{{ conf(stats.confidence.by_degree.alto.mean) }}</span>
-            <span class="text-xs text-muted">alto</span>
+            <span class="text-xs text-muted">fuerte</span>
           </div>
           <div class="flex items-baseline gap-2">
             <span class="text-lg font-semibold text-warning tabular-nums">{{ conf(stats.confidence.by_degree.medio.mean) }}</span>
-            <span class="text-xs text-muted">medio</span>
+            <span class="text-xs text-muted">débil</span>
           </div>
         </div>
       </div>
