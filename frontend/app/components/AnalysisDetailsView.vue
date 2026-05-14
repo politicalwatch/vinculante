@@ -118,121 +118,123 @@ const depthMap = computed(() => {
 </script>
 
 <template>
-  <UAlert
-    v-if="sectionsError"
-    color="error"
-    icon="i-lucide-alert-circle"
-    title="Error al cargar las secciones"
-    class="m-4"
-  />
+  <div class="flex flex-1 overflow-hidden">
+    <UAlert
+      v-if="sectionsError"
+      color="error"
+      icon="i-lucide-alert-circle"
+      title="Error al cargar las secciones"
+      class="m-4"
+    />
 
-  <div v-else class="flex flex-1 overflow-hidden">
-    <!-- Left: sections list -->
-    <div
-      ref="sectionsPanel"
-      class="w-full md:w-7/12 md:border-r border-default overflow-y-auto"
-    >
-      <!-- Filter bar -->
-      <div class="px-4 py-2 border-b border-default sticky top-0 bg-default z-10 flex items-center justify-between">
-        <span class="text-xs text-muted">
-          {{ sectionsStatus === 'pending' ? '—' : `${filteredSections.length} secciones` }}
-        </span>
-        <USwitch
-          v-model="hideUnmatched"
-          label="Ocultar sin vinculación"
-          size="xs"
-        />
-      </div>
-
-      <Transition
-        enter-active-class="transition-opacity duration-200 ease-out"
-        enter-from-class="opacity-0"
-        leave-active-class="transition-opacity duration-150 ease-in"
-        leave-to-class="opacity-0"
-        mode="out-in"
+    <template v-else>
+      <!-- Left: sections list -->
+      <div
+        ref="sectionsPanel"
+        class="w-full md:w-7/12 md:border-r border-default overflow-y-auto"
       >
-        <div
-          v-if="sectionsStatus === 'pending'"
-          key="loading"
-          class="flex flex-col"
-        >
-          <div
-            v-for="n in 6"
-            :key="n"
-            class="px-4 py-3 border-b border-default flex flex-col gap-2"
-          >
-            <USkeleton class="h-3 w-16 bg-accented" />
-            <USkeleton class="h-4 w-3/4 bg-accented" />
-            <USkeleton class="h-3 w-full bg-accented" />
-            <USkeleton class="h-3 w-5/6 bg-accented" />
-          </div>
-        </div>
-
-        <div
-          v-else
-          key="loaded"
-          class="flex flex-col"
-        >
-          <div v-if="!sections?.length" class="text-center py-16 text-muted text-sm">
-            Este documento no tiene secciones.
-          </div>
-          <div v-else-if="filteredSections.length === 0" class="text-center py-16 text-muted text-sm">
-            Ninguna sección con vinculaciones.
-          </div>
-
-          <SectionItem
-            v-for="section in filteredSections"
-            :key="section.id"
-            :data-section-id="section.id"
-            class="scroll-mt-10"
-            :section="section"
-            :depth="depthMap.get(section.id) ?? 0"
-            :active="selectedSectionId === section.id"
-            :spans="selectedSectionId === section.id ? activeSpans : []"
-            :match-count="matchCounts?.[section.id] ?? 0"
-            @click="selectSection(section.id)"
+        <!-- Filter bar -->
+        <div class="px-4 py-2 border-b border-default sticky top-0 bg-default z-10 flex items-center justify-between">
+          <span class="text-xs text-muted">
+            {{ sectionsStatus === 'pending' ? '—' : `${filteredSections.length} secciones` }}
+          </span>
+          <USwitch
+            v-model="hideUnmatched"
+            label="Ocultar sin vinculación"
+            size="xs"
           />
         </div>
-      </Transition>
-    </div>
 
-    <!-- Right: matches panel (desktop only) -->
-    <div class="hidden md:block w-5/12 overflow-hidden">
-      <MatchesPanel
-        :section-id="selectedSectionId"
-        :matches="sortedMatches"
-        :loading="matchesStatus === 'pending'"
-        :hovered-match-id="hoveredMatchId"
-        :selected-match-id="selectedMatchId"
-        @hover-match="hoveredMatchId = $event"
-        @leave-match="hoveredMatchId = null"
-        @select-match="selectedMatchId = selectedMatchId === $event ? null : $event"
-      />
-    </div>
-  </div>
+        <Transition
+          enter-active-class="transition-opacity duration-200 ease-out"
+          enter-from-class="opacity-0"
+          leave-active-class="transition-opacity duration-150 ease-in"
+          leave-to-class="opacity-0"
+          mode="out-in"
+        >
+          <div
+            v-if="sectionsStatus === 'pending'"
+            key="loading"
+            class="flex flex-col"
+          >
+            <div
+              v-for="n in 6"
+              :key="n"
+              class="px-4 py-3 border-b border-default flex flex-col gap-2"
+            >
+              <USkeleton class="h-3 w-16 bg-accented" />
+              <USkeleton class="h-4 w-3/4 bg-accented" />
+              <USkeleton class="h-3 w-full bg-accented" />
+              <USkeleton class="h-3 w-5/6 bg-accented" />
+            </div>
+          </div>
 
-  <!-- Mobile: matches drawer -->
-  <UDrawer
-    v-model:open="matchesOpen"
-    :modal="false"
-    :overlay="false"
-    :ui="{
-      content: 'h-[60dvh]',
-      container: 'p-0 gap-0 overflow-hidden',
-      body: 'p-0 overflow-hidden'
-    }"
-  >
-    <template #body>
-      <MatchesPanel
-        :section-id="selectedSectionId"
-        :matches="sortedMatches"
-        :loading="matchesStatus === 'pending'"
-        :hovered-match-id="hoveredMatchId"
-        :selected-match-id="selectedMatchId"
-        @hover-match="hoveredMatchId = $event"
-        @leave-match="hoveredMatchId = null"
-        @select-match="selectedMatchId = selectedMatchId === $event ? null : $event"
-      />
+          <div
+            v-else
+            key="loaded"
+            class="flex flex-col"
+          >
+            <div v-if="!sections?.length" class="text-center py-16 text-muted text-sm">
+              Este documento no tiene secciones.
+            </div>
+            <div v-else-if="filteredSections.length === 0" class="text-center py-16 text-muted text-sm">
+              Ninguna sección con vinculaciones.
+            </div>
+
+            <SectionItem
+              v-for="section in filteredSections"
+              :key="section.id"
+              :data-section-id="section.id"
+              class="scroll-mt-10"
+              :section="section"
+              :depth="depthMap.get(section.id) ?? 0"
+              :active="selectedSectionId === section.id"
+              :spans="selectedSectionId === section.id ? activeSpans : []"
+              :match-count="matchCounts?.[section.id] ?? 0"
+              @click="selectSection(section.id)"
+            />
+          </div>
+        </Transition>
+      </div>
+
+      <!-- Right: matches panel (desktop only) -->
+      <div class="hidden md:block w-5/12 overflow-hidden">
+        <MatchesPanel
+          :section-id="selectedSectionId"
+          :matches="sortedMatches"
+          :loading="matchesStatus === 'pending'"
+          :hovered-match-id="hoveredMatchId"
+          :selected-match-id="selectedMatchId"
+          @hover-match="hoveredMatchId = $event"
+          @leave-match="hoveredMatchId = null"
+          @select-match="selectedMatchId = selectedMatchId === $event ? null : $event"
+        />
+      </div>
     </template>
-  </UDrawer>
+
+    <!-- Mobile: matches drawer -->
+    <UDrawer
+      v-model:open="matchesOpen"
+      :modal="false"
+      :overlay="false"
+      :ui="{
+        content: 'h-[60dvh]',
+        container: 'p-0 gap-0 overflow-hidden',
+        body: 'p-0 overflow-hidden'
+      }"
+    >
+      <template #body>
+        <MatchesPanel
+          :section-id="selectedSectionId"
+          :matches="sortedMatches"
+          :loading="matchesStatus === 'pending'"
+          :hovered-match-id="hoveredMatchId"
+          :selected-match-id="selectedMatchId"
+          @hover-match="hoveredMatchId = $event"
+          @leave-match="hoveredMatchId = null"
+          @select-match="selectedMatchId = selectedMatchId === $event ? null : $event"
+        />
+      </template>
+    </UDrawer>
+  </div>
 </template>
