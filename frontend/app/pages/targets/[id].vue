@@ -28,45 +28,49 @@ const tabs: TabsItem[] = [
 
 <template>
   <div class="h-full flex flex-col">
-    <!-- Target header (hidden on mobile while matches drawer is open) -->
+    <!-- Target header (collapses on mobile when matches drawer is open) -->
     <div
-      class="border-b border-default px-4 md:px-6 py-4 shrink-0"
-      :class="matchesDrawerOpen && 'hidden md:block'"
+      class="grid shrink-0 transition-[grid-template-rows] duration-300 ease-out"
+      :class="matchesDrawerOpen ? 'grid-rows-[0fr] md:grid-rows-[1fr]' : 'grid-rows-[1fr]'"
     >
-      <NuxtLink
-        to="/"
-        class="text-sm text-muted hover:text-default flex items-center gap-1 mb-2"
-      >
-        <UIcon
-          name="i-lucide-chevron-left"
-          class="size-4"
-        />
-        Todos los documentos
-      </NuxtLink>
-      <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-3 md:gap-4">
-        <div class="min-w-0">
-          <h1 class="text-2xl font-semibold text-highlighted">
-            {{ target?.title }}
-          </h1>
-          <p class="text-sm text-muted mt-0.5">
-            {{ target?.author }}
-            <template v-if="target?.date">
-              · {{ target.date }}
-            </template>
-            <template v-if="target?.version">
-              · v{{ target.version }}
-            </template>
-          </p>
-        </div>
-        <div class="flex justify-center md:justify-end shrink-0">
-          <UTabs
-            v-model="view"
-            :items="tabs"
-            :content="false"
-            color="neutral"
-            variant="pill"
-            size="sm"
-          />
+      <div class="min-h-0 overflow-hidden">
+        <div class="border-b border-default px-4 md:px-6 py-4">
+          <NuxtLink
+            to="/"
+            class="text-sm text-muted hover:text-default flex items-center gap-1 mb-2"
+          >
+            <UIcon
+              name="i-lucide-chevron-left"
+              class="size-4"
+            />
+            Todos los documentos
+          </NuxtLink>
+          <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-3 md:gap-4">
+            <div class="min-w-0">
+              <h1 class="text-xl md:text-2xl font-semibold text-highlighted">
+                {{ target?.title }}
+              </h1>
+              <p class="text-sm text-muted mt-0.5">
+                {{ target?.author }}
+                <template v-if="target?.date">
+                  · {{ target.date }}
+                </template>
+                <template v-if="target?.version">
+                  · v{{ target.version }}
+                </template>
+              </p>
+            </div>
+            <div class="flex justify-center md:justify-end shrink-0">
+              <UTabs
+                v-model="view"
+                :items="tabs"
+                :content="false"
+                color="neutral"
+                variant="pill"
+                size="sm"
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>
