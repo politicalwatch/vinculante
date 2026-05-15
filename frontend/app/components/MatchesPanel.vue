@@ -25,7 +25,7 @@ const authorTypeFilter = ref('all')
 const degreeOptions = [
   { label: 'Todos', value: 'all' },
   { label: 'Fuerte', value: 'alto' },
-  { label: 'Débil', value: 'medio' }
+  { label: 'Moderado', value: 'medio' }
 ]
 const degreeFilter = ref('all')
 

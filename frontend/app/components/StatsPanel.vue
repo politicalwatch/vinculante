@@ -78,7 +78,7 @@ const perSectionData = computed(() => {
         borderWidth: 0,
       },
       {
-        label: 'Débil',
+        label: 'Moderado',
         data: list.map(s => s.medio),
         backgroundColor: 'rgba(234, 179, 8, 0.75)',
         stack: 'matches',
@@ -164,7 +164,7 @@ const perSectionOptions = computed(() => ({
           </div>
           <div>
             <div class="flex items-baseline justify-between mb-1">
-              <span class="text-xs text-muted">Débil</span>
+              <span class="text-xs text-muted">Moderado</span>
               <span class="text-xs tabular-nums text-default font-medium">{{ stats.degree.medio.count }}</span>
             </div>
             <div class="h-2 rounded-full bg-elevated overflow-hidden">
@@ -188,7 +188,7 @@ const perSectionOptions = computed(() => ({
           </div>
           <div class="flex items-baseline gap-2">
             <span class="text-lg font-semibold text-warning tabular-nums">{{ conf(stats.confidence.by_degree.medio.mean) }}</span>
-            <span class="text-xs text-muted">débil</span>
+            <span class="text-xs text-muted">moderado</span>
           </div>
         </div>
       </div>
