@@ -7,8 +7,7 @@ from .factory import _register
 
 @_register("mistral")
 def create(settings: Settings) -> ChatMistralAI:
-    return ChatMistralAI(
-        model=settings.llm_model,
-        api_key=settings.mistral_api_key,
-        temperature=settings.llm_temperature,
-    )
+    kwargs = {"model": settings.llm_model, "api_key": settings.mistral_api_key}
+    if settings.llm_temperature is not None:
+        kwargs["temperature"] = settings.llm_temperature
+    return ChatMistralAI(**kwargs)

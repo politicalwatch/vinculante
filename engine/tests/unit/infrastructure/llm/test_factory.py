@@ -2,7 +2,11 @@ import pytest
 
 import vinculante.infrastructure.llm.factory as factory_module
 from vinculante.infrastructure.config.settings import Settings
-from vinculante.infrastructure.llm.factory import create_llm_from_env, create_summary_llm_from_env
+from vinculante.infrastructure.llm.factory import (
+    create_llm_from_env,
+    create_report_llm_from_env,
+    create_summary_llm_from_env,
+)
 
 
 def _settings(**overrides) -> Settings:
@@ -15,6 +19,9 @@ def _settings(**overrides) -> Settings:
         summary_llm_provider="",
         summary_llm_model="",
         summary_temperature=0.3,
+        report_llm_provider="",
+        report_llm_model="",
+        report_temperature=None,
     )
     return Settings(**{**base, **overrides})
 
@@ -55,6 +62,43 @@ def test_create_summary_llm_unknown_provider_raises():
     s = _settings(summary_llm_provider="unknown_xyz")
     with pytest.raises(ValueError, match="unknown_xyz"):
         create_summary_llm_from_env(s)
+
+
+def test_create_report_llm_uses_report_provider_and_model(monkeypatch):
+    monkeypatch.setitem(factory_module._PROVIDERS, "anthropic", _RecordingLLM)
+    s = _settings(report_llm_provider="anthropic", report_llm_model="claude-x", report_temperature=0.4)
+    create_report_llm_from_env(s)
+    assert _RecordingLLM.received.llm_provider == "anthropic"
+    assert _RecordingLLM.received.llm_model == "claude-x"
+    assert _RecordingLLM.received.llm_temperature == pytest.approx(0.4)
+
+
+def test_create_report_llm_falls_back_to_llm_provider_when_report_blank(monkeypatch):
+    monkeypatch.setitem(factory_module._PROVIDERS, "openai", _RecordingLLM)
+    s = _settings(report_llm_provider="", report_llm_model="")
+    create_report_llm_from_env(s)
+    assert _RecordingLLM.received.llm_provider == "openai"
+    assert _RecordingLLM.received.llm_model == "gpt-4"
+
+
+def test_create_report_llm_temperature_overrides_llm_temperature(monkeypatch):
+    monkeypatch.setitem(factory_module._PROVIDERS, "openai", _RecordingLLM)
+    s = _settings(llm_temperature=0.0, report_temperature=0.8)
+    create_report_llm_from_env(s)
+    assert _RecordingLLM.received.llm_temperature == pytest.approx(0.8)
+
+
+def test_create_report_llm_temperature_none_passes_through(monkeypatch):
+    monkeypatch.setitem(factory_module._PROVIDERS, "openai", _RecordingLLM)
+    s = _settings(report_temperature=None)
+    create_report_llm_from_env(s)
+    assert _RecordingLLM.received.llm_temperature is None
+
+
+def test_create_report_llm_unknown_provider_raises():
+    s = _settings(report_llm_provider="unknown_xyz")
+    with pytest.raises(ValueError, match="unknown_xyz"):
+        create_report_llm_from_env(s)
 
 
 def test_create_llm_from_env_uses_llm_provider(monkeypatch):

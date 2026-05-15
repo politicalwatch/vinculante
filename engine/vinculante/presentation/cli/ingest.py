@@ -13,7 +13,7 @@ from vinculante.infrastructure.db.repositories.proposals import ProposalReposito
 from vinculante.infrastructure.db.repositories.sections import SectionRepository
 from vinculante.infrastructure.db.repositories.targets import TargetRepository
 from vinculante.infrastructure.db.session import SessionLocal
-from vinculante.infrastructure.llm.factory import create_llm_from_env
+from vinculante.infrastructure.llm.factory import create_llm_from_env, create_report_llm_from_env
 from vinculante.infrastructure.loaders.csv_loader import CsvLoader
 from vinculante.infrastructure.loaders.docx_loader import DocxLoader
 from vinculante.infrastructure.loaders.xlsx_loader import XlsxLoader
@@ -49,7 +49,7 @@ def _loader_for(path: Path, use_report_loader: bool):
         if suffix in (".docx", ".pdf"):
             from vinculante.infrastructure.loaders.report_loader import ReportLoader
             settings = get_settings()
-            llm = create_llm_from_env(settings)
+            llm = create_report_llm_from_env(settings)
             return ReportLoader(llm=llm, settings=settings)
         raise typer.BadParameter(
             f"--use-report-loader only supports .docx and .pdf (got {suffix})"

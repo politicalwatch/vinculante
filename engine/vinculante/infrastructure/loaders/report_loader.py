@@ -228,10 +228,10 @@ class ReportLoader:
 
     def __init__(self, llm=None, settings=None) -> None:
         from vinculante.infrastructure.config.settings import get_settings
-        from vinculante.infrastructure.llm.factory import create_llm_from_env
+        from vinculante.infrastructure.llm.factory import create_report_llm_from_env
 
         s = settings or get_settings()
-        llm = llm or create_llm_from_env(s)
+        llm = llm or create_report_llm_from_env(s)
         self._author_llm = llm.with_structured_output(AuthorExtraction)
         self._extract_llm = llm.with_structured_output(ExtractedProposalList)
         # do_table_structure=False prevents Docling's table structure recognition

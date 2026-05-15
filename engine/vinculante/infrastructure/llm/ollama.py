@@ -7,8 +7,7 @@ from .factory import _register
 
 @_register("ollama")
 def create(settings: Settings) -> ChatOllama:
-    return ChatOllama(
-        model=settings.llm_model,
-        base_url=settings.ollama_base_url,
-        temperature=settings.llm_temperature,
-    )
+    kwargs = {"model": settings.llm_model, "base_url": settings.ollama_base_url}
+    if settings.llm_temperature is not None:
+        kwargs["temperature"] = settings.llm_temperature
+    return ChatOllama(**kwargs)

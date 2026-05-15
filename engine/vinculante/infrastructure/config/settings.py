@@ -39,6 +39,11 @@ class Settings(BaseSettings):
     matching_prompt_version: str = "v5"
     matching_critic_prompt_version: str = "v2"
 
+    # Report ingestion
+    report_llm_provider: str = ""
+    report_llm_model: str = ""
+    report_temperature: float | None = None
+
     # Summary
     summary_llm_provider: str = ""
     summary_llm_model: str = ""

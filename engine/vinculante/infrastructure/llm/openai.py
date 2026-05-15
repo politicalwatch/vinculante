@@ -7,8 +7,7 @@ from .factory import _register
 
 @_register("openai")
 def create(settings: Settings) -> ChatOpenAI:
-    return ChatOpenAI(
-        model=settings.llm_model,
-        api_key=settings.openai_api_key,
-        temperature=settings.llm_temperature,
-    )
+    kwargs = {"model": settings.llm_model, "api_key": settings.openai_api_key}
+    if settings.llm_temperature is not None:
+        kwargs["temperature"] = settings.llm_temperature
+    return ChatOpenAI(**kwargs)

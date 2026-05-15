@@ -21,6 +21,22 @@ def create_llm_from_env(settings: Settings | None = None) -> BaseChatModel:
     return _PROVIDERS[provider](s)
 
 
+def create_report_llm_from_env(settings: Settings | None = None) -> BaseChatModel:
+    """Create LLM for report ingestion, with optional provider/model/temperature overrides."""
+    from vinculante.infrastructure.config.settings import get_settings
+    s = settings or get_settings()
+    provider = (s.report_llm_provider or s.llm_provider).lower()
+    model = s.report_llm_model or s.llm_model
+    if provider not in _PROVIDERS:
+        raise ValueError(f"Unknown report LLM provider: {provider!r}. Valid: {list(_PROVIDERS)}")
+    overridden = s.model_copy(update={
+        "llm_provider": provider,
+        "llm_model": model,
+        "llm_temperature": s.report_temperature,
+    })
+    return _PROVIDERS[provider](overridden)
+
+
 def create_summary_llm_from_env(settings: Settings | None = None) -> BaseChatModel:
     """Create LLM for summary generation, with optional provider/model overrides."""
     from vinculante.infrastructure.config.settings import get_settings
