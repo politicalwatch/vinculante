@@ -15,6 +15,8 @@ const props = defineProps<{
   stats: TargetStats | null
 }>()
 
+const emit = defineEmits<{ 'select-section': [sectionId: number] }>()
+
 function pct(value: number) {
   return `${Math.round(value * 100)}%`
 }
@@ -153,6 +155,15 @@ const perSectionOptions = computed(() => ({
         },
       },
     },
+  },
+  onClick: (_e: unknown, elements: { index: number }[]) => {
+    const idx = elements[0]?.index
+    if (idx === undefined) return
+    const id = props.stats?.distribution.per_section[idx]?.section_id
+    if (id != null) emit('select-section', id)
+  },
+  onHover: (_e: unknown, elements: unknown[], chart: { canvas: HTMLCanvasElement }) => {
+    chart.canvas.style.cursor = elements.length ? 'pointer' : 'default'
   },
   scales: {
     x: {

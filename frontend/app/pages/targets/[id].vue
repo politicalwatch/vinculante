@@ -19,6 +19,12 @@ useSeoMeta({ title: () => `${target.value?.title ?? ''} — Vinculante` })
 
 const view = ref<'overview' | 'analysis'>('overview')
 const matchesDrawerOpen = ref(false)
+const selectedSectionId = ref<number | null>(null)
+
+function navigateToSection(id: number) {
+  selectedSectionId.value = id
+  view.value = 'analysis'
+}
 
 const tabs: TabsItem[] = [
   { label: 'Resumen', value: 'overview', icon: 'i-lucide-file-text' },
@@ -87,12 +93,14 @@ const tabs: TabsItem[] = [
           v-if="view === 'overview'"
           key="overview"
           :target="target"
+          @select-section="navigateToSection"
         />
         <AnalysisDetailsView
           v-else
           key="analysis"
           :target-id="id"
           v-model:matches-open="matchesDrawerOpen"
+          v-model:selected-section-id="selectedSectionId"
         />
       </KeepAlive>
     </Transition>

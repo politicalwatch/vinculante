@@ -4,6 +4,8 @@ import type { TargetDocument } from '~/types/api'
 defineProps<{
   target: TargetDocument | null | undefined
 }>()
+
+defineEmits<{ 'select-section': [sectionId: number] }>()
 </script>
 
 <template>
@@ -12,7 +14,7 @@ defineProps<{
       <SummaryPanel :summary="target?.summary ?? null" />
     </div>
     <div class="w-full md:w-1/2 order-1 md:order-2 md:overflow-y-auto">
-      <StatsPanel :stats="target?.stats ?? null" />
+      <StatsPanel :stats="target?.stats ?? null" @select-section="$emit('select-section', $event)" />
     </div>
   </div>
 </template>

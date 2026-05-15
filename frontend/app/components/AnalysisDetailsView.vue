@@ -16,7 +16,7 @@ const { data: matchCounts } = useFetch<Record<number, number>>('/matches/counts'
   query: { target_id: props.targetId, degree: ['medio', 'alto'] }
 })
 
-const selectedSectionId = ref<number | null>(null)
+const selectedSectionId = defineModel<number | null>('selectedSectionId', { default: null })
 const hoveredMatchId = ref<number | null>(null)
 const selectedMatchId = ref<number | null>(null)
 const hideUnmatched = ref(false)
@@ -47,7 +47,17 @@ const sectionsPanel = ref<HTMLElement | null>(null)
 let savedSectionsScroll = 0
 
 onDeactivated(() => { savedSectionsScroll = sectionsPanel.value?.scrollTop ?? 0 })
-onActivated(() => { nextTick(() => { if (sectionsPanel.value) sectionsPanel.value.scrollTop = savedSectionsScroll }) })
+let lastActivatedSectionId: number | null = null
+onActivated(() => {
+  nextTick(() => {
+    if (selectedSectionId.value !== null && selectedSectionId.value !== lastActivatedSectionId) {
+      scrollToSelectedSection()
+    } else if (sectionsPanel.value) {
+      sectionsPanel.value.scrollTop = savedSectionsScroll
+    }
+    lastActivatedSectionId = selectedSectionId.value
+  })
+})
 
 function selectSection(sectionId: number) {
   selectedSectionId.value = sectionId
@@ -61,6 +71,10 @@ function scrollToSelectedSection() {
       ?.querySelector<HTMLElement>(`[data-section-id="${id}"]`)
       ?.scrollIntoView({ behavior: 'smooth', block: isMobile.value ? 'start' : 'nearest' })
   })
+}
+
+function onSectionsLoaded() {
+  if (selectedSectionId.value !== null) scrollToSelectedSection()
 }
 
 watch(selectedSectionId, (id) => {
@@ -151,6 +165,7 @@ const depthMap = computed(() => {
           leave-active-class="transition-opacity duration-150 ease-in"
           leave-to-class="opacity-0"
           mode="out-in"
+          @after-enter="onSectionsLoaded"
         >
           <div
             v-if="sectionsStatus === 'pending'"
