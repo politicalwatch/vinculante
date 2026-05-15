@@ -193,10 +193,10 @@ const perSectionOptions = computed(() => ({
             <span class="text-lg font-semibold text-highlighted tabular-nums">{{ stats.coverage.unique_proposals }}</span>
             <span class="text-xs text-muted">propuestas vinculadas</span>
           </div>
-          <div class="flex items-baseline gap-2">
-            <span class="text-lg font-semibold text-highlighted tabular-nums">{{ stats.coverage.total_proposals }}</span>
-            <span class="text-xs text-muted">propuestas totales</span>
-          </div>
+          <!-- <div class="flex items-baseline gap-2">
+            <span class="text-lg font-semibold text-highlighted tabular-nums">{{ stats.coverage.total_matches }}</span>
+            <span class="text-xs text-muted">vinculaciones</span>
+          </div> -->
         </div>
       </div>
 
