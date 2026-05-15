@@ -1,9 +1,38 @@
+import re
 import statistics
 from collections import Counter
 
 from vinculante.domain.entities import Match, Section
 
 ACCEPTED_DEGREES = {"alto", "medio"}
+
+_TYPE_LABELS: dict[str, str] = {
+    "articulo": "Artículo",
+    "disp_adicional": "Disposición adicional",
+    "disp_transitoria": "Disposición transitoria",
+    "disp_derogatoria": "Disposición derogatoria",
+    "disp_final": "Disposición final",
+    "exposicion_motivos": "Exposición de motivos",
+    "preambulo": "Preámbulo",
+    "titulo": "Título",
+    "capitulo": "Capítulo",
+    "seccion": "Sección",
+}
+_MD_HEADING_RE = re.compile(r"^#+\s*")
+_MD_EMPH_RE = re.compile(r"[*_]+")
+
+
+def _section_label(s: Section) -> str:
+    raw = s.text_markdown or s.text or ""
+    first_line = raw.split("\n", 1)[0].strip()
+    first_line = _MD_HEADING_RE.sub("", first_line)
+    first_line = _MD_EMPH_RE.sub("", first_line).strip()
+    if first_line and len(first_line) <= 200:
+        return first_line
+    if s.section_type:
+        label = _TYPE_LABELS.get(s.section_type, s.section_type.capitalize())
+        return f"{label} {s.section_number}".strip() if s.section_number else label
+    return f"Sección #{s.id}"
 
 
 def _confidence_stats(values: list[float]) -> dict:
@@ -70,6 +99,7 @@ def compute_target_stats(sections: list[Section], matches: list[Match], total_pr
     per_section = [
         {
             "section_id": s.id,
+            "label": _section_label(s),
             "alto": alto_per_section.get(s.id, 0),
             "medio": medio_per_section.get(s.id, 0),
         }

@@ -148,8 +148,8 @@ const perSectionOptions = computed(() => ({
       callbacks: {
         title: (items: any[]) => {
           const idx = items[0].dataIndex
-          const sectionId = props.stats?.distribution.per_section[idx]?.section_id
-          return `Sección #${idx + 1} (id ${sectionId})`
+          const label = props.stats?.distribution.per_section[idx]?.label ?? `Sección #${idx + 1}`
+          return label.length > 80 ? `${label.slice(0, 79).trimEnd()}…` : label
         },
       },
     },
@@ -170,13 +170,11 @@ const perSectionOptions = computed(() => ({
     },
   },
 }))
-
 </script>
 
 <template>
   <div v-if="stats" class="px-6 py-5">
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-6">
-
       <!-- Coverage -->
       <div class="flex flex-col gap-3">
         <p class="text-xs font-medium text-muted uppercase tracking-wide">Cobertura</p>

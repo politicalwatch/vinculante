@@ -25,7 +25,7 @@ export interface TargetStats {
   }
   distribution: {
     avg_matches_per_matched_section: number | null
-    per_section: Array<{ section_id: number; alto: number; medio: number }>
+    per_section: Array<{ section_id: number; label: string; alto: number; medio: number }>
   }
   quality: {
     pct_with_spans: number
