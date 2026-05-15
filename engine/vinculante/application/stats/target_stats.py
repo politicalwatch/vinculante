@@ -59,25 +59,13 @@ def compute_target_stats(sections: list[Section], matches: list[Match], total_pr
         },
     }
 
-    # Distribution histogram (over matchable sections only)
-    matches_per_section = Counter(m.section_id for m in accepted if m.section_id in matchable_ids)
+    # Distribution per section
     alto_per_section = Counter(
         m.section_id for m in accepted if m.degree == "alto" and m.section_id in matchable_ids
     )
     medio_per_section = Counter(
         m.section_id for m in accepted if m.degree == "medio" and m.section_id in matchable_ids
     )
-    histogram = {"0": 0, "1": 0, "2": 0, "3+": 0}
-    for s_id in matchable_ids:
-        count = matches_per_section.get(s_id, 0)
-        if count == 0:
-            histogram["0"] += 1
-        elif count == 1:
-            histogram["1"] += 1
-        elif count == 2:
-            histogram["2"] += 1
-        else:
-            histogram["3+"] += 1
     avg_per_matched = round(total / n_matched, 4) if n_matched else None
     per_section = [
         {
@@ -88,7 +76,6 @@ def compute_target_stats(sections: list[Section], matches: list[Match], total_pr
         for s in matchable
     ]
     distribution = {
-        "histogram": histogram,
         "avg_matches_per_matched_section": avg_per_matched,
         "per_section": per_section,
     }

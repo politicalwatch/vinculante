@@ -24,7 +24,6 @@ export interface TargetStats {
     by_degree: { alto: ConfidenceStats; medio: ConfidenceStats }
   }
   distribution: {
-    histogram: { '0': number; '1': number; '2': number; '3+': number }
     avg_matches_per_matched_section: number | null
     per_section: Array<{ section_id: number; alto: number; medio: number }>
   }

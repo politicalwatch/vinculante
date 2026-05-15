@@ -31,13 +31,64 @@ const altoPct = computed(() => {
 
 const medioPct = computed(() => 100 - altoPct.value)
 
+type Bucket = { label: string; min: number; max: number | null }
+
+const BUCKET_PRESETS: Bucket[][] = [
+  // max ≤ 5
+  [
+    { label: '0', min: 0, max: 0 },
+    { label: '1', min: 1, max: 1 },
+    { label: '2', min: 2, max: 2 },
+    { label: '3', min: 3, max: 3 },
+    { label: '4-5', min: 4, max: 5 },
+  ],
+  // max ≤ 15
+  [
+    { label: '0', min: 0, max: 0 },
+    { label: '1-2', min: 1, max: 2 },
+    { label: '3-5', min: 3, max: 5 },
+    { label: '6-10', min: 6, max: 10 },
+    { label: '11-15', min: 11, max: 15 },
+  ],
+  // max ≤ 40
+  [
+    { label: '0', min: 0, max: 0 },
+    { label: '1-5', min: 1, max: 5 },
+    { label: '6-10', min: 6, max: 10 },
+    { label: '11-20', min: 11, max: 20 },
+    { label: '21-40', min: 21, max: 40 },
+  ],
+  // max > 40
+  [
+    { label: '0', min: 0, max: 0 },
+    { label: '1-5', min: 1, max: 5 },
+    { label: '6-15', min: 6, max: 15 },
+    { label: '16-30', min: 16, max: 30 },
+    { label: '31-50', min: 31, max: 50 },
+    { label: '50+', min: 51, max: null },
+  ],
+]
+
+function pickBuckets(maxVal: number): Bucket[] {
+  if (maxVal <= 5) return BUCKET_PRESETS[0]
+  if (maxVal <= 15) return BUCKET_PRESETS[1]
+  if (maxVal <= 40) return BUCKET_PRESETS[2]
+  return BUCKET_PRESETS[3]
+}
+
 const histogramData = computed(() => {
-  const h = props.stats?.distribution.histogram
+  const perSection = props.stats?.distribution.per_section ?? []
+  const totals = perSection.map(s => s.alto + s.medio)
+  const maxVal = totals.length ? Math.max(...totals) : 0
+  const buckets = pickBuckets(maxVal)
+  const counts = buckets.map(b =>
+    totals.filter(v => v >= b.min && (b.max === null || v <= b.max)).length
+  )
   return {
-    labels: ['0', '1', '2', '3+'],
+    labels: buckets.map(b => b.label),
     datasets: [
       {
-        data: h ? [h['0'], h['1'], h['2'], h['3+']] : [],
+        data: counts,
         backgroundColor: 'rgba(0, 0, 0, 0.65)',
         hoverBackgroundColor: 'rgba(0, 0, 0, 0.85)',
         borderRadius: 3,
@@ -135,8 +186,8 @@ const perSectionOptions = computed(() => ({
             <span class="text-xs text-muted">secciones vinculadas</span>
           </div>
           <div class="flex items-baseline gap-2">
-            <span class="text-lg font-semibold text-highlighted tabular-nums">{{ stats.coverage.total_matches }}</span>
-            <span class="text-xs text-muted">vinculaciones</span>
+            <span class="text-lg font-semibold text-highlighted tabular-nums">{{ stats.coverage.total_proposals }}</span>
+            <span class="text-xs text-muted">propuestas totales</span>
           </div>
           <div class="flex items-baseline gap-2">
             <span class="text-lg font-semibold text-highlighted tabular-nums">{{ stats.coverage.unique_proposals }}</span>
