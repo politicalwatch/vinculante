@@ -41,7 +41,7 @@ useSeoMeta({
       <UFooter class="border-t border-default shrink-0" :ui="{ container: 'py-2 sm:py-4 lg:flex lg:items-center lg:justify-between lg:gap-x-3' }">
         <template #left>
           <p class="text-sm text-muted">
-            © {{ new Date().getFullYear() }} Political Watch
+            Una iniciativa de <a href="https://www.politicalwatch.es" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">Political Watch</a>
           </p>
         </template>
       </UFooter>
