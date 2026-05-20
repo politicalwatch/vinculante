@@ -42,6 +42,25 @@ const filteredMatches = computed(() => {
     return true
   })
 })
+
+const hasActiveFilters = computed(
+  () => authorTypeFilter.value !== 'all' || degreeFilter.value !== 'all'
+)
+
+const subtitle = computed(() => {
+  const at = authorTypeFilter.value
+  const dg = degreeFilter.value
+  if (!hasActiveFilters.value) return 'Todas las propuestas'
+  const parts = ['Propuestas']
+  if (at !== 'all') parts.push(`de ${authorTypeOptions.find(o => o.value === at)?.label}`)
+  if (dg !== 'all') parts.push(`con grado ${degreeOptions.find(o => o.value === dg)?.label}`)
+  return parts.join(' ')
+})
+
+function clearFilters() {
+  authorTypeFilter.value = 'all'
+  degreeFilter.value = 'all'
+}
 </script>
 
 <template>
@@ -60,7 +79,7 @@ const filteredMatches = computed(() => {
           Vinculaciones
         </h2>
         <p class="text-xs text-muted mt-0.5">
-          Propuestas con grado medio o alto
+          {{ subtitle }}
         </p>
       </div>
 
