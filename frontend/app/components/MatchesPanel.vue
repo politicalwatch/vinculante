@@ -80,6 +80,16 @@ function clearFilters() {
         </h2>
         <p class="text-xs text-muted mt-0.5">
           {{ subtitle }}
+          <template v-if="hasActiveFilters">
+            ·
+            <button
+              type="button"
+              class="text-primary cursor-pointer hover:underline"
+              @click="clearFilters"
+            >
+              Eliminar filtros
+            </button>
+          </template>
         </p>
       </div>
 
