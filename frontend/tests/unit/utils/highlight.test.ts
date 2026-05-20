@@ -92,3 +92,34 @@ describe('highlightQuotes — edge cases', () => {
     expect(() => highlightQuotes(el, ['bold normal text and more here'])).not.toThrow()
   })
 })
+
+describe('highlightQuotes — block-boundary and list-marker fallback', () => {
+  it('matches across <p> block boundaries (paragraph break normalized to space)', () => {
+    const el = makeDiv('<p>first paragraph end.</p><p>second paragraph start</p>')
+    highlightQuotes(el, ['first paragraph end. second paragraph start'])
+    expect(el.querySelectorAll('mark').length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('falls back to a prefix match when quote ends with text from a list marker', () => {
+    // "4" is the CSS-generated ::marker of <ol start="4"> — not a DOM text node.
+    // The span captures text up to and including "4", but the mark should still appear
+    // covering everything up to the boundary ("some text ending here.").
+    const el = makeDiv('<p>some text ending here.</p><ol start="4"><li>next item</li></ol>')
+    highlightQuotes(el, ['some text ending here. 4'])
+    expect(el.querySelectorAll('mark').length).toBeGreaterThanOrEqual(1)
+    expect(el.querySelector('mark')?.textContent).toContain('ending here')
+  })
+
+  it('falls back to a suffix match when quote starts with text from a list marker', () => {
+    // Symmetric: the leading "4." comes from a list marker, so trim from start.
+    const el = makeDiv('<ol start="4"><li>item content here and some more words</li></ol><p>following paragraph text.</p>')
+    highlightQuotes(el, ['4. item content here and some more words following paragraph text.'])
+    expect(el.querySelectorAll('mark').length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('does nothing when neither exact nor fallback trimming finds a match', () => {
+    const el = makeDiv('<p>totally unrelated content here.</p>')
+    highlightQuotes(el, ['this quote shares absolutely no substring at all'])
+    expect(el.querySelectorAll('mark').length).toBe(0)
+  })
+})
