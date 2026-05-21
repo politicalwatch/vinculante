@@ -108,7 +108,7 @@ const histogramOptions = {
     tooltip: {
       callbacks: {
         title: (items: any[]) => items[0].label === '1' ? '1 vinculación' : `${items[0].label} vinculaciones`,
-        label: (item: any) => item.raw === 1 ? ' 1 sección' : ` ${item.raw} secciones`,
+        label: (item: any) => item.raw === 1 ? ' 1 bloque' : ` ${item.raw} bloques`,
       },
     },
   },
@@ -150,7 +150,7 @@ const perSectionOptions = computed(() => ({
       callbacks: {
         title: (items: any[]) => {
           const idx = items[0].dataIndex
-          const label = props.stats?.distribution.per_section[idx]?.label ?? `Sección #${idx + 1}`
+          const label = props.stats?.distribution.per_section[idx]?.label ?? `Bloque #${idx + 1}`
           return label.length > 80 ? `${label.slice(0, 79).trimEnd()}…` : label
         },
       },
@@ -192,7 +192,7 @@ const perSectionOptions = computed(() => ({
         <div class="flex flex-col gap-2">
           <div class="flex items-baseline gap-2">
             <span class="text-2xl font-semibold text-highlighted tabular-nums">{{ pct(stats.coverage.pct_sections_matched) }}</span>
-            <span class="text-xs text-muted">secciones vinculadas</span>
+            <span class="text-xs text-muted">bloques vinculados</span>
           </div>
           <div class="flex items-baseline gap-2">
             <span class="text-lg font-semibold text-highlighted tabular-nums">{{ stats.coverage.total_proposals }}</span>
@@ -255,7 +255,7 @@ const perSectionOptions = computed(() => ({
 
       <!-- Histogram -->
       <div class="flex flex-col gap-3">
-        <p class="text-xs font-medium text-muted uppercase tracking-wide">Vinculaciones / sección</p>
+        <p class="text-xs font-medium text-muted uppercase tracking-wide">Vinculaciones / bloque</p>
         <div class="h-32">
           <Bar :data="histogramData" :options="histogramOptions" />
         </div>
@@ -266,7 +266,7 @@ const perSectionOptions = computed(() => ({
     <!-- Per-section distribution (full width, second row) -->
     <div v-if="(stats.distribution?.per_section?.length ?? 0) > 0" class="mt-6 pt-5 border-t border-default flex flex-col gap-3">
       <div>
-        <p class="text-xs font-medium text-muted uppercase tracking-wide">Distribución por sección</p>
+        <p class="text-xs font-medium text-muted uppercase tracking-wide">Distribución por bloques</p>
         <p class="text-xs text-muted mt-0.5">Número de vinculaciones a lo largo del documento</p>
       </div>
       <div class="h-48">

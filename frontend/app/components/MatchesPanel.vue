@@ -69,7 +69,7 @@ function clearFilters() {
     <div v-if="sectionId === null" class="flex flex-col items-center justify-center h-full gap-3 px-8 text-center">
       <UIcon name="i-lucide-mouse-pointer-click" class="size-10 text-muted" />
       <p class="text-muted text-sm">
-        Selecciona una sección para ver sus vinculaciones con las propuestas ciudadanas.
+        Selecciona un bloque para ver sus vinculaciones con las propuestas ciudadanas.
       </p>
     </div>
 
@@ -130,7 +130,7 @@ function clearFilters() {
       >
         <UIcon name="i-lucide-search-x" class="size-8 text-muted" />
         <p class="text-sm text-muted">
-          Sin vinculaciones de grado medio o alto para esta sección.
+          Sin vinculaciones de grado medio o alto para este bloque.
         </p>
       </div>
 

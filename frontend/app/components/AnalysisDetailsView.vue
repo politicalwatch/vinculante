@@ -137,7 +137,7 @@ const depthMap = computed(() => {
       v-if="sectionsError"
       color="error"
       icon="i-lucide-alert-circle"
-      title="Error al cargar las secciones"
+      title="Error al cargar los bloques"
       class="m-4"
     />
 
@@ -150,7 +150,7 @@ const depthMap = computed(() => {
         <!-- Filter bar -->
         <div class="px-4 py-2 border-b border-default sticky top-0 bg-default z-10 flex items-center justify-between">
           <span class="text-xs text-muted">
-            {{ sectionsStatus === 'pending' ? '—' : `${filteredSections.length} secciones` }}
+            {{ sectionsStatus === 'pending' ? '—' : `${filteredSections.length} bloques` }}
           </span>
           <USwitch
             v-model="hideUnmatched"
@@ -190,10 +190,10 @@ const depthMap = computed(() => {
             class="flex flex-col"
           >
             <div v-if="!sections?.length" class="text-center py-16 text-muted text-sm">
-              Este documento no tiene secciones.
+              Este documento no tiene bloques.
             </div>
             <div v-else-if="filteredSections.length === 0" class="text-center py-16 text-muted text-sm">
-              Ninguna sección con vinculaciones.
+              Ningún bloque con vinculaciones.
             </div>
 
             <SectionItem

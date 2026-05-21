@@ -14,7 +14,7 @@ const { data: targets, status, error } = await useFetch<TargetDocument[]>('/targ
         Documentos objetivo
       </h1>
       <p class="text-muted">
-        Selecciona un documento para explorar las vinculaciones entre sus secciones y las propuestas ciudadanas.
+        Selecciona un documento para explorar las vinculaciones entre sus bloques y las propuestas ciudadanas.
       </p>
     </div>
 

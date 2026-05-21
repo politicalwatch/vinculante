@@ -37,7 +37,8 @@ const authorTypeLabel = computed(() => {
       selected ? 'ring-2 ring-primary' : '',
       hovered && !selected ? 'bg-primary/5' : ''
     ]"
-    :data-reference="match.proposal.reference"
+    :data-match-id="match.id"
+    :data-proposal-id="match.proposal.id"
     @mouseenter="$emit('hover')"
     @mouseleave="$emit('leave')"
     @click="$emit('click')"
