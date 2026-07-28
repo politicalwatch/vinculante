@@ -8,21 +8,18 @@ const props = defineProps<{
 }>()
 
 const { updateNodeInternals } = useVueFlow()
-const expanded = ref(false)
 
 watch(
-  () => props.data.sectionId,
-  () => { expanded.value = false }
+  () => props.data.expanded,
+  async () => {
+    await nextTick()
+    updateNodeInternals([props.id])
+  }
 )
-
-watch(expanded, async () => {
-  await nextTick()
-  updateNodeInternals(props.id)
-})
 
 function onFooterClick(event: MouseEvent) {
   event.stopPropagation()
-  expanded.value = !expanded.value
+  props.data.onToggleExpand()
 }
 </script>
 
@@ -30,10 +27,11 @@ function onFooterClick(event: MouseEvent) {
   <div
     class="relative rounded-lg border bg-default shadow-sm flex flex-col transition-[width] duration-300"
     :class="[
-      expanded ? 'w-150' : 'w-85',
+      data.expanded ? 'w-150' : 'w-85',
       data.selected || data.highlighted
         ? 'border-primary ring-2 ring-primary/30'
-        : 'border-default'
+        : 'border-default',
+      data.expanded ? 'shadow-lg' : ''
     ]"
   >
     <Handle
@@ -55,7 +53,7 @@ function onFooterClick(event: MouseEvent) {
       </p>
       <p
         class="mt-2 text-sm text-default leading-relaxed whitespace-pre-wrap"
-        :class="expanded ? '' : 'line-clamp-4'"
+        :class="data.expanded ? '' : 'line-clamp-4'"
       >
         {{ data.text }}
       </p>
@@ -64,7 +62,7 @@ function onFooterClick(event: MouseEvent) {
     <button
       type="button"
       class="mt-auto border-t border-default px-4 py-2 flex items-center justify-between gap-2 text-left cursor-pointer hover:bg-elevated/60 transition-colors rounded-b-lg"
-      :aria-expanded="expanded"
+      :aria-expanded="data.expanded"
       @click="onFooterClick"
       @mousedown.stop
       @pointerdown.stop
@@ -73,7 +71,7 @@ function onFooterClick(event: MouseEvent) {
         {{ data.linkCount === 1 ? '1 vinculación' : `${data.linkCount} vinculaciones` }}
       </span>
       <span class="text-[11px] text-primary shrink-0">
-        {{ expanded ? 'Contraer' : 'Expandir' }}
+        {{ data.expanded ? 'Contraer' : 'Expandir' }}
       </span>
     </button>
   </div>

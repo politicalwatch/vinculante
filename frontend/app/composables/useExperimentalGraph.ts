@@ -34,8 +34,143 @@ const CONFIDENCE_DOMAIN_MAX = 1
 const CONFIDENCE_FALLBACK = 0.85
 const EDGE_STROKE_WIDTH = 1
 
-/** Degrees shown by default; widen later when a toggle is added. */
-export const DEFAULT_MATCH_DEGREES: MatchDegree[] = ['medio', 'alto']
+/** Degrees fetched from the API; floor filtering happens client-side. */
+export const FETCH_MATCH_DEGREES: MatchDegree[] = ['bajo', 'medio', 'alto']
+
+export type DegreeFloor = 'alto' | 'medio' | 'bajo'
+export type ProposalAuthorTypeFilter = 'all' | 'citizen' | 'academia'
+
+export interface GraphFilters {
+  degreeFloor: DegreeFloor
+  articleLinksMin: number
+  /** null = no upper cap (treat as observed max in UI). */
+  articleLinksMax: number | null
+  proposalAuthorType: ProposalAuthorTypeFilter
+  proposalLinksMin: number
+  proposalLinksMax: number | null
+}
+
+export interface LinkCountBounds {
+  articleMax: number
+  proposalMax: number
+}
+
+export interface GraphVisibleCounts {
+  articles: number
+  proposals: number
+  matches: number
+}
+
+export interface GraphTotalCounts {
+  articles: number
+  proposals: number
+  matches: number
+}
+
+export function createDefaultFilters(): GraphFilters {
+  return {
+    degreeFloor: 'medio',
+    articleLinksMin: 0,
+    articleLinksMax: null,
+    proposalAuthorType: 'all',
+    proposalLinksMin: 0,
+    proposalLinksMax: null
+  }
+}
+
+const DEGREE_RANK: Record<string, number> = {
+  alto: 3,
+  medio: 2,
+  bajo: 1,
+  ninguno: 0
+}
+
+function matchesDegreeFloor(degree: MatchDegree | null, floor: DegreeFloor): boolean {
+  if (!degree || degree === 'ninguno') return false
+  return (DEGREE_RANK[degree] ?? 0) >= (DEGREE_RANK[floor] ?? 0)
+}
+
+function inLinkRange(count: number, min: number, max: number | null): boolean {
+  if (count < min) return false
+  if (max !== null && count > max) return false
+  return true
+}
+
+function applyGraphFilters(
+  sections: Section[],
+  proposals: Proposal[],
+  matches: Match[],
+  filters: GraphFilters
+): {
+  sections: Section[]
+  proposals: Proposal[]
+  matches: Match[]
+  linkCountBounds: LinkCountBounds
+  totals: GraphTotalCounts
+  visible: GraphVisibleCounts
+} {
+  const matchable = sections.filter(s => s.is_matchable)
+  const degreeMatches = matches.filter(m =>
+    matchesDegreeFloor(m.degree, filters.degreeFloor)
+  )
+
+  const sectionCounts = countLinksBySection(degreeMatches)
+  const proposalCounts = countLinksByProposal(degreeMatches)
+
+  const articleMax = matchable.reduce(
+    (max, s) => Math.max(max, sectionCounts.get(s.id) ?? 0),
+    0
+  )
+  const proposalMax = proposals.reduce(
+    (max, p) => Math.max(max, proposalCounts.get(p.id) ?? 0),
+    0
+  )
+
+  const filteredSections = matchable.filter(s =>
+    inLinkRange(
+      sectionCounts.get(s.id) ?? 0,
+      filters.articleLinksMin,
+      filters.articleLinksMax
+    )
+  )
+
+  const filteredProposals = proposals.filter((p) => {
+    if (
+      filters.proposalAuthorType !== 'all'
+      && p.author_type !== filters.proposalAuthorType
+    ) {
+      return false
+    }
+    return inLinkRange(
+      proposalCounts.get(p.id) ?? 0,
+      filters.proposalLinksMin,
+      filters.proposalLinksMax
+    )
+  })
+
+  const sectionIds = new Set(filteredSections.map(s => s.id))
+  const proposalIds = new Set(filteredProposals.map(p => p.id))
+  const filteredMatches = degreeMatches.filter(
+    m => sectionIds.has(m.section_id) && proposalIds.has(m.proposal_id)
+  )
+
+  return {
+    sections: filteredSections,
+    proposals: filteredProposals,
+    matches: filteredMatches,
+    linkCountBounds: { articleMax, proposalMax },
+    totals: {
+      articles: matchable.length,
+      proposals: proposals.length,
+      matches: degreeMatches.length
+    },
+    visible: {
+      articles: filteredSections.length,
+      proposals: filteredProposals.length,
+      matches: filteredMatches.length
+    }
+  }
+}
 
 function truncate(text: string, max = TEXT_PREVIEW_LEN): string {
   const cleaned = text.replace(/\s+/g, ' ').trim()
@@ -66,6 +201,8 @@ function edgeStyle(
   }
 }
 
+const EXPANDED_Z_INDEX = 100
+
 export interface ArticleNodeData {
   sectionId: number
   sectionNumber: string | null
@@ -75,6 +212,8 @@ export interface ArticleNodeData {
   dimmed: boolean
   selected: boolean
   highlighted: boolean
+  expanded: boolean
+  onToggleExpand: () => void
 }
 
 export interface ProposalNodeData {
@@ -342,7 +481,9 @@ function buildGraph(
   matches: Match[],
   positions: Map<string, { x: number, y: number, side?: 'left' | 'right' }>,
   selectedArticleId: number | null,
-  selectedProposalId: number | null
+  selectedProposalId: number | null,
+  expandedArticleId: number | null,
+  onToggleExpand: (sectionId: number) => void
 ): { nodes: Node[], edges: Edge[] } {
   const matchable = sections.filter(s => s.is_matchable)
   const sectionLinkCounts = countLinksBySection(matches)
@@ -419,6 +560,7 @@ function buildGraph(
     const pos = positions.get(id) ?? { x: COLUMN_INSET, y: 0, side: 'left' as const }
     const selected = section.id === selectedArticleId
     const highlighted = linkedArticleSet.has(section.id)
+    const expanded = section.id === expandedArticleId
     const dimmed = hasFocus && !selected && !highlighted
     const linkCount = sectionLinkCounts.get(section.id) ?? 0
     const side = pos.side ?? 'left'
@@ -434,8 +576,8 @@ function buildGraph(
       position,
       connectable: false,
       draggable: false,
-      zIndex: selected || highlighted ? 10 : 1,
-      style: { opacity: dimmed ? DIMMED_OPACITY : 1 },
+      zIndex: expanded ? EXPANDED_Z_INDEX : selected || highlighted ? 10 : 1,
+      style: { opacity: dimmed && !expanded ? DIMMED_OPACITY : 1 },
       data: {
         sectionId: section.id,
         sectionNumber: section.section_number,
@@ -444,7 +586,9 @@ function buildGraph(
         side,
         dimmed,
         selected,
-        highlighted
+        highlighted,
+        expanded,
+        onToggleExpand: () => onToggleExpand(section.id)
       }
     }
   })
@@ -548,6 +692,11 @@ export function useExperimentalGraph(
   const edges = ref<Edge[]>([])
   const selectedArticleId = ref<number | null>(null)
   const selectedProposalId = ref<number | null>(null)
+  const expandedArticleId = ref<number | null>(null)
+  const filters = reactive<GraphFilters>(createDefaultFilters())
+  const linkCountBounds = ref<LinkCountBounds>({ articleMax: 0, proposalMax: 0 })
+  const totals = ref<GraphTotalCounts>({ articles: 0, proposals: 0, matches: 0 })
+  const visible = ref<GraphVisibleCounts>({ articles: 0, proposals: 0, matches: 0 })
   const basePositions = ref<Map<string, { x: number, y: number, side?: 'left' | 'right' }>>(
     new Map()
   )
@@ -556,35 +705,117 @@ export function useExperimentalGraph(
     () => selectedArticleId.value !== null || selectedProposalId.value !== null
   )
 
-  function computeForcePositions() {
+  const hasActiveFilters = computed(() => {
+    const defaults = createDefaultFilters()
+    return filters.degreeFloor !== defaults.degreeFloor
+      || filters.articleLinksMin !== defaults.articleLinksMin
+      || filters.articleLinksMax !== defaults.articleLinksMax
+      || filters.proposalAuthorType !== defaults.proposalAuthorType
+      || filters.proposalLinksMin !== defaults.proposalLinksMin
+      || filters.proposalLinksMax !== defaults.proposalLinksMax
+  })
+
+  function getFilteredData() {
     const secs = toValue(sections)
     const props = toValue(proposals)
     const matchList = toValue(matches)
-    if (!secs || !props || !matchList) return
+    if (!secs || !props || !matchList) return null
+    return applyGraphFilters(secs, props, matchList, filters)
+  }
+
+  function clearStaleSelection(filtered: NonNullable<ReturnType<typeof getFilteredData>>) {
+    if (
+      selectedArticleId.value !== null
+      && !filtered.sections.some(s => s.id === selectedArticleId.value)
+    ) {
+      selectedArticleId.value = null
+    }
+    if (
+      selectedProposalId.value !== null
+      && !filtered.proposals.some(p => p.id === selectedProposalId.value)
+    ) {
+      selectedProposalId.value = null
+    }
+    if (
+      expandedArticleId.value !== null
+      && !filtered.sections.some(s => s.id === expandedArticleId.value)
+    ) {
+      expandedArticleId.value = null
+    }
+  }
+
+  function computeForcePositions() {
+    let filtered = getFilteredData()
+    if (!filtered) return
+    clampFiltersToBounds(filtered.linkCountBounds)
+    filtered = getFilteredData()
+    if (!filtered) return
+    linkCountBounds.value = filtered.linkCountBounds
+    totals.value = filtered.totals
+    visible.value = filtered.visible
+    clearStaleSelection(filtered)
     basePositions.value = runForceLayout(
-      secs,
-      props,
-      matchList,
+      filtered.sections,
+      filtered.proposals,
+      filtered.matches,
       toValue(viewportWidth),
       toValue(viewportHeight)
     )
   }
 
+  function clampFiltersToBounds(bounds: LinkCountBounds) {
+    if (filters.articleLinksMin > bounds.articleMax) {
+      filters.articleLinksMin = bounds.articleMax
+    }
+    if (filters.articleLinksMax !== null) {
+      if (filters.articleLinksMax >= bounds.articleMax) {
+        filters.articleLinksMax = null
+      } else if (filters.articleLinksMax < filters.articleLinksMin) {
+        filters.articleLinksMax = filters.articleLinksMin
+      }
+    }
+    if (filters.proposalLinksMin > bounds.proposalMax) {
+      filters.proposalLinksMin = bounds.proposalMax
+    }
+    if (filters.proposalLinksMax !== null) {
+      if (filters.proposalLinksMax >= bounds.proposalMax) {
+        filters.proposalLinksMax = null
+      } else if (filters.proposalLinksMax < filters.proposalLinksMin) {
+        filters.proposalLinksMax = filters.proposalLinksMin
+      }
+    }
+  }
+
   function applyGraph() {
-    const secs = toValue(sections)
-    const props = toValue(proposals)
-    const matchList = toValue(matches)
-    if (!secs || !props || !matchList || basePositions.value.size === 0) return
+    const filtered = getFilteredData()
+    if (!filtered || basePositions.value.size === 0) {
+      if (filtered) {
+        linkCountBounds.value = filtered.linkCountBounds
+        totals.value = filtered.totals
+        visible.value = filtered.visible
+        nodes.value = []
+        edges.value = []
+      }
+      return
+    }
+    clearStaleSelection(filtered)
     const graph = buildGraph(
-      secs,
-      props,
-      matchList,
+      filtered.sections,
+      filtered.proposals,
+      filtered.matches,
       basePositions.value,
       selectedArticleId.value,
-      selectedProposalId.value
+      selectedProposalId.value,
+      expandedArticleId.value,
+      toggleArticleExpand
     )
     nodes.value = graph.nodes
     edges.value = graph.edges
+    visible.value = {
+      articles: filtered.visible.articles,
+      proposals: filtered.visible.proposals,
+      matches: graph.edges.length
+    }
   }
 
   watch(
@@ -593,7 +824,13 @@ export function useExperimentalGraph(
       toValue(proposals),
       toValue(matches),
       toValue(viewportWidth),
-      toValue(viewportHeight)
+      toValue(viewportHeight),
+      filters.degreeFloor,
+      filters.articleLinksMin,
+      filters.articleLinksMax,
+      filters.proposalAuthorType,
+      filters.proposalLinksMin,
+      filters.proposalLinksMax
     ] as const,
     () => {
       computeForcePositions()
@@ -602,7 +839,10 @@ export function useExperimentalGraph(
     { immediate: true }
   )
 
-  watch([selectedArticleId, selectedProposalId], () => applyGraph())
+  watch(
+    [selectedArticleId, selectedProposalId, expandedArticleId],
+    () => applyGraph()
+  )
 
   function toggleArticle(sectionId: number) {
     selectedProposalId.value = null
@@ -616,19 +856,34 @@ export function useExperimentalGraph(
       = selectedProposalId.value === proposalId ? null : proposalId
   }
 
+  function toggleArticleExpand(sectionId: number) {
+    expandedArticleId.value
+      = expandedArticleId.value === sectionId ? null : sectionId
+  }
+
   function clearSelection() {
     selectedArticleId.value = null
     selectedProposalId.value = null
   }
 
+  function resetFilters() {
+    Object.assign(filters, createDefaultFilters())
+  }
+
   return {
     nodes,
     edges,
+    filters,
+    linkCountBounds,
+    totals,
+    visible,
+    hasActiveFilters,
     selectedArticleId,
     selectedProposalId,
     hasSelection,
     toggleArticle,
     toggleProposal,
-    clearSelection
+    clearSelection,
+    resetFilters
   }
 }

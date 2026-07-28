@@ -5,8 +5,9 @@ import { useElementSize } from '@vueuse/core'
 import type { Match, Proposal, Section, TargetDocument } from '~/types/api'
 import ArticleNode from '~/components/experimental/ArticleNode.vue'
 import ProposalNode from '~/components/experimental/ProposalNode.vue'
+import GraphFilterToolbar from '~/components/experimental/GraphFilterToolbar.vue'
 import {
-  DEFAULT_MATCH_DEGREES,
+  FETCH_MATCH_DEGREES,
   type ArticleNodeData,
   type ProposalNodeData
 } from '~/composables/useExperimentalGraph'
@@ -40,7 +41,7 @@ const { data: proposals, status: proposalsStatus, error: proposalsError } = useF
 
 const { data: matches, status: matchesStatus, error: matchesError } = useFetch<Match[]>(
   '/matches',
-  { $fetch: api, query: { target_id: id, degree: DEFAULT_MATCH_DEGREES } }
+  { $fetch: api, query: { target_id: id, degree: FETCH_MATCH_DEGREES } }
 )
 
 const flowContainer = ref<HTMLElement | null>(null)
@@ -49,10 +50,16 @@ const { width: flowWidth, height: flowHeight } = useElementSize(flowContainer)
 const {
   nodes,
   edges,
+  filters,
+  linkCountBounds,
+  totals,
+  visible,
+  hasActiveFilters,
   hasSelection,
   toggleArticle,
   toggleProposal,
-  clearSelection
+  clearSelection,
+  resetFilters
 } = useExperimentalGraph(sections, proposals, matches, flowWidth, flowHeight)
 
 const { fitView } = useVueFlow({ id: FLOW_ID })
@@ -73,13 +80,20 @@ const loadError = computed(
   () => sectionsError.value || proposalsError.value || matchesError.value
 )
 
-const articleCount = computed(
-  () => (sections.value ?? []).filter(s => s.is_matchable).length
-)
+const articleCountLabel = computed(() => {
+  if (!hasActiveFilters.value) return `${totals.value.articles} artículos`
+  return `${visible.value.articles} / ${totals.value.articles} artículos`
+})
 
-const proposalCount = computed(() => proposals.value?.length ?? 0)
+const proposalCountLabel = computed(() => {
+  if (!hasActiveFilters.value) return `${totals.value.proposals} propuestas`
+  return `${visible.value.proposals} / ${totals.value.proposals} propuestas`
+})
 
-const matchCount = computed(() => matches.value?.length ?? 0)
+const matchCountLabel = computed(() => {
+  if (!hasActiveFilters.value) return `${visible.value.matches} vinculaciones`
+  return `${visible.value.matches} / ${totals.value.matches} vinculaciones`
+})
 
 async function zoomToFocus(focus: boolean) {
   await nextTick()
@@ -153,9 +167,9 @@ async function onClearSelection() {
         </h1>
       </div>
       <div class="flex items-center gap-3 text-xs text-muted shrink-0">
-        <span>{{ articleCount }} artículos</span>
-        <span>{{ proposalCount }} propuestas</span>
-        <span>{{ matchCount }} vinculaciones</span>
+        <span>{{ articleCountLabel }}</span>
+        <span>{{ proposalCountLabel }}</span>
+        <span>{{ matchCountLabel }}</span>
         <UButton
           v-if="hasSelection"
           size="xs"
@@ -166,6 +180,13 @@ async function onClearSelection() {
         />
       </div>
     </div>
+
+    <GraphFilterToolbar
+      :filters="filters"
+      :link-count-bounds="linkCountBounds"
+      :has-active-filters="hasActiveFilters"
+      @reset="resetFilters"
+    />
 
     <div
       ref="flowContainer"
