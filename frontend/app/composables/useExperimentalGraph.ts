@@ -21,7 +21,6 @@ const TREE_PROPOSAL_GAP = 150
 const FOCUS_COL_GAP = 80
 const FOCUS_MAX_ROWS = 6
 const FOCUS_GRID_COL_STRIDE = NODE_WIDTH + FOCUS_COL_GAP
-const TEXT_PREVIEW_LEN = 160
 const FALLBACK_VIEWPORT_WIDTH = 1280
 const FALLBACK_VIEWPORT_HEIGHT = 800
 const DIMMED_OPACITY = 0.12
@@ -172,12 +171,6 @@ function applyGraphFilters(
   }
 }
 
-function truncate(text: string, max = TEXT_PREVIEW_LEN): string {
-  const cleaned = text.replace(/\s+/g, ' ').trim()
-  if (cleaned.length <= max) return cleaned
-  return `${cleaned.slice(0, max).trimEnd()}…`
-}
-
 function clamp01(t: number): number {
   return Math.max(0, Math.min(1, t))
 }
@@ -223,6 +216,8 @@ export interface ProposalNodeData {
   dimmed: boolean
   highlighted: boolean
   selected: boolean
+  expanded: boolean
+  onToggleExpand: () => void
 }
 
 export interface MatchEdgeData {
@@ -483,7 +478,9 @@ function buildGraph(
   selectedArticleId: number | null,
   selectedProposalId: number | null,
   expandedArticleId: number | null,
-  onToggleExpand: (sectionId: number) => void
+  expandedProposalId: number | null,
+  onToggleArticleExpand: (sectionId: number) => void,
+  onToggleProposalExpand: (proposalId: number) => void
 ): { nodes: Node[], edges: Edge[] } {
   const matchable = sections.filter(s => s.is_matchable)
   const sectionLinkCounts = countLinksBySection(matches)
@@ -588,7 +585,7 @@ function buildGraph(
         selected,
         highlighted,
         expanded,
-        onToggleExpand: () => onToggleExpand(section.id)
+        onToggleExpand: () => onToggleArticleExpand(section.id)
       }
     }
   })
@@ -598,6 +595,7 @@ function buildGraph(
     const pos = positions.get(id) ?? { x: 0, y: 0 }
     const selected = proposal.id === selectedProposalId
     const highlighted = articleRelatedSet.has(proposal.id) || peerProposalSet.has(proposal.id)
+    const expanded = proposal.id === expandedProposalId
     const dimmed = hasFocus && !selected && !highlighted
     const linkCount = proposalLinkCounts.get(proposal.id) ?? 0
 
@@ -615,15 +613,17 @@ function buildGraph(
       type: 'proposal',
       position,
       connectable: false,
-      zIndex: selected || highlighted ? 10 : 1,
-      style: { opacity: dimmed ? DIMMED_OPACITY : 1 },
+      zIndex: expanded ? EXPANDED_Z_INDEX : selected || highlighted ? 10 : 1,
+      style: { opacity: dimmed && !expanded ? DIMMED_OPACITY : 1 },
       data: {
         proposalId: proposal.id,
-        text: truncate(proposal.text),
+        text: proposal.text,
         linkCount,
         dimmed,
         highlighted,
-        selected
+        selected,
+        expanded,
+        onToggleExpand: () => onToggleProposalExpand(proposal.id)
       }
     }
   })
@@ -693,6 +693,7 @@ export function useExperimentalGraph(
   const selectedArticleId = ref<number | null>(null)
   const selectedProposalId = ref<number | null>(null)
   const expandedArticleId = ref<number | null>(null)
+  const expandedProposalId = ref<number | null>(null)
   const filters = reactive<GraphFilters>(createDefaultFilters())
   const linkCountBounds = ref<LinkCountBounds>({ articleMax: 0, proposalMax: 0 })
   const totals = ref<GraphTotalCounts>({ articles: 0, proposals: 0, matches: 0 })
@@ -741,6 +742,12 @@ export function useExperimentalGraph(
       && !filtered.sections.some(s => s.id === expandedArticleId.value)
     ) {
       expandedArticleId.value = null
+    }
+    if (
+      expandedProposalId.value !== null
+      && !filtered.proposals.some(p => p.id === expandedProposalId.value)
+    ) {
+      expandedProposalId.value = null
     }
   }
 
@@ -807,7 +814,9 @@ export function useExperimentalGraph(
       selectedArticleId.value,
       selectedProposalId.value,
       expandedArticleId.value,
-      toggleArticleExpand
+      expandedProposalId.value,
+      toggleArticleExpand,
+      toggleProposalExpand
     )
     nodes.value = graph.nodes
     edges.value = graph.edges
@@ -840,7 +849,7 @@ export function useExperimentalGraph(
   )
 
   watch(
-    [selectedArticleId, selectedProposalId, expandedArticleId],
+    [selectedArticleId, selectedProposalId, expandedArticleId, expandedProposalId],
     () => applyGraph()
   )
 
@@ -857,8 +866,15 @@ export function useExperimentalGraph(
   }
 
   function toggleArticleExpand(sectionId: number) {
+    expandedProposalId.value = null
     expandedArticleId.value
       = expandedArticleId.value === sectionId ? null : sectionId
+  }
+
+  function toggleProposalExpand(proposalId: number) {
+    expandedArticleId.value = null
+    expandedProposalId.value
+      = expandedProposalId.value === proposalId ? null : proposalId
   }
 
   function clearSelection() {

@@ -21,6 +21,12 @@ function onFooterClick(event: MouseEvent) {
   event.stopPropagation()
   props.data.onToggleExpand()
 }
+
+/** Keep wheel scrolling inside the node; don't zoom the canvas. */
+function onBodyWheel(event: WheelEvent) {
+  if (!props.data.expanded) return
+  event.stopPropagation()
+}
 </script>
 
 <template>
@@ -47,7 +53,11 @@ function onFooterClick(event: MouseEvent) {
       class="size-2! bg-primary/40! border-0!"
     />
 
-    <div class="p-4 pb-3 cursor-pointer">
+    <div
+      class="p-4 pb-3 cursor-pointer"
+      :class="data.expanded ? 'max-h-96 overflow-y-auto overscroll-contain nowheel' : ''"
+      @wheel="onBodyWheel"
+    >
       <p class="text-[10px] font-bold uppercase tracking-wide text-primary">
         {{ data.sectionNumber ? `Artículo ${data.sectionNumber}` : 'Artículo' }}
       </p>
