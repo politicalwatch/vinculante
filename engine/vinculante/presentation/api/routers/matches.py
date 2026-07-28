@@ -12,10 +12,12 @@ def list_matches(
     repo: MatchRepoDep,
     match_status: str | None = None,
     section_id: int | None = None,
+    target_id: int | None = None,
     degree: list[str] | None = Query(default=None),
 ):
     return repo.list_filtered(
         section_id=section_id,
+        target_id=target_id,
         degrees=degree,
         status=MatchStatus(match_status) if match_status else None,
     )
