@@ -18,12 +18,12 @@ export const MINIMAP_CONFIG = {
   /** Height of an article shorter than 100 words. */
   baseHeight: 12,
   /** Added height per 100 words of article text. */
-  pxPer100Words: 2,
+  pxPer100Words: 4,
   maxHeight: 48,
   gap: 4
 } as const
 
-export const ARTICLE_COLUMN_WIDTH = 380
+export const ARTICLE_COLUMN_WIDTH = 580
 export const PROPOSAL_CARD_WIDTH = 364
 export const PROPOSAL_CARD_HEIGHT = 113
 
@@ -66,6 +66,9 @@ export interface EditorialProposal {
   accentSide: 'left' | 'right'
   x: number
   y: number
+  /** Measured height once expanded, collapsed height otherwise. */
+  height: number
+  expanded: boolean
   /** Idle float animation parameters, stable per proposal. */
   floatDuration: number
   floatDelay: number
@@ -182,6 +185,12 @@ export function useEditorialBoard(
   const filters = reactive<GraphFilters>(createDefaultFilters())
   const selectedArticleId = ref<number | null>(null)
   const expandedArticleIds = ref<Set<number>>(new Set())
+  const expandedProposalIds = ref<Set<number>>(new Set())
+  /**
+   * Expanded cards grow to fit their text, so their height is reported back by the
+   * card instead of estimated here — the stack below has to shift by the real amount.
+   */
+  const proposalHeights = ref<Map<number, number>>(new Map())
 
   const layers = reactive({
     articles: true,
@@ -289,11 +298,13 @@ export function useEditorialBoard(
 
   const hasSelection = computed(() => selectedArticleId.value !== null)
 
-  const stackHeight = computed(
-    () =>
-      STACK_TOP * 2
-      + relatedProposalIds.value.length * (PROPOSAL_CARD_HEIGHT + STACK_GAP)
-  )
+  function proposalHeight(proposalId: number): number {
+    if (!expandedProposalIds.value.has(proposalId)) return PROPOSAL_CARD_HEIGHT
+    return Math.max(
+      PROPOSAL_CARD_HEIGHT,
+      proposalHeights.value.get(proposalId) ?? PROPOSAL_CARD_HEIGHT
+    )
+  }
 
   /**
    * Idle scatter across a canvas wider and taller than the viewport, so only a
@@ -351,16 +362,18 @@ export function useEditorialBoard(
     height: idleLayout.value.height
   }))
 
-  const stackPositions = computed(() => {
-    const map = new Map<number, { x: number, y: number }>()
-    relatedProposalIds.value.forEach((proposalId, index) => {
-      map.set(proposalId, {
-        x: STACK_OFFSET_X,
-        y: STACK_TOP + index * (PROPOSAL_CARD_HEIGHT + STACK_GAP)
-      })
-    })
-    return map
+  const stackLayout = computed(() => {
+    const positions = new Map<number, { x: number, y: number, height: number }>()
+    let cursor = STACK_TOP
+    for (const proposalId of relatedProposalIds.value) {
+      const height = proposalHeight(proposalId)
+      positions.set(proposalId, { x: STACK_OFFSET_X, y: cursor, height })
+      cursor += height + STACK_GAP
+    }
+    return { positions, height: cursor - STACK_GAP + STACK_TOP }
   })
+
+  const stackHeight = computed(() => stackLayout.value.height)
 
   function relationLabel(proposal: Proposal, linkCount: number): string {
     if (selectedArticleId.value !== null && relatedProposalIdSet.value.has(proposal.id)) {
@@ -381,7 +394,7 @@ export function useEditorialBoard(
   const boardProposals = computed<EditorialProposal[]>(() => {
     const counts = countLinksByProposal(filtered.value.matches)
     const scatter = idleLayout.value.positions
-    const stack = stackPositions.value
+    const stack = stackLayout.value.positions
     const focused = selectedArticleId.value !== null
 
     return filtered.value.proposals.map((proposal, index) => {
@@ -392,6 +405,7 @@ export function useEditorialBoard(
         = (stacked ? stack.get(proposal.id) : scatter.get(proposal.id))
           ?? { x: SCATTER_GAP_X, y: SCATTER_GAP_Y }
       const stackIndex = relatedProposalIds.value.indexOf(proposal.id)
+      const expanded = expandedProposalIds.value.has(proposal.id)
 
       return {
         proposalId: proposal.id,
@@ -402,14 +416,16 @@ export function useEditorialBoard(
         accentSide: index % 2 === 0 ? 'left' : 'right',
         x: position.x,
         y: position.y,
+        height: proposalHeight(proposal.id),
+        expanded,
         floatDuration: 6 + random() * 5,
         floatDelay: -random() * 6,
         floatX: (random() - 0.5) * 20,
         floatY: (random() - 0.5) * 20,
-        floating: !focused,
+        floating: !focused && !expanded,
         stacked,
         opacity: focused && !isRelated ? 0 : 1,
-        zIndex: stacked ? 200 - stackIndex : 1
+        zIndex: expanded ? 300 : stacked ? 200 - stackIndex : 1
       }
     })
   })
@@ -425,20 +441,24 @@ export function useEditorialBoard(
     if (ids.length === 0) return null
 
     const spineX = STACK_OFFSET_X / 2
-    const centerY = (index: number) =>
-      STACK_TOP + index * (PROPOSAL_CARD_HEIGHT + STACK_GAP) + PROPOSAL_CARD_HEIGHT / 2
+    const stack = stackLayout.value.positions
+    const centerY = (proposalId: number) => {
+      const slot = stack.get(proposalId)
+      if (!slot) return STACK_TOP + PROPOSAL_CARD_HEIGHT / 2
+      return slot.y + slot.height / 2
+    }
 
-    const firstY = centerY(0)
-    const lastY = centerY(ids.length - 1)
+    const firstY = centerY(ids[0]!)
+    const lastY = centerY(ids[ids.length - 1]!)
 
     return {
       spine: `M ${spineX} ${firstY} L ${spineX} ${lastY}`,
-      ticks: ids.map((proposalId, index) => ({
+      ticks: ids.map(proposalId => ({
         proposalId,
-        path: `M ${spineX} ${centerY(index)} L ${STACK_OFFSET_X} ${centerY(index)}`
+        path: `M ${spineX} ${centerY(proposalId)} L ${STACK_OFFSET_X} ${centerY(proposalId)}`
       })),
       width: STACK_OFFSET_X,
-      height: lastY + PROPOSAL_CARD_HEIGHT
+      height: stackLayout.value.height
     }
   })
 
@@ -459,6 +479,21 @@ export function useEditorialBoard(
     if (next.has(sectionId)) next.delete(sectionId)
     else next.add(sectionId)
     expandedArticleIds.value = next
+  }
+
+  function toggleProposalExpanded(proposalId: number) {
+    const next = new Set(expandedProposalIds.value)
+    if (next.has(proposalId)) next.delete(proposalId)
+    else next.add(proposalId)
+    expandedProposalIds.value = next
+  }
+
+  function setProposalHeight(proposalId: number, height: number) {
+    const rounded = Math.round(height)
+    if (proposalHeights.value.get(proposalId) === rounded) return
+    const next = new Map(proposalHeights.value)
+    next.set(proposalId, rounded)
+    proposalHeights.value = next
   }
 
   function articleOpacity(sectionId: number): number {
@@ -500,6 +535,8 @@ export function useEditorialBoard(
     clearSelection,
     isExpanded,
     toggleExpanded,
+    toggleProposalExpanded,
+    setProposalHeight,
     articleOpacity,
     resetFilters
   }

@@ -61,6 +61,8 @@ const {
   clearSelection,
   isExpanded,
   toggleExpanded,
+  toggleProposalExpanded,
+  setProposalHeight,
   articleOpacity,
   resetFilters
 } = useEditorialBoard(sections, proposals, matches, layerWidth, layerHeight)
@@ -313,6 +315,8 @@ const emptyStateMessage = computed(() => {
                 v-for="proposal in boardProposals"
                 :key="proposal.proposalId"
                 :proposal="proposal"
+                @toggle="toggleProposalExpanded(proposal.proposalId)"
+                @measure="setProposalHeight(proposal.proposalId, $event)"
               />
             </template>
           </div>
