@@ -1,0 +1,406 @@
+<script setup lang="ts">
+import { useElementSize } from '@vueuse/core'
+import type { Match, Proposal, Section, TargetDocument } from '~/types/api'
+import GraphFilterToolbar from '~/components/experimental/GraphFilterToolbar.vue'
+import ArticleMinimap from '~/components/experimental/editorial/ArticleMinimap.vue'
+import EditorialArticleCard from '~/components/experimental/editorial/EditorialArticleCard.vue'
+import EditorialTopBar from '~/components/experimental/editorial/EditorialTopBar.vue'
+import FloatingProposalCard from '~/components/experimental/editorial/FloatingProposalCard.vue'
+import { FETCH_MATCH_DEGREES } from '~/composables/useExperimentalGraph'
+import { ARTICLE_COLUMN_WIDTH, useEditorialBoard } from '~/composables/useEditorialBoard'
+
+const route = useRoute()
+const id = Number(route.params.id)
+const api = useApi()
+
+const { data: target, error: targetError } = await useFetch<TargetDocument>(
+  `/targets/${id}`,
+  { $fetch: api }
+)
+
+if (targetError.value) {
+  throw createError({ statusCode: 404, message: 'Documento no encontrado' })
+}
+
+useSeoMeta({ title: () => `Exploración v3 — ${target.value?.title ?? ''} — Vinculante` })
+
+const { data: sections, status: sectionsStatus, error: sectionsError } = useFetch<Section[]>(
+  '/sections',
+  { $fetch: api, query: { target_id: id } }
+)
+
+const { data: proposals, status: proposalsStatus, error: proposalsError } = useFetch<Proposal[]>(
+  '/proposals',
+  { $fetch: api, query: { target_id: id } }
+)
+
+const { data: matches, status: matchesStatus, error: matchesError } = useFetch<Match[]>(
+  '/matches',
+  { $fetch: api, query: { target_id: id, degree: FETCH_MATCH_DEGREES } }
+)
+
+const proposalLayer = ref<HTMLElement | null>(null)
+const { width: layerWidth, height: layerHeight } = useElementSize(proposalLayer)
+
+const {
+  filters,
+  layers,
+  linkCountBounds,
+  totals,
+  visible,
+  hasActiveFilters,
+  articles,
+  proposals: boardProposals,
+  stackConnectors,
+  surfaceSize,
+  stackHeight,
+  selectedArticleId,
+  hasSelection,
+  relatedProposalIds,
+  selectArticle,
+  clearSelection,
+  isExpanded,
+  toggleExpanded,
+  articleOpacity,
+  resetFilters
+} = useEditorialBoard(sections, proposals, matches, layerWidth, layerHeight)
+
+const loading = computed(
+  () =>
+    sectionsStatus.value === 'pending'
+    || proposalsStatus.value === 'pending'
+    || matchesStatus.value === 'pending'
+)
+
+const loadError = computed(
+  () => sectionsError.value || proposalsError.value || matchesError.value
+)
+
+// ---------------------------------------------------------------------------
+// Independent scroll areas
+// ---------------------------------------------------------------------------
+
+const articleScroll = ref<HTMLElement | null>(null)
+const articleList = ref<HTMLElement | null>(null)
+const minimapScrollRatio = ref(0)
+const cardRefs = new Map<number, HTMLElement>()
+
+function setCardRef(sectionId: number, el: unknown) {
+  if (el instanceof HTMLElement) cardRefs.set(sectionId, el)
+  else cardRefs.delete(sectionId)
+}
+
+/** Keep the minimap in register with the article column without coupling scrollbars. */
+function onArticleScroll() {
+  const el = articleScroll.value
+  if (!el) return
+  const scrollable = el.scrollHeight - el.clientHeight
+  minimapScrollRatio.value = scrollable > 0 ? el.scrollTop / scrollable : 0
+}
+
+/**
+ * Selecting scrolls the article to the top of its column so the proposal stack,
+ * which always starts at the top of its own scroll area, lines up with it.
+ */
+function scrollArticleToTop(sectionId: number) {
+  const container = articleScroll.value
+  const card = cardRefs.get(sectionId)
+  if (!container || !card) return
+  container.scrollTo({ top: Math.max(0, card.offsetTop - 8), behavior: 'smooth' })
+}
+
+function onSelectArticle(sectionId: number) {
+  const wasSelected = selectedArticleId.value === sectionId
+  selectArticle(sectionId)
+  proposalLayer.value?.scrollTo({ top: 0, left: 0, behavior: 'smooth' })
+  if (!wasSelected) scrollArticleToTop(sectionId)
+}
+
+function onMinimapSelect(sectionId: number) {
+  if (!layers.articles) layers.articles = true
+  onSelectArticle(sectionId)
+}
+
+function onToggleLayer(key: 'articles' | 'proposals' | 'links') {
+  layers[key] = !layers[key]
+}
+
+function onBackgroundClick() {
+  if (hasSelection.value) clearSelection()
+}
+
+const surfaceStyle = computed(() => {
+  if (hasSelection.value) {
+    return {
+      width: '100%',
+      height: `${Math.max(stackHeight.value, layerHeight.value)}px`
+    }
+  }
+  return {
+    width: `${surfaceSize.value.width}px`,
+    height: `${surfaceSize.value.height}px`
+  }
+})
+
+const articleBadge = computed(() => `${visible.value.articles} VISIBLES`)
+
+const proposalBadge = computed(() => {
+  if (hasSelection.value) {
+    const count = relatedProposalIds.value.length
+    return count === 1 ? '1 VINCULADA' : `${count} VINCULADAS`
+  }
+  return `${visible.value.proposals} VISIBLES`
+})
+
+const matchCountLabel = computed(() =>
+  hasActiveFilters.value
+    ? `${visible.value.matches} / ${totals.value.matches} vinculaciones`
+    : `${visible.value.matches} vinculaciones`
+)
+
+const emptyStateMessage = computed(() => {
+  if (!layers.proposals) return 'Capa de propuestas oculta.'
+  if (hasSelection.value && relatedProposalIds.value.length === 0) {
+    return 'Este artículo no tiene vinculaciones con el grado mínimo seleccionado.'
+  }
+  if (!hasSelection.value && boardProposals.value.length === 0) {
+    return 'Ninguna propuesta cumple los filtros actuales.'
+  }
+  return null
+})
+</script>
+
+<template>
+  <div class="editorial-board h-full flex flex-col min-h-0">
+    <EditorialTopBar
+      :layers="layers"
+      :session-title="target?.title ?? ''"
+      @toggle-layer="onToggleLayer"
+    />
+
+    <GraphFilterToolbar
+      :filters="filters"
+      :link-count-bounds="linkCountBounds"
+      :has-active-filters="hasActiveFilters"
+      @reset="resetFilters"
+    />
+
+    <div
+      v-if="loading"
+      class="flex-1 flex items-center justify-center"
+    >
+      <UIcon
+        name="i-lucide-loader-circle"
+        class="size-8 animate-spin text-(--ed-muted)"
+      />
+    </div>
+
+    <UAlert
+      v-else-if="loadError"
+      color="error"
+      icon="i-lucide-alert-circle"
+      title="Error al cargar los datos"
+      class="m-6"
+    />
+
+    <div
+      v-else
+      class="flex-1 min-h-0 flex"
+    >
+      <ArticleMinimap
+        :articles="articles"
+        :selected-article-id="selectedArticleId"
+        :scroll-ratio="minimapScrollRatio"
+        @select="onMinimapSelect"
+      />
+
+      <section
+        v-if="layers.articles"
+        class="shrink-0 flex flex-col min-h-0 border-r border-(--ed-border)"
+        :style="{ width: `${ARTICLE_COLUMN_WIDTH + 48}px` }"
+      >
+        <div class="column-header">
+          <h2>Artículos de Ley</h2>
+          <span class="column-badge">{{ articleBadge }}</span>
+        </div>
+
+        <div
+          ref="articleScroll"
+          class="flex-1 min-h-0 overflow-y-auto overscroll-contain px-6 pb-8"
+          @scroll="onArticleScroll"
+        >
+          <div
+            ref="articleList"
+            class="relative flex flex-col gap-3"
+          >
+            <EditorialArticleCard
+              v-for="article in articles"
+              :key="article.sectionId"
+              :ref="el => setCardRef(article.sectionId, (el as { $el?: unknown })?.$el ?? el)"
+              :article="article"
+              :selected="article.sectionId === selectedArticleId"
+              :expanded="isExpanded(article.sectionId)"
+              :opacity="articleOpacity(article.sectionId)"
+              @select="onSelectArticle(article.sectionId)"
+              @toggle-expanded="toggleExpanded(article.sectionId)"
+            />
+
+            <p
+              v-if="articles.length === 0"
+              class="text-sm text-(--ed-muted) py-8 text-center"
+            >
+              Ningún artículo cumple los filtros actuales.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="flex-1 min-w-0 flex flex-col min-h-0">
+        <div class="column-header">
+          <h2>Propuestas Ciudadanas</h2>
+          <span class="column-badge">{{ proposalBadge }}</span>
+          <span class="ml-auto text-[11px] text-(--ed-muted) tabular-nums">
+            {{ matchCountLabel }}
+          </span>
+          <UButton
+            v-if="hasSelection"
+            size="xs"
+            color="neutral"
+            variant="ghost"
+            label="Limpiar selección"
+            @click="clearSelection"
+          />
+        </div>
+
+        <div
+          ref="proposalLayer"
+          class="proposal-layer"
+          :class="hasSelection ? 'is-focused' : 'is-idle'"
+          @click.self="onBackgroundClick"
+        >
+          <div
+            class="proposal-surface"
+            :style="surfaceStyle"
+            @click.self="onBackgroundClick"
+          >
+            <svg
+              v-if="stackConnectors"
+              class="stack-connectors"
+              :width="stackConnectors.width"
+              :height="stackConnectors.height"
+              aria-hidden="true"
+            >
+              <path
+                :d="stackConnectors.spine"
+                fill="none"
+                stroke="var(--ed-accent)"
+                stroke-width="1"
+                opacity="0.4"
+              />
+              <path
+                v-for="tick in stackConnectors.ticks"
+                :key="tick.proposalId"
+                :d="tick.path"
+                fill="none"
+                stroke="var(--ed-accent)"
+                stroke-width="1"
+                opacity="0.55"
+              />
+            </svg>
+
+            <template v-if="layers.proposals">
+              <FloatingProposalCard
+                v-for="proposal in boardProposals"
+                :key="proposal.proposalId"
+                :proposal="proposal"
+              />
+            </template>
+          </div>
+
+          <p
+            v-if="emptyStateMessage"
+            class="absolute inset-x-0 top-24 text-center text-sm text-(--ed-muted) px-8"
+          >
+            {{ emptyStateMessage }}
+          </p>
+        </div>
+      </section>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.editorial-board {
+  --ed-bg: #faf8f5;
+  --ed-surface: #ffffff;
+  --ed-surface-sunken: #f5f2ed;
+  --ed-border: #e5dfd6;
+  --ed-ink: #1b3a5c;
+  --ed-accent: #c2662d;
+  --ed-body: #5a6472;
+  --ed-muted: #8b93a0;
+  --ed-shape-empty: #dcd7ce;
+
+  background: var(--ed-bg);
+}
+
+.column-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  padding: 20px 24px 12px;
+}
+
+.column-header h2 {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ed-muted);
+}
+
+.column-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 8px;
+  border-radius: 4px;
+  background: color-mix(in oklab, var(--ed-ink) 8%, transparent);
+  color: var(--ed-ink);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.proposal-layer {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overscroll-behavior: contain;
+}
+
+/* Idle: the surface is larger than the viewport, so only a few cards are in view. */
+.proposal-layer.is-idle {
+  overflow: auto;
+}
+
+/* Focused: the stack is a single column that scrolls on its own. */
+.proposal-layer.is-focused {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.proposal-surface {
+  position: relative;
+}
+
+.stack-connectors {
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+</style>
