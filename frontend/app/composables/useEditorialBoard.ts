@@ -8,6 +8,9 @@ import {
   type LinkCountBounds
 } from '~/composables/useExperimentalGraph'
 import { applyGraphFilters, countLinksByProposal } from '~/utils/graphFilters'
+import { mulberry32 } from '~/utils/random'
+
+export type BoardView = 'articles' | 'proposals'
 
 /** Minimap geometry — every value is tunable from here. */
 export const MINIMAP_CONFIG = {
@@ -87,17 +90,6 @@ export interface StackConnectors {
   ticks: Array<{ proposalId: number, path: string }>
   width: number
   height: number
-}
-
-/** Deterministic PRNG so scatter positions survive re-renders and hydration. */
-function mulberry32(seed: number): () => number {
-  let state = seed >>> 0
-  return () => {
-    state = (state + 0x6D2B79F5) >>> 0
-    let t = Math.imul(state ^ (state >>> 15), 1 | state)
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
-  }
 }
 
 function stripMarkdown(value: string): string {
@@ -192,11 +184,7 @@ export function useEditorialBoard(
    */
   const proposalHeights = ref<Map<number, number>>(new Map())
 
-  const layers = reactive({
-    articles: true,
-    proposals: true,
-    links: true
-  })
+  const view = ref<BoardView>('articles')
 
   const filtered = computed(() =>
     applyGraphFilters(
@@ -206,6 +194,9 @@ export function useEditorialBoard(
       filters
     )
   )
+
+  const filteredProposals = computed(() => filtered.value.proposals)
+  const filteredMatches = computed(() => filtered.value.matches)
 
   const linkCountBounds = computed<LinkCountBounds>(() => filtered.value.linkCountBounds)
   const totals = computed<GraphTotalCounts>(() => filtered.value.totals)
@@ -436,7 +427,7 @@ export function useEditorialBoard(
    * from a single origin degenerate into a bundle of near-vertical lines.
    */
   const stackConnectors = computed<StackConnectors | null>(() => {
-    if (!layers.links || selectedArticleId.value === null) return null
+    if (selectedArticleId.value === null) return null
     const ids = relatedProposalIds.value
     if (ids.length === 0) return null
 
@@ -518,13 +509,15 @@ export function useEditorialBoard(
 
   return {
     filters,
-    layers,
+    view,
     linkCountBounds,
     totals,
     visible,
     hasActiveFilters,
     articles,
     proposals: boardProposals,
+    filteredProposals,
+    filteredMatches,
     stackConnectors,
     surfaceSize,
     stackHeight,

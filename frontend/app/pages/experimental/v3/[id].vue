@@ -6,6 +6,7 @@ import ArticleMinimap from '~/components/experimental/editorial/ArticleMinimap.v
 import EditorialArticleCard from '~/components/experimental/editorial/EditorialArticleCard.vue'
 import EditorialTopBar from '~/components/experimental/editorial/EditorialTopBar.vue'
 import FloatingProposalCard from '~/components/experimental/editorial/FloatingProposalCard.vue'
+import ProposalExplorer from '~/components/experimental/editorial/ProposalExplorer.vue'
 import { FETCH_MATCH_DEGREES } from '~/composables/useExperimentalGraph'
 import { ARTICLE_COLUMN_WIDTH, useEditorialBoard } from '~/composables/useEditorialBoard'
 
@@ -40,17 +41,20 @@ const { data: matches, status: matchesStatus, error: matchesError } = useFetch<M
 )
 
 const proposalLayer = ref<HTMLElement | null>(null)
+const proposalExplorer = ref<{ clearSelection: () => void } | null>(null)
 const { width: layerWidth, height: layerHeight } = useElementSize(proposalLayer)
 
 const {
   filters,
-  layers,
+  view,
   linkCountBounds,
   totals,
   visible,
   hasActiveFilters,
   articles,
   proposals: boardProposals,
+  filteredProposals,
+  filteredMatches,
   stackConnectors,
   surfaceSize,
   stackHeight,
@@ -119,17 +123,20 @@ function onSelectArticle(sectionId: number) {
 }
 
 function onMinimapSelect(sectionId: number) {
-  if (!layers.articles) layers.articles = true
   onSelectArticle(sectionId)
-}
-
-function onToggleLayer(key: 'articles' | 'proposals' | 'links') {
-  layers[key] = !layers[key]
 }
 
 function onBackgroundClick() {
   if (hasSelection.value) clearSelection()
 }
+
+watch(view, (next) => {
+  if (next === 'articles') {
+    proposalExplorer.value?.clearSelection()
+  } else {
+    clearSelection()
+  }
+})
 
 const surfaceStyle = computed(() => {
   if (hasSelection.value) {
@@ -161,7 +168,6 @@ const matchCountLabel = computed(() =>
 )
 
 const emptyStateMessage = computed(() => {
-  if (!layers.proposals) return 'Capa de propuestas oculta.'
   if (hasSelection.value && relatedProposalIds.value.length === 0) {
     return 'Este artículo no tiene vinculaciones con el grado mínimo seleccionado.'
   }
@@ -175,9 +181,8 @@ const emptyStateMessage = computed(() => {
 <template>
   <div class="editorial-board h-full flex flex-col min-h-0">
     <EditorialTopBar
-      :layers="layers"
+      v-model:view="view"
       :session-title="target?.title ?? ''"
-      @toggle-layer="onToggleLayer"
     />
 
     <GraphFilterToolbar
@@ -206,6 +211,19 @@ const emptyStateMessage = computed(() => {
     />
 
     <div
+      v-else-if="view === 'proposals'"
+      class="flex-1 min-h-0 flex"
+    >
+      <ProposalExplorer
+        ref="proposalExplorer"
+        :proposals="filteredProposals"
+        :matches="filteredMatches"
+        :articles="articles"
+        :all-proposals="proposals ?? []"
+      />
+    </div>
+
+    <div
       v-else
       class="flex-1 min-h-0 flex"
     >
@@ -217,7 +235,6 @@ const emptyStateMessage = computed(() => {
       />
 
       <section
-        v-if="layers.articles"
         class="shrink-0 flex flex-col min-h-0 border-r border-(--ed-border)"
         :style="{ width: `${ARTICLE_COLUMN_WIDTH + 48}px` }"
       >
@@ -310,15 +327,13 @@ const emptyStateMessage = computed(() => {
               />
             </svg>
 
-            <template v-if="layers.proposals">
-              <FloatingProposalCard
-                v-for="proposal in boardProposals"
-                :key="proposal.proposalId"
-                :proposal="proposal"
-                @toggle="toggleProposalExpanded(proposal.proposalId)"
-                @measure="setProposalHeight(proposal.proposalId, $event)"
-              />
-            </template>
+            <FloatingProposalCard
+              v-for="proposal in boardProposals"
+              :key="proposal.proposalId"
+              :proposal="proposal"
+              @toggle="toggleProposalExpanded(proposal.proposalId)"
+              @measure="setProposalHeight(proposal.proposalId, $event)"
+            />
           </div>
 
           <p

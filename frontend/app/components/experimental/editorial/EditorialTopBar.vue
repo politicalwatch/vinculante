@@ -1,23 +1,18 @@
 <script setup lang="ts">
-interface Layers {
-  articles: boolean
-  proposals: boolean
-  links: boolean
-}
+import type { BoardView } from '~/composables/useEditorialBoard'
 
 const props = defineProps<{
-  layers: Layers
+  view: BoardView
   sessionTitle: string
 }>()
 
 const emit = defineEmits<{
-  toggleLayer: [key: keyof Layers]
+  'update:view': [view: BoardView]
 }>()
 
-const chips: Array<{ key: keyof Layers, label: string }> = [
+const chips: Array<{ key: BoardView, label: string }> = [
   { key: 'articles', label: 'Artículos' },
-  { key: 'proposals', label: 'Propuestas' },
-  { key: 'links', label: 'Vinculaciones' }
+  { key: 'proposals', label: 'Propuestas' }
 ]
 </script>
 
@@ -35,16 +30,16 @@ const chips: Array<{ key: keyof Layers, label: string }> = [
 
     <nav
       class="flex items-center gap-2.5 mx-auto"
-      aria-label="Capas visibles"
+      aria-label="Vista"
     >
       <button
         v-for="chip in chips"
         :key="chip.key"
         type="button"
         class="layer-chip"
-        :class="props.layers[chip.key] ? 'is-active' : ''"
-        :aria-pressed="props.layers[chip.key]"
-        @click="emit('toggleLayer', chip.key)"
+        :class="props.view === chip.key ? 'is-active' : ''"
+        :aria-pressed="props.view === chip.key"
+        @click="emit('update:view', chip.key)"
       >
         <span class="chip-dot" />
         {{ chip.label }}
