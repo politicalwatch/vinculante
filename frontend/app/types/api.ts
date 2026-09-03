@@ -45,6 +45,18 @@ export interface TargetDocument {
   summary: string | null
 }
 
+export interface VizTargetSignature {
+  id: number
+  title: string
+  author: string
+  date: string | null
+  version: string | null
+  articles: number
+  touched: number
+  proposals: number
+  incorporated: number
+}
+
 export interface Section {
   id: number
   text: string

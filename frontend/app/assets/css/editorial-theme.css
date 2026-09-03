@@ -1,0 +1,30 @@
+.editorial-theme {
+  --ed-bg: #faf8f5;
+  --ed-surface: #ffffff;
+  --ed-surface-sunken: #f5f2ed;
+  --ed-border: #e5dfd6;
+  --ed-ink: #1b3a5c;
+  --ed-accent: #c2662d;
+  --ed-body: #5a6472;
+  --ed-muted: #8b93a0;
+  --ed-shape-empty: #dcd7ce;
+
+  /*
+   * Topic palette: same chroma/weight as accent and ink, walked around
+   * the hue circle so marks stay comparable on cream paper.
+   * 01 and 06 are the two existing chromatic tokens.
+   */
+  --ed-topic-digitales: #c2662d;
+  --ed-topic-movilidad: #c49a3a;
+  --ed-topic-clima: #6f8f4a;
+  --ed-topic-educacion: #2f8a72;
+  --ed-topic-vivienda: #2f6f86;
+  --ed-topic-salud: #3d5c7a;
+  --ed-topic-empleo: #4a4f7a;
+  --ed-topic-justicia: #6b4570;
+  --ed-topic-igualdad: #a04a58;
+  --ed-topic-cultura: #b85a3a;
+
+  background: var(--ed-bg);
+  color: var(--ed-body);
+}

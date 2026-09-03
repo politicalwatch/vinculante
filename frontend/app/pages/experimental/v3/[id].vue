@@ -179,7 +179,7 @@ const emptyStateMessage = computed(() => {
 </script>
 
 <template>
-  <div class="editorial-board h-full flex flex-col min-h-0">
+  <div class="editorial-theme editorial-board h-full flex flex-col min-h-0">
     <EditorialTopBar
       v-model:view="view"
       :session-title="target?.title ?? ''"
@@ -350,16 +350,6 @@ const emptyStateMessage = computed(() => {
 
 <style scoped>
 .editorial-board {
-  --ed-bg: #faf8f5;
-  --ed-surface: #ffffff;
-  --ed-surface-sunken: #f5f2ed;
-  --ed-border: #e5dfd6;
-  --ed-ink: #1b3a5c;
-  --ed-accent: #c2662d;
-  --ed-body: #5a6472;
-  --ed-muted: #8b93a0;
-  --ed-shape-empty: #dcd7ce;
-
   background: var(--ed-bg);
 }
 

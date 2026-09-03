@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.gzip import GZipMiddleware
 
 from vinculante.infrastructure.cache.redis import init_cache
-from vinculante.presentation.api.routers import health, matches, proposals, sections, targets
+from vinculante.presentation.api.routers import health, matches, proposals, sections, targets, viz
 
 
 @asynccontextmanager
@@ -31,5 +31,6 @@ def create_app() -> FastAPI:
     app.include_router(sections.router)
     app.include_router(matches.router)
     app.include_router(targets.router)
+    app.include_router(viz.router)
 
     return app
