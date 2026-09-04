@@ -1,0 +1,16 @@
+[Unit]
+Description=Vinculante API (FastAPI)
+After=network.target docker.service
+Wants=docker.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/vinculante/engine
+EnvironmentFile=/opt/vinculante/engine/.env
+ExecStart=/root/.local/bin/uv run uvicorn vinculante.main:create_app --factory --host 127.0.0.1 --port 8000
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

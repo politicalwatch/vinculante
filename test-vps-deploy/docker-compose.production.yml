@@ -1,0 +1,53 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg17
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5432:5432"
+    environment:
+      POSTGRES_USER: vinculante
+      POSTGRES_PASSWORD: vinculante
+      POSTGRES_DB: vinculante
+    command:
+      - postgres
+      - -c
+      - shared_buffers=64MB
+      - -c
+      - max_connections=30
+    volumes:
+      - vinculante-postgres:/var/lib/postgresql/data
+
+  redis:
+    image: redis:8.2
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6379:6379"
+    command: redis-server --maxmemory 48mb --maxmemory-policy allkeys-lru
+
+  engine:
+    build:
+      context: ./engine
+      dockerfile: ../test-vps-deploy/Dockerfile.api-slim
+    container_name: vinculante-engine
+    restart: unless-stopped
+    env_file:
+      - ./engine/.env
+    environment:
+      DB_URL: postgresql+psycopg2://vinculante:vinculante@postgres/vinculante
+      CACHE_REDIS_HOST: redis://redis
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - "127.0.0.1:8000:8000"
+    command:
+      - uvicorn
+      - vinculante.main:create_app
+      - --factory
+      - --host
+      - "0.0.0.0"
+      - --port
+      - "8000"
+
+volumes:
+  vinculante-postgres:
