@@ -3,3 +3,5 @@
 .playwright-*
 docs/*
 backups
+# Local Netlify folder
+.netlify
