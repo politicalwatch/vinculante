@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import type { VizTargetSignature } from '~/types/api'
 import LawSignatureCard from '~/components/experimental/LawSignatureCard.vue'
 import { TOPIC_PALETTE, topicCssVar } from '~/utils/topicPalette'
 
+definePageMeta({ layout: 'editorial', colorMode: 'light' })
+
 useSeoMeta({ title: 'Vinculante — Documentos objetivo' })
 
-const api = useApi()
-const { data: targets, status, error } = await useFetch<VizTargetSignature[]>('/viz_api/targets', { $fetch: api })
+const { data: targets, status, error } = await useLawIndex()
 
 const maxProposals = computed(() =>
   Math.max(1, ...(targets.value ?? []).map(target => target.proposals))
@@ -14,7 +14,7 @@ const maxProposals = computed(() =>
 </script>
 
 <template>
-  <div class="editorial-theme min-h-full">
+  <div class="min-h-full">
     <UContainer class="py-12 max-w-(--breakpoint-2xl)">
       <div class="mb-8">
         <h1 class="font-serif text-5xl font-semibold text-(--ed-ink) mb-4 leading-[1.1]">

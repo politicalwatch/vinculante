@@ -1,23 +1,28 @@
 <script setup lang="ts">
 import { useElementSize } from '@vueuse/core'
-import type { Match, Proposal, Section, TargetDocument } from '~/types/api'
+import type { Match, Proposal, Section } from '~/types/api'
+import type { BoardView } from '~/composables/useEditorialBoard'
 import GraphFilterToolbar from '~/components/experimental/GraphFilterToolbar.vue'
 import ArticleMinimap from '~/components/experimental/editorial/ArticleMinimap.vue'
 import EditorialArticleCard from '~/components/experimental/editorial/EditorialArticleCard.vue'
-import EditorialTopBar from '~/components/experimental/editorial/EditorialTopBar.vue'
 import FloatingProposalCard from '~/components/experimental/editorial/FloatingProposalCard.vue'
 import ProposalExplorer from '~/components/experimental/editorial/ProposalExplorer.vue'
 import { FETCH_MATCH_DEGREES } from '~/composables/useExperimentalGraph'
 import { ARTICLE_COLUMN_WIDTH, useEditorialBoard } from '~/composables/useEditorialBoard'
 
+definePageMeta({ layout: 'editorial', colorMode: 'light' })
+
+/** The header drives the board view through the URL, so both stay in sync. */
+const VIEW_BY_QUERY: Record<string, BoardView> = {
+  vinculaciones: 'articles',
+  propuestas: 'proposals'
+}
+
 const route = useRoute()
 const id = Number(route.params.id)
 const api = useApi()
 
-const { data: target, error: targetError } = await useFetch<TargetDocument>(
-  `/targets/${id}`,
-  { $fetch: api }
-)
+const { data: target, error: targetError } = await useTargetDocument(id)
 
 if (targetError.value) {
   throw createError({ statusCode: 404, message: 'Documento no encontrado' })
@@ -130,6 +135,14 @@ function onBackgroundClick() {
   if (hasSelection.value) clearSelection()
 }
 
+watch(
+  () => route.query.vista,
+  (vista) => {
+    view.value = VIEW_BY_QUERY[String(vista)] ?? 'articles'
+  },
+  { immediate: true }
+)
+
 watch(view, (next) => {
   if (next === 'articles') {
     proposalExplorer.value?.clearSelection()
@@ -179,12 +192,7 @@ const emptyStateMessage = computed(() => {
 </script>
 
 <template>
-  <div class="editorial-theme editorial-board h-full flex flex-col min-h-0">
-    <EditorialTopBar
-      v-model:view="view"
-      :session-title="target?.title ?? ''"
-    />
-
+  <div class="editorial-board h-full flex flex-col min-h-0">
     <GraphFilterToolbar
       :filters="filters"
       :link-count-bounds="linkCountBounds"

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Section, TargetDocument } from '~/types/api'
+import type { Section } from '~/types/api'
 import ExpandableProse from '~/components/experimental/summary/ExpandableProse.vue'
 import LinkageBarChart from '~/components/experimental/summary/LinkageBarChart.vue'
 import SummarySection from '~/components/experimental/summary/SummarySection.vue'
@@ -7,14 +7,13 @@ import SummarySidebar from '~/components/experimental/summary/SummarySidebar.vue
 import { useTargetSummary } from '~/composables/useTargetSummary'
 import { splitPullQuote } from '~/utils/summaryMarkdown'
 
+definePageMeta({ layout: 'editorial', colorMode: 'light' })
+
 const route = useRoute()
 const id = Number(route.params.id)
 const api = useApi()
 
-const { data: target, error: targetError } = await useFetch<TargetDocument>(
-  `/targets/${id}`,
-  { $fetch: api }
-)
+const { data: target, error: targetError } = await useTargetDocument(id)
 
 if (targetError.value) {
   throw createError({ statusCode: 404, message: 'Documento no encontrado' })
@@ -79,7 +78,7 @@ watch(navItems, () => nextTick(updateActiveNav), { immediate: true })
 </script>
 
 <template>
-  <div class="editorial-theme summary-page">
+  <div class="summary-page">
     <SummarySidebar
       class="summary-aside"
       :title="target?.title ?? ''"
@@ -92,21 +91,9 @@ watch(navItems, () => nextTick(updateActiveNav), { immediate: true })
     />
 
     <div class="summary-main">
-      <header class="flex flex-col gap-4">
-        <NuxtLink
-          to="/experimental"
-          class="back-link"
-        >
-          <UIcon
-            name="i-lucide-chevron-left"
-            class="size-4"
-          />
-          Todos los documentos
-        </NuxtLink>
-        <h1 class="law-heading">
-          {{ target?.title }}
-        </h1>
-      </header>
+      <h1 class="law-heading">
+        {{ target?.title }}
+      </h1>
 
       <div
         v-if="!hasSummary"
@@ -239,7 +226,7 @@ watch(navItems, () => nextTick(updateActiveNav), { immediate: true })
   top: 0;
   flex-shrink: 0;
   width: 432px;
-  max-height: 100vh;
+  max-height: calc(100vh - 68px);
   overflow-y: auto;
   overscroll-behavior: contain;
   border-right: 1px solid var(--ed-border);
@@ -253,20 +240,6 @@ watch(navItems, () => nextTick(updateActiveNav), { immediate: true })
   min-width: 0;
   max-width: 920px;
   padding: 80px 60px;
-}
-
-.back-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  align-self: flex-start;
-  font-size: 13px;
-  color: var(--ed-muted);
-  text-decoration: none;
-}
-
-.back-link:hover {
-  color: var(--ed-ink);
 }
 
 .law-heading {
