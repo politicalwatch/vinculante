@@ -15,7 +15,7 @@ const maxProposals = computed(() =>
 
 <template>
   <div class="editorial-theme min-h-full">
-    <UContainer class="py-12 max-w-384">
+    <UContainer class="py-12 max-w-(--breakpoint-2xl)">
       <div class="mb-8">
         <h1 class="font-serif text-5xl font-semibold text-(--ed-ink) mb-4 leading-[1.1]">
           Documentos objetivo
@@ -23,7 +23,7 @@ const maxProposals = computed(() =>
         <p class="text-(--ed-muted) max-w-2xl">
           Selecciona un documento para explorar las vinculaciones entre sus bloques y las propuestas ciudadanas.
         </p>
-        <ul class="topic-legend mt-6">
+        <!-- <ul class="topic-legend mt-6">
           <li
             v-for="topic in TOPIC_PALETTE"
             :key="topic.key"
@@ -35,7 +35,7 @@ const maxProposals = computed(() =>
             />
             {{ topic.label }}
           </li>
-        </ul>
+        </ul> -->
       </div>
 
       <div
@@ -66,7 +66,7 @@ const maxProposals = computed(() =>
 
       <div
         v-else
-        class="grid grid-cols-1 lg:grid-cols-3 gap-6"
+        class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
       >
         <LawSignatureCard
           v-for="target in targets"

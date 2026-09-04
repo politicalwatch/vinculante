@@ -1,13 +1,17 @@
 .editorial-theme {
-  --ed-bg: #faf8f5;
+  --ed-bg: #faf7f2;
   --ed-surface: #ffffff;
   --ed-surface-sunken: #f5f2ed;
-  --ed-border: #e5dfd6;
-  --ed-ink: #1b3a5c;
-  --ed-accent: #c2662d;
+  --ed-border: #f1eee9;
+  --ed-ink: #314158;
+  --ed-accent: #2a8e8e;
   --ed-body: #5a6472;
   --ed-muted: #8b93a0;
   --ed-shape-empty: #dcd7ce;
+
+  /* Match degree: strong links share the accent hue, moderate ones sit deeper. */
+  --ed-degree-alto: #2a8e8e;
+  --ed-degree-medio: #2a617d;
 
   /*
    * Topic palette: same chroma/weight as accent and ink, walked around
