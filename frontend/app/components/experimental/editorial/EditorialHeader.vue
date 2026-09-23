@@ -19,6 +19,12 @@ const isProposals = computed(() => isDetail.value && route.query.vista === 'prop
 
 const chips = computed(() => [
   {
+    key: 'resumen',
+    label: 'Resumen',
+    to: summaryPath.value,
+    active: !isDetail.value
+  },
+  {
     key: 'vinculaciones',
     label: 'Vinculaciones',
     to: { path: detailPath.value, query: { vista: 'vinculaciones' } },
@@ -63,41 +69,25 @@ function onSelectLaw(id: number) {
 
     <template v-if="!isIndex">
       <nav
-        class="mx-auto flex items-center gap-4"
+        class="mx-auto flex items-center gap-1"
         aria-label="Vista"
       >
         <NuxtLink
-          :to="summaryPath"
-          class="text-13 no-underline transition-colors"
-          :class="!isDetail ? 'font-semibold text-ed-ink' : 'text-ed-muted hover:text-ed-ink'"
-          :aria-current="!isDetail ? 'page' : undefined"
+          v-for="chip in chips"
+          :key="chip.key"
+          :to="chip.to"
+          class="inline-flex h-8 items-center gap-2 rounded-full border border-transparent px-4 text-13 no-underline transition-colors"
+          :class="chip.active
+            ? 'border-ed-ink bg-ed-ink text-ed-surface'
+            : 'text-ed-muted hover:text-ed-ink'"
+          :aria-current="chip.active ? 'page' : undefined"
         >
-          Resumen
+          <span
+            class="size-1.5 rounded-full"
+            :class="chip.active ? 'bg-ed-accent' : 'bg-current opacity-50'"
+          />
+          {{ chip.label }}
         </NuxtLink>
-
-        <span
-          class="h-5 w-px bg-ed-border"
-          aria-hidden="true"
-        />
-
-        <div class="flex items-center gap-1">
-          <NuxtLink
-            v-for="chip in chips"
-            :key="chip.key"
-            :to="chip.to"
-            class="inline-flex h-8 items-center gap-2 rounded-full border border-transparent px-4 text-13 no-underline transition-colors"
-            :class="chip.active
-              ? 'border-ed-ink bg-ed-ink text-ed-surface'
-              : 'text-ed-muted hover:text-ed-ink'"
-            :aria-current="chip.active ? 'page' : undefined"
-          >
-            <span
-              class="size-1.5 rounded-full"
-              :class="chip.active ? 'bg-ed-accent' : 'bg-current opacity-50'"
-            />
-            {{ chip.label }}
-          </NuxtLink>
-        </div>
       </nav>
 
       <USelect
