@@ -17,14 +17,15 @@ export type BoardView = 'articles' | 'proposals'
 /** Minimap geometry — every value is tunable from here. */
 export const MINIMAP_CONFIG = {
   /** Width of an article with zero vinculaciones. */
-  baseWidth: 12,
+  baseWidth: 6,
   /** The most-linked article is this many times wider. */
-  maxWidthFactor: 3,
+  maxWidthFactor: 5,
   /** Height of an article shorter than 100 words. */
-  baseHeight: 12,
+  baseHeight: 8,
   /** Added height per 100 words of article text. */
   pxPer100Words: 4,
-  maxHeight: 48,
+  /** Tallest bar, in px, after the strip is scaled to the column. */
+  maxHeight: 50,
   gap: 4
 } as const
 
@@ -182,9 +183,9 @@ function minimapWidth(linkCount: number, maxLinkCount: number): number {
 }
 
 function minimapHeight(wordCount: number): number {
-  const { baseHeight, pxPer100Words, maxHeight } = MINIMAP_CONFIG
+  const { baseHeight, pxPer100Words } = MINIMAP_CONFIG
   const extra = Math.floor(wordCount / 100) * pxPer100Words
-  return Math.min(maxHeight, baseHeight + extra)
+  return baseHeight + extra
 }
 
 export function useEditorialBoard(
