@@ -171,7 +171,7 @@ const proposalBadge = computed(() => {
     const count = relatedProposalIds.value.length
     return count === 1 ? '1 VINCULADA' : `${count} VINCULADAS`
   }
-  return `${visible.value.proposals} VISIBLES`
+  return `${boardProposals.value.length} VISIBLES`
 })
 
 const matchCountLabel = computed(() =>
@@ -197,6 +197,7 @@ const emptyStateMessage = computed(() => {
       :filters="filters"
       :link-count-bounds="linkCountBounds"
       :has-active-filters="hasActiveFilters"
+      :show-proposal-article-range="view === 'proposals'"
       @reset="resetFilters"
     />
 

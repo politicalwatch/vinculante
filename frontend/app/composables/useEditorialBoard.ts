@@ -186,17 +186,40 @@ export function useEditorialBoard(
 
   const view = ref<BoardView>('articles')
 
+  /**
+   * The proposal article-count range is a Propuestas control. Vinculaciones
+   * ignores it so a hidden slider cannot change which cards are on the board.
+   */
+  const appliedFilters = computed<GraphFilters>(() => {
+    if (view.value === 'proposals') return filters
+    return {
+      ...filters,
+      proposalLinksMin: 0,
+      proposalLinksMax: null
+    }
+  })
+
   const filtered = computed(() =>
     applyGraphFilters(
       toValue(sections) ?? [],
       toValue(proposals) ?? [],
       toValue(matches) ?? [],
-      filters
+      appliedFilters.value
     )
   )
 
   const filteredProposals = computed(() => filtered.value.proposals)
   const filteredMatches = computed(() => filtered.value.matches)
+
+  /**
+   * Vinculaciones only shows proposals that survive the degree floor with at least
+   * one match. The Propuestas tab keeps `filteredProposals`, including the ones
+   * with no vinculación.
+   */
+  const linkedProposals = computed(() => {
+    const counts = countLinksByProposal(filtered.value.matches)
+    return filtered.value.proposals.filter(p => (counts.get(p.id) ?? 0) > 0)
+  })
 
   const linkCountBounds = computed<LinkCountBounds>(() => filtered.value.linkCountBounds)
   const totals = computed<GraphTotalCounts>(() => filtered.value.totals)
@@ -209,8 +232,13 @@ export function useEditorialBoard(
       || filters.articleLinksMin !== defaults.articleLinksMin
       || filters.articleLinksMax !== defaults.articleLinksMax
       || filters.proposalAuthorType !== defaults.proposalAuthorType
-      || filters.proposalLinksMin !== defaults.proposalLinksMin
-      || filters.proposalLinksMax !== defaults.proposalLinksMax
+      || (
+        view.value === 'proposals'
+        && (
+          filters.proposalLinksMin !== defaults.proposalLinksMin
+          || filters.proposalLinksMax !== defaults.proposalLinksMax
+        )
+      )
     )
   })
 
@@ -307,7 +335,7 @@ export function useEditorialBoard(
    * guarantees no overlap, and the jitter plus stagger keeps it from reading as a grid.
    */
   const idleLayout = computed(() => {
-    const list = filtered.value.proposals
+    const list = linkedProposals.value
     const viewWidth = toValue(layerWidth) || FALLBACK_LAYER_WIDTH
     const viewHeight = toValue(layerHeight) || FALLBACK_LAYER_HEIGHT
 
@@ -388,7 +416,7 @@ export function useEditorialBoard(
     const stack = stackLayout.value.positions
     const focused = selectedArticleId.value !== null
 
-    return filtered.value.proposals.map((proposal, index) => {
+    return linkedProposals.value.map((proposal, index) => {
       const random = mulberry32(proposal.id * 40503 + 7)
       const isRelated = relatedProposalIdSet.value.has(proposal.id)
       const stacked = focused && isRelated

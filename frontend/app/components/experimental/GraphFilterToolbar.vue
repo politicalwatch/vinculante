@@ -6,11 +6,15 @@ import type {
   ProposalAuthorTypeFilter
 } from '~/composables/useExperimentalGraph'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   filters: GraphFilters
   linkCountBounds: LinkCountBounds
   hasActiveFilters: boolean
-}>()
+  /** The article-count range only applies on the Propuestas tab. */
+  showProposalArticleRange?: boolean
+}>(), {
+  showProposalArticleRange: true
+})
 
 const emit = defineEmits<{
   reset: []
@@ -18,8 +22,7 @@ const emit = defineEmits<{
 
 const degreeFloorOptions: Array<{ label: string, value: DegreeFloor }> = [
   { label: 'Fuerte (alto)', value: 'alto' },
-  { label: 'Moderado (medio)', value: 'medio' },
-  { label: 'Débil (bajo)', value: 'bajo' }
+  { label: 'Moderado (medio)', value: 'medio' }
 ]
 
 const authorTypeOptions: Array<{ label: string, value: ProposalAuthorTypeFilter }> = [
@@ -64,6 +67,10 @@ const proposalLinksRange = computed({
   <div class="shrink-0 border-b border-default px-4 md:px-6 py-2 flex items-center gap-x-4 gap-y-2 flex-wrap">
     <div class="flex items-center gap-2">
       <span class="text-xs text-muted whitespace-nowrap">Grado mín.</span>
+      <HelpTooltip
+        label="Ayuda: Grado mínimo"
+        text="Nivel mínimo de coincidencia entre una propuesta y un artículo para mostrar la vinculación. 'Fuerte' muestra solo las más claras; 'Moderado' añade también las de coincidencia media."
+      />
       <USelect
         v-model="filters.degreeFloor"
         :items="degreeFloorOptions"
@@ -74,6 +81,10 @@ const proposalLinksRange = computed({
 
     <div class="flex items-center gap-2 min-w-0">
       <span class="text-xs text-muted whitespace-nowrap">Artículos · vinculaciones</span>
+      <HelpTooltip
+        label="Ayuda: Artículos por número de vinculaciones"
+        text="Muestra solo los artículos cuyo número de propuestas vinculadas está dentro de este rango. Útil para localizar artículos muy debatidos o sin apenas aportaciones."
+      />
       <USlider
         v-model="articleLinksRange"
         :min="0"
@@ -90,6 +101,10 @@ const proposalLinksRange = computed({
 
     <div class="flex items-center gap-2">
       <span class="text-xs text-muted whitespace-nowrap">Propuestas · tipo</span>
+      <HelpTooltip
+        label="Ayuda: Tipo de propuesta"
+        text="Filtra las propuestas según su origen: ciudadanía o grupo de expertos."
+      />
       <USelect
         v-model="filters.proposalAuthorType"
         :items="authorTypeOptions"
@@ -98,8 +113,15 @@ const proposalLinksRange = computed({
       />
     </div>
 
-    <div class="flex items-center gap-2 min-w-0">
+    <div
+      v-if="showProposalArticleRange"
+      class="flex items-center gap-2 min-w-0"
+    >
       <span class="text-xs text-muted whitespace-nowrap">Propuestas · artículos</span>
+      <HelpTooltip
+        label="Ayuda: Propuestas por número de artículos"
+        text="Muestra solo las propuestas vinculadas a un número de artículos dentro de este rango. Una propuesta con muchos artículos es transversal; con uno solo, es específica."
+      />
       <USlider
         v-model="proposalLinksRange"
         :min="0"
