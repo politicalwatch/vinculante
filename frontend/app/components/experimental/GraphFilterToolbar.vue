@@ -90,119 +90,126 @@ const proposalLinksRange = computed({
 </script>
 
 <template>
-  <div class="shrink-0 border-b border-default px-4 md:px-6 py-2 flex items-center gap-x-4 gap-y-2 flex-wrap">
-    <div class="flex items-center gap-2">
-      <span class="text-xs text-muted whitespace-nowrap">Grado mín.</span>
-      <HelpTooltip
-        label="Ayuda: Grado mínimo"
-        text="Nivel mínimo de coincidencia entre una propuesta y un artículo para mostrar la vinculación. 'Fuerte' muestra solo las más claras; 'Moderado' añade también las de coincidencia media."
-      />
-      <USelect
-        :model-value="filters.degreeFloor"
-        :items="degreeFloorOptions"
-        size="xs"
-        class="w-44"
-        @update:model-value="onDegreeFloor"
-      />
-    </div>
+  <div class="shrink-0 border-b border-default px-4 md:px-6 py-2 flex items-center gap-x-4 gap-y-2 flex-wrap justify-between">
+    <div class="article-related flex gap-x-8 border-r border-default pr-8">
+      <div class="flex items-center gap-2">
+        <span class="text-xs text-muted whitespace-nowrap">Grado mín.</span>
+        <HelpTooltip
+          label="Ayuda: Grado mínimo"
+          text="Nivel mínimo de coincidencia entre una propuesta y un artículo para mostrar la vinculación. 'Fuerte' muestra solo las más claras; 'Moderado' añade también las de coincidencia media."
+        />
+        <USelect
+          :model-value="filters.degreeFloor"
+          :items="degreeFloorOptions"
+          size="xs"
+          class="w-44"
+          @update:model-value="onDegreeFloor"
+        />
+      </div>
 
-    <div
-      v-if="showArticleLinkRange"
-      class="flex items-center gap-2 min-w-0"
-    >
-      <span class="text-xs text-muted whitespace-nowrap">Artículos · vinculaciones</span>
-      <HelpTooltip
-        label="Ayuda: Artículos por número de vinculaciones"
-        text="Muestra solo los artículos cuyo número de propuestas vinculadas está dentro de este rango. Útil para localizar artículos muy debatidos o sin apenas aportaciones."
-      />
-      <USlider
-        v-model="articleLinksRange"
-        :min="0"
-        :max="Math.max(articleMaxBound, 1)"
-        :step="1"
-        size="xs"
-        tooltip
-        class="w-36"
-      />
-      <span class="text-xs text-muted tabular-nums whitespace-nowrap">
-        {{ articleLinksRange[0] }}–{{ articleLinksRange[1] }}
-      </span>
-    </div>
-
-    <div class="flex items-center gap-2">
-      <span class="text-xs text-muted whitespace-nowrap">Propuestas · tipo</span>
-      <HelpTooltip
-        label="Ayuda: Tipo de propuesta"
-        text="Filtra las propuestas según su origen: ciudadanía o grupo de expertos."
-      />
-      <USelect
-        :model-value="filters.proposalAuthorType"
-        :items="authorTypeOptions"
-        size="xs"
-        class="w-40"
-        @update:model-value="onAuthorType"
-      />
-    </div>
-
-    <div
-      v-if="proponentOptions"
-      class="flex items-center gap-2"
-    >
-      <span class="text-xs text-muted whitespace-nowrap">Proponente</span>
-      <HelpTooltip
-        label="Ayuda: Proponente"
-        text="Filtra las propuestas por la organización que las presenta. El mismo filtro se aplica en Vinculaciones y en Propuestas."
-      />
-      <USelectMenu
-        :model-value="proponent"
-        :items="proponentOptions"
-        value-key="value"
-        label-key="label"
-        size="xs"
-        class="w-56"
-        :search-input="{ placeholder: 'Buscar…', icon: 'i-lucide-search' }"
-        @update:model-value="emit('update:proponent', String($event))"
+      <div
+        v-if="showArticleLinkRange"
+        class="flex items-center gap-1 min-w-0"
       >
-        <template #item-label="{ item }">
-          <span class="flex items-center justify-between gap-3 w-full">
-            <span>{{ item.label }}</span>
-            <span class="text-xs text-muted tabular-nums">{{ item.count }}</span>
-          </span>
-        </template>
-      </USelectMenu>
+        <HelpTooltip
+          label="Ayuda: Filtra Artículos por número de vinculaciones"
+          text="Muestra solo los artículos cuyo número de propuestas vinculadas está dentro de este rango. Útil para localizar artículos muy debatidos o sin apenas aportaciones."
+        />
+        <span class="text-xs text-muted whitespace-nowrap">Artículos con entre</span>
+        <span class="text-xs text-muted tabular-nums whitespace-nowrap">{{ articleLinksRange[0] }}</span>
+        <USlider
+          v-model="articleLinksRange"
+          :min="0"
+          :max="Math.max(articleMaxBound, 1)"
+          :step="1"
+          size="xs"
+          tooltip
+          class="w-36"
+        />
+        <span class="text-xs text-muted tabular-nums whitespace-nowrap">
+          {{ articleLinksRange[1] }}
+        </span>
+        <span class="text-xs text-muted whitespace-nowrap">vinculaciones</span>
+      </div>
     </div>
+    <div class="proposal-related flex gap-x-8">
+      <div class="flex items-center gap-2">
+        <HelpTooltip
+          label="Ayuda: Tipo de propuesta"
+          text="Filtra las propuestas según su origen: ciudadanía o grupo de expertos."
+        />
+        <span class="text-xs text-muted whitespace-nowrap">Propuestas con origen:</span>
 
-    <div
-      v-if="showProposalArticleRange"
-      class="flex items-center gap-2 min-w-0"
-    >
-      <span class="text-xs text-muted whitespace-nowrap">Propuestas · artículos</span>
-      <HelpTooltip
-        label="Ayuda: Propuestas por número de artículos"
-        text="Muestra solo las propuestas vinculadas a un número de artículos dentro de este rango. Una propuesta con muchos artículos es transversal; con uno solo, es específica."
-      />
-      <USlider
-        v-model="proposalLinksRange"
-        :min="0"
-        :max="Math.max(proposalMaxBound, 1)"
-        :step="1"
+        <USelect
+          :model-value="filters.proposalAuthorType"
+          :items="authorTypeOptions"
+          size="xs"
+          class="w-40"
+          @update:model-value="onAuthorType"
+        />
+      </div>
+
+      <div
+        v-if="proponentOptions"
+        class="flex items-center gap-2"
+      >
+        <span class="text-xs text-muted whitespace-nowrap">Proponente</span>
+        <HelpTooltip
+          label="Ayuda: Proponente"
+          text="Filtra las propuestas por la organización que las presenta. El mismo filtro se aplica en Vinculaciones y en Propuestas."
+        />
+        <USelectMenu
+          :model-value="proponent"
+          :items="proponentOptions"
+          value-key="value"
+          label-key="label"
+          size="xs"
+          class="w-56"
+          :search-input="{ placeholder: 'Buscar…', icon: 'i-lucide-search' }"
+          @update:model-value="emit('update:proponent', String($event))"
+        >
+          <template #item-label="{ item }">
+            <span class="flex items-center justify-between gap-3 w-full">
+              <span>{{ item.label }}</span>
+              <span class="text-xs text-muted tabular-nums">{{ item.count }}</span>
+            </span>
+          </template>
+        </USelectMenu>
+      </div>
+
+      <div
+        v-if="showProposalArticleRange"
+        class="flex items-center gap-1 min-w-0"
+      >
+        <span class="text-xs text-muted whitespace-nowrap">Propuestas relacionadas con entre {{ proposalLinksRange[0] }}</span>
+
+        <USlider
+          v-model="proposalLinksRange"
+          :min="0"
+          :max="Math.max(proposalMaxBound, 1)"
+          :step="1"
+          size="xs"
+          tooltip
+          class="w-36"
+        />
+        <span class="text-xs text-muted tabular-nums whitespace-nowrap">
+          {{ proposalLinksRange[1] }}
+        </span>
+        <span class="text-xs text-muted whitespace-nowrap">artículos</span>
+        <HelpTooltip
+          label="Ayuda: Propuestas por número de artículos"
+          text="Muestra solo las propuestas vinculadas a un número de artículos dentro de este rango. Una propuesta con muchos artículos es transversal; con uno solo, es específica."
+        />
+      </div>
+      <UButton
+        :class="{ 'opacity-0 pointer-events-none ': !hasActiveFilters }"
         size="xs"
-        tooltip
-        class="w-36"
+        color="neutral"
+        icon="i-lucide-x"
+        variant="ghost"
+        label="Restaura filtros"
+        @click="emit('reset')"
       />
-      <span class="text-xs text-muted tabular-nums whitespace-nowrap">
-        {{ proposalLinksRange[0] }}–{{ proposalLinksRange[1] }}
-      </span>
     </div>
-
-    <UButton
-      v-if="hasActiveFilters"
-      size="xs"
-      color="neutral"
-      variant="ghost"
-      label="Restablecer filtros"
-      class="ml-auto"
-      @click="emit('reset')"
-    />
   </div>
 </template>
