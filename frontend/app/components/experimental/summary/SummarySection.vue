@@ -1,43 +1,28 @@
 <script setup lang="ts">
-withDefaults(
+const props = withDefaults(
   defineProps<{
     title: string
     anchor?: string
     underline?: boolean
-    gap?: number
+    /** Wider stack, used by the linkage chart. */
+    loose?: boolean
   }>(),
-  { anchor: undefined, underline: true, gap: 24 }
+  { anchor: undefined, underline: true, loose: false }
 )
 </script>
 
 <template>
   <section
     :id="anchor"
-    class="flex flex-col scroll-mt-6"
-    :style="{ gap: `${gap}px` }"
+    class="flex scroll-mt-6 flex-col"
+    :class="props.loose ? 'gap-8' : 'gap-6'"
   >
     <h2
-      class="section-heading"
-      :class="underline ? 'is-underlined' : ''"
+      class="self-start text-13 font-bold tracking-widest text-ed-accent uppercase"
+      :class="underline ? 'border-b-2 border-ed-accent pb-3' : ''"
     >
       {{ title }}
     </h2>
     <slot />
   </section>
 </template>
-
-<style scoped>
-.section-heading {
-  align-self: flex-start;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--ed-accent);
-}
-
-.section-heading.is-underlined {
-  padding-bottom: 12px;
-  border-bottom: 2px solid var(--ed-accent);
-}
-</style>

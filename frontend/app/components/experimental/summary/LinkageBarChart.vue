@@ -21,11 +21,11 @@ function widthPct(value: number): string {
       :key="group.key"
       class="flex flex-col gap-3"
     >
-      <h3 class="group-label">
+      <h3 class="flex items-baseline gap-2.5 text-xs font-bold tracking-widest text-ed-ink/70 uppercase">
         {{ group.label }}
         <span
           v-if="group.subtitle"
-          class="group-subtitle"
+          class="truncate text-11 font-normal tracking-normal text-ed-muted normal-case"
         >{{ group.subtitle }}</span>
       </h3>
 
@@ -36,139 +36,37 @@ function widthPct(value: number): string {
         >
           <NuxtLink
             :to="detailPath"
-            class="bar-row"
+            class="-mx-1 flex items-center gap-4 rounded px-1 py-0.5 text-inherit no-underline transition-colors hover:bg-ed-accent/5"
             :title="`${item.label}. ${item.title} — ${item.alto} fuertes, ${item.medio} moderados`"
           >
-            <span class="bar-axis">{{ item.label }}</span>
-            <span class="bar-track">
+            <span class="w-15 shrink-0 text-13 text-ed-ink tabular-nums">{{ item.label }}</span>
+            <span class="flex h-4 min-w-0 flex-1 overflow-clip rounded-sm bg-ed-ink/5">
               <span
                 v-if="item.alto"
-                class="bar-fill"
-                :style="{ width: widthPct(item.alto), background: 'var(--ed-degree-alto)' }"
+                class="h-full shrink-0 bg-ed-degree-alto"
+                :style="{ width: widthPct(item.alto) }"
               />
               <span
                 v-if="item.medio"
-                class="bar-fill"
-                :style="{ width: widthPct(item.medio), background: 'var(--ed-degree-medio)' }"
+                class="h-full shrink-0 bg-ed-degree-medio"
+                :style="{ width: widthPct(item.medio) }"
               />
             </span>
-            <span class="bar-total">{{ item.total }}</span>
+            <span class="w-10 shrink-0 text-right text-xs text-ed-ink/70 tabular-nums">{{ item.total }}</span>
           </NuxtLink>
         </li>
       </ul>
     </section>
 
-    <div class="legend">
-      <span class="legend-item">
-        <span
-          class="legend-swatch"
-          :style="{ background: 'var(--ed-degree-alto)' }"
-        />
+    <div class="flex flex-wrap gap-6 border-t border-ed-border pt-3">
+      <span class="inline-flex items-center gap-2 text-xs text-ed-ink">
+        <span class="size-3 shrink-0 rounded-sm bg-ed-degree-alto" />
         Vínculos fuertes ({{ alto }})
       </span>
-      <span class="legend-item">
-        <span
-          class="legend-swatch"
-          :style="{ background: 'var(--ed-degree-medio)' }"
-        />
+      <span class="inline-flex items-center gap-2 text-xs text-ed-ink">
+        <span class="size-3 shrink-0 rounded-sm bg-ed-degree-medio" />
         Vínculos moderados ({{ medio }})
       </span>
     </div>
   </div>
 </template>
-
-<style scoped>
-.group-label {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: color-mix(in oklab, var(--ed-ink) 70%, transparent);
-}
-
-.group-subtitle {
-  font-size: 11px;
-  font-weight: 400;
-  letter-spacing: 0;
-  text-transform: none;
-  color: var(--ed-muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.bar-row {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 2px 4px;
-  margin: 0 -4px;
-  border-radius: 4px;
-  color: inherit;
-  text-decoration: none;
-  transition: background 0.15s ease;
-}
-
-.bar-row:hover {
-  background: color-mix(in oklab, var(--ed-accent) 6%, transparent);
-}
-
-.bar-axis {
-  flex-shrink: 0;
-  width: 60px;
-  font-size: 13px;
-  color: var(--ed-ink);
-  font-variant-numeric: tabular-nums;
-}
-
-.bar-track {
-  display: flex;
-  flex: 1;
-  min-width: 0;
-  height: 16px;
-  overflow: clip;
-  border-radius: 2px;
-  background: color-mix(in oklab, var(--ed-ink) 4%, transparent);
-}
-
-.bar-fill {
-  height: 100%;
-  flex-shrink: 0;
-}
-
-.bar-total {
-  flex-shrink: 0;
-  width: 40px;
-  text-align: right;
-  font-size: 12px;
-  color: var(--ed-ink);
-  opacity: 0.7;
-  font-variant-numeric: tabular-nums;
-}
-
-.legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 24px;
-  padding-top: 12px;
-  border-top: 1px solid var(--ed-border);
-}
-
-.legend-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  color: var(--ed-ink);
-}
-
-.legend-swatch {
-  width: 12px;
-  height: 12px;
-  border-radius: 2px;
-  flex-shrink: 0;
-}
-</style>

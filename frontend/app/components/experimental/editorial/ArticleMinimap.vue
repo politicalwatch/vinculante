@@ -39,14 +39,20 @@ function shapeTitle(article: EditorialArticle): string {
     : `${article.linkCount} vinculaciones`
   return `${article.label} · ${links} · ${article.wordCount} palabras`
 }
+
+function shapeFill(article: EditorialArticle): string | undefined {
+  if (article.sectionId === props.selectedArticleId) return undefined
+  const mix = Math.round(article.linkRatio * 100)
+  return `color-mix(in oklab, var(--color-ed-accent) ${mix}%, var(--color-ed-shape-empty))`
+}
 </script>
 
 <template>
   <div
     ref="root"
-    class="editorial-minimap shrink-0 flex flex-col items-center gap-2 py-4 overflow-y-auto overscroll-contain"
+    class="flex w-14 shrink-0 flex-col items-center gap-2 overflow-y-auto overscroll-contain border-r border-ed-border bg-ed-surface-sunken py-4"
   >
-    <span class="text-[9px] font-semibold tracking-widest text-(--ed-muted) shrink-0">
+    <span class="shrink-0 text-3xs font-semibold tracking-widest text-ed-muted">
       DOC
     </span>
 
@@ -58,12 +64,14 @@ function shapeTitle(article: EditorialArticle): string {
         v-for="article in props.articles"
         :key="article.sectionId"
         type="button"
-        class="minimap-shape"
-        :class="article.sectionId === props.selectedArticleId ? 'is-selected' : ''"
+        class="cursor-pointer rounded-sm transition-all hover:brightness-95"
+        :class="article.sectionId === props.selectedArticleId
+          ? 'bg-ed-ink ring-1 ring-ed-ink ring-offset-2'
+          : ''"
         :style="{
-          'width': `${article.minimapWidth}px`,
-          'height': `${article.minimapHeight}px`,
-          '--shape-mix': `${Math.round(article.linkRatio * 100)}%`
+          width: `${article.minimapWidth}px`,
+          height: `${article.minimapHeight}px`,
+          background: shapeFill(article)
         }"
         :title="shapeTitle(article)"
         :aria-label="shapeTitle(article)"
@@ -71,37 +79,8 @@ function shapeTitle(article: EditorialArticle): string {
       />
     </div>
 
-    <span class="text-[9px] font-semibold tracking-widest text-(--ed-muted) shrink-0">
+    <span class="shrink-0 text-3xs font-semibold tracking-widest text-ed-muted">
       END
     </span>
   </div>
 </template>
-
-<style scoped>
-.editorial-minimap {
-  width: 56px;
-  border-right: 1px solid var(--ed-border);
-  background: var(--ed-surface-sunken);
-}
-
-.minimap-shape {
-  border-radius: 2px;
-  background: color-mix(in oklab, var(--ed-accent) var(--shape-mix), var(--ed-shape-empty));
-  transition:
-    width 0.3s cubic-bezier(0.22, 1, 0.36, 1),
-    outline-color 0.2s ease,
-    opacity 0.2s ease;
-  outline: 1px solid transparent;
-  outline-offset: 2px;
-  cursor: pointer;
-}
-
-.minimap-shape:hover {
-  opacity: 0.75;
-}
-
-.minimap-shape.is-selected {
-  background: var(--ed-ink);
-  outline-color: var(--ed-ink);
-}
-</style>

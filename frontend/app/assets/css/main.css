@@ -7,6 +7,47 @@
 @theme static {
   --font-sans: 'Public Sans', sans-serif;
 
+  /* Editorial palette. Utilities: bg-ed-bg, text-ed-ink, border-ed-accent, … */
+  --color-ed-bg: #faf7f2;
+  --color-ed-surface: #ffffff;
+  --color-ed-surface-sunken: #f5f2ed;
+  --color-ed-border: #f1eee9;
+  --color-ed-ink: #314158;
+  --color-ed-accent: #2a8e8e;
+  --color-ed-body: #5a6472;
+  --color-ed-muted: #8b93a0;
+  --color-ed-shape-empty: #dcd7ce;
+  --color-ed-degree-alto: #2a8e8e;
+  --color-ed-degree-medio: #2a617d;
+  --color-ed-topic-digitales: #c2662d;
+  --color-ed-topic-movilidad: #c49a3a;
+  --color-ed-topic-clima: #6f8f4a;
+  --color-ed-topic-educacion: #2f8a72;
+  --color-ed-topic-vivienda: #2f6f86;
+  --color-ed-topic-salud: #3d5c7a;
+  --color-ed-topic-empleo: #4a4f7a;
+  --color-ed-topic-justicia: #6b4570;
+  --color-ed-topic-igualdad: #a04a58;
+  --color-ed-topic-cultura: #b85a3a;
+
+  /* Sizes the default scale does not include. text-xs stays 12px, text-sm 14px. */
+  --text-3xs: 0.5625rem;
+  --text-3xs--line-height: 1.4;
+  --text-2xs: 0.625rem;
+  --text-2xs--line-height: 1.4;
+  --text-11: 0.6875rem;
+  --text-11--line-height: 1.45;
+  --text-13: 0.8125rem;
+  --text-13--line-height: 1.55;
+  --text-15: 0.9375rem;
+  --text-15--line-height: 1.45;
+  --text-22: 1.375rem;
+  --text-22--line-height: 1.3;
+  --text-34: 2.125rem;
+  --text-34--line-height: 1.1;
+  --text-56: 3.5rem;
+  --text-56--line-height: 1;
+
   --color-green-50: #EFFDF5;
   --color-green-100: #D9FBE8;
   --color-green-200: #B3F5D1;

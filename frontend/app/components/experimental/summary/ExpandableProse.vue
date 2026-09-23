@@ -28,7 +28,7 @@ function clampStyle(index: number) {
   if (expanded.value || !props.collapsedLines || index !== head.value.length - 1) return undefined
   return {
     display: '-webkit-box',
-    WebkitBoxOrient: 'vertical',
+    WebkitBoxOrient: 'vertical' as const,
     WebkitLineClamp: String(props.collapsedLines),
     overflow: 'hidden'
   }
@@ -40,7 +40,7 @@ function clampStyle(index: number) {
     <p
       v-for="(paragraph, index) in head"
       :key="`head-${index}`"
-      class="prose-paragraph"
+      class="text-base leading-relaxed text-ed-ink"
       :style="clampStyle(index)"
     >
       {{ paragraph }}
@@ -52,7 +52,7 @@ function clampStyle(index: number) {
       <p
         v-for="(paragraph, index) in rest"
         :key="`rest-${index}`"
-        class="prose-paragraph"
+        class="text-base leading-relaxed text-ed-ink"
       >
         {{ paragraph }}
       </p>
@@ -63,7 +63,7 @@ function clampStyle(index: number) {
     <button
       v-if="hasMore"
       type="button"
-      class="toggle"
+      class="inline-flex cursor-pointer items-center gap-2 self-start text-sm font-bold text-ed-accent hover:underline"
       :aria-expanded="expanded"
       @click="expanded = !expanded"
     >
@@ -76,26 +76,3 @@ function clampStyle(index: number) {
     </button>
   </div>
 </template>
-
-<style scoped>
-.prose-paragraph {
-  font-size: 16px;
-  line-height: 1.6;
-  color: var(--ed-ink);
-}
-
-.toggle {
-  align-self: flex-start;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--ed-accent);
-  cursor: pointer;
-}
-
-.toggle:hover {
-  text-decoration: underline;
-}
-</style>

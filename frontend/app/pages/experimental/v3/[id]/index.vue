@@ -78,9 +78,9 @@ watch(navItems, () => nextTick(updateActiveNav), { immediate: true })
 </script>
 
 <template>
-  <div class="summary-page">
+  <div class="flex min-h-full flex-col items-start lg:flex-row">
     <SummarySidebar
-      class="summary-aside"
+      class="w-full shrink-0 overflow-y-auto overscroll-contain border-b border-ed-border lg:sticky lg:top-0 lg:w-md lg:max-h-[calc(100vh-4.25rem)] lg:border-r lg:border-b-0"
       :title="target?.title ?? ''"
       :coverage="coverage"
       :nav-items="navItems"
@@ -90,24 +90,24 @@ watch(navItems, () => nextTick(updateActiveNav), { immediate: true })
       :detail-path="detailPath"
     />
 
-    <div class="summary-main">
-      <h1 class="law-heading">
+    <div class="flex w-full min-w-0 max-w-4xl flex-1 flex-col gap-12 px-6 py-10 lg:gap-16 lg:px-14 lg:py-20">
+      <h1 class="font-serif text-34 font-extrabold text-ed-ink lg:text-5xl">
         {{ target?.title }}
       </h1>
 
       <div
         v-if="!hasSummary"
-        class="summary-notice"
+        class="flex items-start gap-3 rounded-lg border border-ed-border border-l-4 border-l-ed-accent bg-ed-surface px-5 py-4 text-sm"
       >
         <UIcon
           name="i-lucide-file-text"
-          class="size-5 shrink-0 text-(--ed-accent)"
+          class="size-5 shrink-0 text-ed-accent"
         />
         <div>
-          <p class="font-semibold text-(--ed-ink)">
+          <p class="font-semibold text-ed-ink">
             Resumen no disponible
           </p>
-          <p class="text-(--ed-body) mt-0.5">
+          <p class="mt-0.5 text-ed-body">
             Este documento aún no tiene un resumen generado. Se muestran únicamente las
             vinculaciones detectadas.
           </p>
@@ -127,7 +127,7 @@ watch(navItems, () => nextTick(updateActiveNav), { immediate: true })
             v-if="leyQuote.quote"
             #lead
           >
-            <blockquote class="pull-quote">
+            <blockquote class="max-w-xl border-l-8 border-ed-accent pl-6 font-serif text-22 text-ed-ink">
               &ldquo;{{ leyQuote.quote }}&rdquo;
             </blockquote>
           </template>
@@ -136,7 +136,7 @@ watch(navItems, () => nextTick(updateActiveNav), { immediate: true })
             v-if="blocks.ley.bullets.length"
             #extra
           >
-            <ul class="axis-list">
+            <ul class="flex list-disc flex-col gap-2 pl-5 text-15 text-ed-ink">
               <li
                 v-for="(axis, index) in blocks.ley.bullets"
                 :key="index"
@@ -162,13 +162,17 @@ watch(navItems, () => nextTick(updateActiveNav), { immediate: true })
             v-if="blocks.linkages.bullets.length"
             #extra
           >
-            <dl class="theme-list">
+            <dl class="flex flex-col gap-4">
               <div
                 v-for="(theme, index) in blocks.linkages.bullets"
                 :key="index"
               >
-                <dt>{{ theme.label }}</dt>
-                <dd>{{ theme.text }}</dd>
+                <dt class="mb-1 text-15 font-semibold text-ed-ink">
+                  {{ theme.label }}
+                </dt>
+                <dd class="text-15 leading-relaxed text-ed-ink/85">
+                  {{ theme.text }}
+                </dd>
               </div>
             </dl>
           </template>
@@ -179,7 +183,7 @@ watch(navItems, () => nextTick(updateActiveNav), { immediate: true })
         v-if="groups.length && coverage"
         anchor="vinculaciones-detectadas"
         title="Vinculaciones detectadas"
-        :gap="32"
+        loose
       >
         <LinkageBarChart
           :groups="groups"
@@ -207,121 +211,9 @@ watch(navItems, () => nextTick(updateActiveNav), { immediate: true })
       >
         <UIcon
           name="i-lucide-loader-circle"
-          class="size-6 animate-spin text-(--ed-muted)"
+          class="size-6 animate-spin text-ed-muted"
         />
       </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-.summary-page {
-  display: flex;
-  align-items: flex-start;
-  min-height: 100%;
-}
-
-.summary-aside {
-  position: sticky;
-  top: 0;
-  flex-shrink: 0;
-  width: 432px;
-  max-height: calc(100vh - 68px);
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  border-right: 1px solid var(--ed-border);
-}
-
-.summary-main {
-  display: flex;
-  flex-direction: column;
-  gap: 64px;
-  flex: 1;
-  min-width: 0;
-  max-width: 920px;
-  padding: 80px 60px;
-}
-
-.law-heading {
-  font-family: var(--font-serif, ui-serif, Georgia, serif);
-  font-size: 48px;
-  font-weight: 800;
-  line-height: 1.1;
-  color: var(--ed-ink);
-}
-
-.summary-notice {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 16px 20px;
-  border: 1px solid var(--ed-border);
-  border-left: 4px solid var(--ed-accent);
-  border-radius: 8px;
-  background: var(--ed-surface);
-  font-size: 14px;
-}
-
-.pull-quote {
-  padding-left: 24px;
-  border-left: 6px solid var(--ed-accent);
-  font-family: var(--font-serif, ui-serif, Georgia, serif);
-  font-size: 22px;
-  line-height: 1.3;
-  color: var(--ed-ink);
-  max-width: 620px;
-}
-
-.axis-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding-left: 20px;
-  list-style: disc;
-  font-size: 15px;
-  color: var(--ed-ink);
-}
-
-.theme-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.theme-list dt {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--ed-ink);
-  margin-bottom: 4px;
-}
-
-.theme-list dd {
-  font-size: 15px;
-  line-height: 1.6;
-  color: var(--ed-ink);
-  opacity: 0.85;
-}
-
-@media (max-width: 1023px) {
-  .summary-page {
-    flex-direction: column;
-  }
-
-  .summary-aside {
-    position: static;
-    width: 100%;
-    max-height: none;
-    border-right: none;
-    border-bottom: 1px solid var(--ed-border);
-  }
-
-  .summary-main {
-    padding: 40px 24px;
-    gap: 48px;
-  }
-
-  .law-heading {
-    font-size: 34px;
-  }
-}
-</style>

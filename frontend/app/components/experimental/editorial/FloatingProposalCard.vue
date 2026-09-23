@@ -10,6 +10,8 @@ const props = defineProps<{
   proposal: EditorialProposal
   /** Double the width while expanded; the board clamps it to the surface. */
   wideWhenExpanded?: boolean
+  /** Sit in normal flow instead of the absolute board layer. */
+  inFlow?: boolean
   selectedArticleId?: number | null
 }>()
 
@@ -18,12 +20,6 @@ const emit = defineEmits<{
   measure: [height: number]
   selectArticle: [sectionId: number]
 }>()
-
-const tagClass = computed(() =>
-  props.proposal.accentSide === 'left'
-    ? 'text-(--ed-ink) border-(--ed-ink)/30'
-    : 'text-(--ed-accent) border-(--ed-accent)/40'
-)
 
 const showLinkedArticles = computed(() =>
   props.proposal.expanded && (props.proposal.linkedArticles?.length ?? 0) > 0
@@ -60,27 +56,34 @@ const floatStyle = computed(() => ({
   '--float-x': `${props.proposal.floatX}px`,
   '--float-y': `${props.proposal.floatY}px`
 }))
+
+const cardShadow = computed(() => {
+  if (props.proposal.expanded) return 'shadow-lg'
+  if (props.proposal.stacked) return 'shadow-md'
+  return 'shadow-sm hover:border-ed-ink/20 hover:shadow-md'
+})
 </script>
 
 <template>
   <div
-    class="proposal-position"
+    class="proposal-position top-0 left-0 will-change-transform"
+    :class="props.inFlow ? 'relative w-full' : 'absolute'"
     :data-proposal-id="props.proposal.proposalId"
     :style="positionStyle"
     :aria-hidden="props.proposal.opacity === 0"
   >
     <div
-      class="proposal-float"
+      class="proposal-float size-full"
       :class="props.proposal.floating ? 'is-floating' : ''"
       :style="floatStyle"
     >
       <article
         ref="card"
-        class="proposal-card"
+        class="proposal-card relative h-full cursor-pointer overflow-hidden rounded border border-ed-border bg-ed-surface p-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ed-accent"
         :class="[
-          props.proposal.accentSide === 'left' ? 'accent-left' : 'accent-right',
-          props.proposal.stacked ? 'is-stacked' : '',
-          props.proposal.expanded ? 'is-expanded' : ''
+          cardShadow,
+          props.proposal.accentSide === 'left' ? 'pl-5' : 'pr-5',
+          props.proposal.expanded ? 'is-expanded h-auto overflow-y-auto overscroll-contain' : ''
         ]"
         role="button"
         tabindex="0"
@@ -89,24 +92,32 @@ const floatStyle = computed(() => ({
         @keydown.enter.prevent="emit('toggle')"
         @keydown.space.prevent="emit('toggle')"
       >
+        <span
+          class="pointer-events-none absolute inset-y-0 w-1"
+          :class="props.proposal.accentSide === 'left' ? 'left-0 bg-ed-ink' : 'right-0 bg-ed-accent'"
+          aria-hidden="true"
+        />
+
         <div class="flex items-center justify-between gap-3">
           <span class="flex items-center gap-1.5 min-w-0">
             <span
               v-if="props.proposal.authorTypeLabel"
-              class="proposal-tag shrink-0"
-              :class="tagClass"
+              class="inline-flex h-4.5 shrink-0 items-center rounded border px-1.5 text-2xs font-semibold tracking-wide whitespace-nowrap"
+              :class="props.proposal.accentSide === 'left'
+                ? 'border-ed-ink/30 text-ed-ink'
+                : 'border-ed-accent/40 text-ed-accent'"
             >
               {{ props.proposal.authorTypeLabel }}
             </span>
             <span
               v-if="props.proposal.topic"
-              class="proposal-tag truncate text-(--ed-muted) border-(--ed-border)"
+              class="inline-flex h-4.5 min-w-0 items-center truncate rounded border border-ed-border px-1.5 text-2xs font-semibold tracking-wide whitespace-nowrap text-ed-muted"
               :title="props.proposal.topic"
             >
               {{ props.proposal.topic }}
             </span>
           </span>
-          <span class="flex items-center gap-1 min-w-0 shrink-0 text-[10px] text-(--ed-muted)">
+          <span class="flex items-center gap-1 min-w-0 shrink-0 text-2xs text-ed-muted">
             <span class="whitespace-nowrap truncate">{{ props.proposal.relationLabel }}</span>
             <UIcon
               :name="props.proposal.expanded ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
@@ -115,19 +126,19 @@ const floatStyle = computed(() => ({
           </span>
         </div>
         <p
-          class="mt-2.5 text-[13px] leading-[1.55]"
+          class="mt-2.5 text-13"
           :class="props.proposal.expanded
-            ? 'whitespace-pre-line text-(--ed-body)'
-            : 'line-clamp-3 proposal-clamp'"
+            ? 'whitespace-pre-line text-ed-body'
+            : 'line-clamp-3 font-extrabold text-ed-accent'"
         >
-          <span class="text-(--ed-body) font-normal">{{ props.proposal.text }}</span>
+          <span class="font-normal text-ed-body">{{ props.proposal.text }}</span>
         </p>
 
         <section
           v-if="showLinkedArticles"
-          class="proposal-section"
+          class="mt-3.5 border-t border-ed-border pt-3"
         >
-          <h4 class="proposal-section-title">
+          <h4 class="mb-2 text-2xs font-semibold tracking-widest text-ed-muted uppercase">
             Artículos vinculados
           </h4>
           <ul class="flex flex-col gap-1">
@@ -137,14 +148,13 @@ const floatStyle = computed(() => ({
             >
               <button
                 type="button"
-                class="linked-article"
-                :class="article.sectionId === props.selectedArticleId ? 'is-selected' : ''"
+                class="flex w-full min-w-0 cursor-pointer items-center gap-2.5 rounded px-2 py-1.5 text-left transition-colors hover:bg-ed-ink/6 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ed-accent"
+                :class="article.sectionId === props.selectedArticleId ? 'bg-ed-accent/12' : ''"
                 :aria-pressed="article.sectionId === props.selectedArticleId"
                 @click.stop="emit('selectArticle', article.sectionId)"
                 @keydown.stop
               >
-                
-                <span class="text-sm leading-snug text-(--ed-ink) truncate">
+                <span class="truncate text-sm leading-snug text-ed-ink">
                   {{ article.title }}
                 </span>
                 <UIcon
@@ -158,16 +168,16 @@ const floatStyle = computed(() => ({
 
         <section
           v-if="props.proposal.expanded && props.proposal.explanation"
-          class="proposal-section"
+          class="mt-3.5 border-t border-ed-border pt-3"
         >
-          <h4 class="proposal-section-title">
+          <h4 class="mb-2 text-2xs font-semibold tracking-widest text-ed-muted uppercase">
             <HelpTooltip
               label="Ayuda: Razonamiento de la vinculación"
               text="El razonamiento de la vinculación es el texto que explica la relación entre la propuesta y el artículo."
             />
             Razonamiento de la vinculación
           </h4>
-          <p class="text-[12px] leading-relaxed text-(--ed-body) whitespace-pre-line">
+          <p class="text-xs leading-relaxed text-ed-body whitespace-pre-line">
             {{ props.proposal.explanation }}
           </p>
         </section>
@@ -178,146 +188,18 @@ const floatStyle = computed(() => ({
 
 <style scoped>
 .proposal-position {
-  position: absolute;
-  top: 0;
-  left: 0;
   transition:
     transform 0.7s cubic-bezier(0.22, 1, 0.36, 1),
     opacity 0.4s ease;
-  will-change: transform;
-}
-
-.proposal-float {
-  width: 100%;
-  height: 100%;
 }
 
 .proposal-float.is-floating {
   animation: editorial-float var(--float-duration) ease-in-out var(--float-delay) infinite alternate;
 }
 
-.proposal-card {
-  position: relative;
-  height: 100%;
-  overflow: hidden;
-  padding: 16px;
-  background: var(--ed-surface);
-  border: 1px solid var(--ed-border);
-  border-radius: 4px;
-  box-shadow: 0 2px 6px rgb(27 58 92 / 0.07);
-  transition:
-    box-shadow 0.3s ease,
-    border-color 0.3s ease;
-  cursor: pointer;
-}
-
-.proposal-card:hover:not(.is-expanded) {
-  border-color: rgb(27 58 92 / 0.22);
-  box-shadow: 0 8px 22px rgb(27 58 92 / 0.16);
-}
-
-/* The truncation ellipsis takes the clamped block's color and weight, not the inner text's. */
-.proposal-clamp {
-  color: var(--ed-accent);
-  font-weight: 800;
-}
-
-.proposal-tag {
-  display: inline-flex;
-  align-items: center;
-  height: 18px;
-  padding: 0 6px;
-  border-width: 1px;
-  border-radius: 4px;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  white-space: nowrap;
-}
-
-.proposal-section {
-  margin-top: 14px;
-  padding-top: 12px;
-  border-top: 1px solid var(--ed-border);
-}
-
-.proposal-section-title {
-  margin-bottom: 8px;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--ed-muted);
-}
-
-.linked-article {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  min-width: 0;
-  padding: 6px 8px;
-  border-radius: 4px;
-  text-align: left;
-  cursor: pointer;
-  transition: background 0.15s ease;
-}
-
-.linked-article:hover {
-  background: color-mix(in oklab, var(--ed-ink) 6%, transparent);
-}
-
-.linked-article.is-selected {
-  background: color-mix(in oklab, var(--ed-accent) 12%, transparent);
-}
-
-.linked-article:focus-visible {
-  outline: 2px solid var(--ed-accent);
-  outline-offset: 1px;
-}
-
-.proposal-card:focus-visible {
-  outline: 2px solid var(--ed-accent);
-  outline-offset: 2px;
-}
-
 /* Grow to the full text, capped so a long proposal scrolls inside its own card. */
 .proposal-card.is-expanded {
-  height: auto;
-  max-height: min(60vh, 460px);
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  box-shadow: 0 10px 28px rgb(27 58 92 / 0.18);
-}
-
-.proposal-card.is-stacked {
-  box-shadow: 0 4px 14px rgb(27 58 92 / 0.12);
-}
-
-.proposal-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 4px;
-}
-
-.proposal-card.accent-left::before {
-  left: 0;
-  background: var(--ed-ink);
-}
-
-.proposal-card.accent-right::before {
-  right: 0;
-  background: var(--ed-accent);
-}
-
-.proposal-card.accent-left {
-  padding-left: 20px;
-}
-
-.proposal-card.accent-right {
-  padding-right: 20px;
+  max-height: min(60vh, 28rem);
 }
 
 @keyframes editorial-float {

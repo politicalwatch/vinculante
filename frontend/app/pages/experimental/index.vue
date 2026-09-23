@@ -14,7 +14,7 @@ const maxProposals = computed(() =>
 </script>
 
 <template>
-  <div class="min-h-full">
+  <div class="editorial-theme min-h-full">
     <UContainer class="py-12 max-w-(--breakpoint-2xl)">
       <div class="mb-8">
         <h1 class="font-serif text-5xl font-semibold text-(--ed-ink) mb-4 leading-[1.1]">

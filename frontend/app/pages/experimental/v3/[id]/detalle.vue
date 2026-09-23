@@ -203,7 +203,7 @@ const emptyStateMessage = computed(() => {
 </script>
 
 <template>
-  <div class="editorial-board h-full flex flex-col min-h-0">
+  <div class="flex h-full min-h-0 flex-col">
     <GraphFilterToolbar
       v-model:proponent="proponent"
       :filters="filters"
@@ -222,7 +222,7 @@ const emptyStateMessage = computed(() => {
     >
       <UIcon
         name="i-lucide-loader-circle"
-        class="size-8 animate-spin text-(--ed-muted)"
+        class="size-8 animate-spin text-ed-muted"
       />
     </div>
 
@@ -258,12 +258,16 @@ const emptyStateMessage = computed(() => {
       />
 
       <section
-        class="shrink-0 flex flex-col min-h-0 border-r border-(--ed-border)"
+        class="flex min-h-0 shrink-0 flex-col border-r border-ed-border"
         :style="{ width: `${ARTICLE_COLUMN_WIDTH + 48}px` }"
       >
-        <div class="column-header">
-          <h2>Artículos de Ley</h2>
-          <span class="column-badge">{{ articleBadge }}</span>
+        <div class="flex shrink-0 items-center gap-3 px-6 pt-5 pb-3">
+          <h2 class="text-xs font-semibold tracking-widest text-ed-muted uppercase">
+            Artículos de Ley
+          </h2>
+          <span class="inline-flex h-5 items-center rounded bg-ed-ink/8 px-2 text-2xs font-semibold tracking-wide whitespace-nowrap text-ed-ink">
+            {{ articleBadge }}
+          </span>
         </div>
 
         <div
@@ -289,7 +293,7 @@ const emptyStateMessage = computed(() => {
 
             <p
               v-if="articles.length === 0"
-              class="text-sm text-(--ed-muted) py-8 text-center"
+              class="py-8 text-center text-sm text-ed-muted"
             >
               Ningún artículo cumple los filtros actuales.
             </p>
@@ -298,10 +302,14 @@ const emptyStateMessage = computed(() => {
       </section>
 
       <section class="flex-1 min-w-0 flex flex-col min-h-0">
-        <div class="column-header">
-          <h2>Propuestas Ciudadanas</h2>
-          <span class="column-badge">{{ proposalBadge }}</span>
-          <span class="ml-auto text-[11px] text-(--ed-muted) tabular-nums">
+        <div class="flex shrink-0 items-center gap-3 px-6 pt-5 pb-3">
+          <h2 class="text-xs font-semibold tracking-widest text-ed-muted uppercase">
+            Propuestas Ciudadanas
+          </h2>
+          <span class="inline-flex h-5 items-center rounded bg-ed-ink/8 px-2 text-2xs font-semibold tracking-wide whitespace-nowrap text-ed-ink">
+            {{ proposalBadge }}
+          </span>
+          <span class="ml-auto text-11 text-ed-muted tabular-nums">
             {{ matchCountLabel }}
           </span>
           <UButton
@@ -316,18 +324,18 @@ const emptyStateMessage = computed(() => {
 
         <div
           ref="proposalLayer"
-          class="proposal-layer"
-          :class="hasSelection ? 'is-focused' : 'is-idle'"
+          class="relative min-h-0 flex-1 overscroll-contain"
+          :class="hasSelection ? 'overflow-x-hidden overflow-y-auto' : 'overflow-auto'"
           @click.self="onBackgroundClick"
         >
           <div
-            class="proposal-surface"
+            class="relative"
             :style="surfaceStyle"
             @click.self="onBackgroundClick"
           >
             <svg
               v-if="stackConnectors"
-              class="stack-connectors"
+              class="pointer-events-none absolute top-0 left-0 overflow-visible text-ed-accent"
               :width="stackConnectors.width"
               :height="stackConnectors.height"
               aria-hidden="true"
@@ -335,7 +343,7 @@ const emptyStateMessage = computed(() => {
               <path
                 :d="stackConnectors.spine"
                 fill="none"
-                stroke="var(--ed-accent)"
+                stroke="currentColor"
                 stroke-width="1"
                 opacity="0.4"
               />
@@ -344,7 +352,7 @@ const emptyStateMessage = computed(() => {
                 :key="tick.proposalId"
                 :d="tick.path"
                 fill="none"
-                stroke="var(--ed-accent)"
+                stroke="currentColor"
                 stroke-width="1"
                 opacity="0.55"
               />
@@ -364,7 +372,7 @@ const emptyStateMessage = computed(() => {
 
           <p
             v-if="emptyStateMessage"
-            class="absolute inset-x-0 top-24 text-center text-sm text-(--ed-muted) px-8"
+            class="absolute inset-x-0 top-24 px-8 text-center text-sm text-ed-muted"
           >
             {{ emptyStateMessage }}
           </p>
@@ -373,69 +381,3 @@ const emptyStateMessage = computed(() => {
     </div>
   </div>
 </template>
-
-<style scoped>
-.editorial-board {
-  background: var(--ed-bg);
-}
-
-.column-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-shrink: 0;
-  padding: 20px 24px 12px;
-}
-
-.column-header h2 {
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--ed-muted);
-}
-
-.column-badge {
-  display: inline-flex;
-  align-items: center;
-  height: 20px;
-  padding: 0 8px;
-  border-radius: 4px;
-  background: color-mix(in oklab, var(--ed-ink) 8%, transparent);
-  color: var(--ed-ink);
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  white-space: nowrap;
-}
-
-.proposal-layer {
-  position: relative;
-  flex: 1;
-  min-height: 0;
-  overscroll-behavior: contain;
-}
-
-/* Idle: the surface is larger than the viewport, so only a few cards are in view. */
-.proposal-layer.is-idle {
-  overflow: auto;
-}
-
-/* Focused: the stack is a single column that scrolls on its own. */
-.proposal-layer.is-focused {
-  overflow-x: hidden;
-  overflow-y: auto;
-}
-
-.proposal-surface {
-  position: relative;
-}
-
-.stack-connectors {
-  position: absolute;
-  top: 0;
-  left: 0;
-  overflow: visible;
-  pointer-events: none;
-}
-</style>
