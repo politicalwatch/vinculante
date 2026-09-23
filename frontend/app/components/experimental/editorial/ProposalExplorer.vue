@@ -13,7 +13,6 @@ const props = defineProps<{
   proposals: Proposal[]
   matches: Match[]
   articles: EditorialArticle[]
-  allProposals: Proposal[]
 }>()
 
 const emit = defineEmits<{
@@ -25,8 +24,6 @@ const { width: layerWidth, height: layerHeight } = useElementSize(proposalLayer)
 
 const {
   grouping,
-  proponent,
-  proponentOptions,
   hasSelection,
   selectedProposal,
   linkedArticles,
@@ -44,7 +41,6 @@ const {
   () => props.proposals,
   () => props.matches,
   () => props.articles,
-  () => props.allProposals,
   layerWidth,
   layerHeight
 )
@@ -106,26 +102,6 @@ defineExpose({ clearSelection })
               {{ option.label }}
             </button>
           </div>
-        </div>
-
-        <div class="flex items-center gap-2">
-          <span class="text-[11px] text-(--ed-muted) whitespace-nowrap">Proponente</span>
-          <USelectMenu
-            v-model="proponent"
-            :items="proponentOptions"
-            value-key="value"
-            label-key="label"
-            size="xs"
-            class="w-56"
-            :search-input="{ placeholder: 'Buscar…', icon: 'i-lucide-search' }"
-          >
-            <template #item-label="{ item }">
-              <span class="flex items-center justify-between gap-3 w-full">
-                <span>{{ item.label }}</span>
-                <span class="text-[10px] text-(--ed-muted) tabular-nums">{{ item.count }}</span>
-              </span>
-            </template>
-          </USelectMenu>
         </div>
 
         <UButton

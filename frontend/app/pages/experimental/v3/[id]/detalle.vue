@@ -52,6 +52,8 @@ const { width: layerWidth, height: layerHeight } = useElementSize(proposalLayer)
 const {
   filters,
   view,
+  proponent,
+  proponentOptions,
   linkCountBounds,
   totals,
   visible,
@@ -194,10 +196,12 @@ const emptyStateMessage = computed(() => {
 <template>
   <div class="editorial-board h-full flex flex-col min-h-0">
     <GraphFilterToolbar
+      v-model:proponent="proponent"
       :filters="filters"
       :link-count-bounds="linkCountBounds"
       :has-active-filters="hasActiveFilters"
       :show-proposal-article-range="view === 'proposals'"
+      :proponent-options="proponentOptions"
       @reset="resetFilters"
     />
 
@@ -228,7 +232,6 @@ const emptyStateMessage = computed(() => {
         :proposals="filteredProposals"
         :matches="filteredMatches"
         :articles="articles"
-        :all-proposals="proposals ?? []"
       />
     </div>
 

@@ -8,6 +8,7 @@ import {
   type LinkCountBounds
 } from '~/composables/useExperimentalGraph'
 import { applyGraphFilters, countLinksByProposal } from '~/utils/graphFilters'
+import { assignProponents, PROPONENTS, type ProponentOption } from '~/utils/mockProponents'
 import { mulberry32 } from '~/utils/random'
 
 export type BoardView = 'articles' | 'proposals'
@@ -185,6 +186,8 @@ export function useEditorialBoard(
   const proposalHeights = ref<Map<number, number>>(new Map())
 
   const view = ref<BoardView>('articles')
+  /** Organisation filter, shared by Vinculaciones and Propuestas. `'all'` shows every proponent. */
+  const proponent = ref('all')
 
   /**
    * The proposal article-count range is a Propuestas control. Vinculaciones
@@ -208,8 +211,23 @@ export function useEditorialBoard(
     )
   )
 
-  const filteredProposals = computed(() => filtered.value.proposals)
-  const filteredMatches = computed(() => filtered.value.matches)
+  /** Stable across filters so the same proposal keeps its organisation. */
+  const proponentById = computed(() => assignProponents(toValue(proposals) ?? []))
+
+  function matchesProponent(proposalId: number): boolean {
+    if (proponent.value === 'all') return true
+    return proponentById.value.get(proposalId) === proponent.value
+  }
+
+  const scopedProposals = computed(() =>
+    filtered.value.proposals.filter(p => matchesProponent(p.id))
+  )
+  const scopedMatches = computed(() =>
+    filtered.value.matches.filter(m => matchesProponent(m.proposal_id))
+  )
+
+  const filteredProposals = computed(() => scopedProposals.value)
+  const filteredMatches = computed(() => scopedMatches.value)
 
   /**
    * Vinculaciones only shows proposals that survive the degree floor with at least
@@ -217,13 +235,43 @@ export function useEditorialBoard(
    * with no vinculación.
    */
   const linkedProposals = computed(() => {
-    const counts = countLinksByProposal(filtered.value.matches)
-    return filtered.value.proposals.filter(p => (counts.get(p.id) ?? 0) > 0)
+    const counts = countLinksByProposal(scopedMatches.value)
+    return scopedProposals.value.filter(p => (counts.get(p.id) ?? 0) > 0)
+  })
+
+  /**
+   * Counts in the dropdown describe the current tab before the proponent filter,
+   * so picking an organisation does not shrink the numbers of the others.
+   */
+  const proponentOptions = computed<ProponentOption[]>(() => {
+    const linkCounts = countLinksByProposal(filtered.value.matches)
+    const pool = view.value === 'proposals'
+      ? filtered.value.proposals
+      : filtered.value.proposals.filter(proposal => (linkCounts.get(proposal.id) ?? 0) > 0)
+    const visibleIds = new Set(pool.map(p => p.id))
+    const counts = new Map<string, number>()
+    for (const name of PROPONENTS) counts.set(name, 0)
+    for (const [id, name] of proponentById.value) {
+      if (!visibleIds.has(id)) continue
+      counts.set(name, (counts.get(name) ?? 0) + 1)
+    }
+    return [
+      { label: 'Todos', value: 'all', count: pool.length },
+      ...PROPONENTS.map(name => ({
+        label: name,
+        value: name,
+        count: counts.get(name) ?? 0
+      }))
+    ]
   })
 
   const linkCountBounds = computed<LinkCountBounds>(() => filtered.value.linkCountBounds)
   const totals = computed<GraphTotalCounts>(() => filtered.value.totals)
-  const visible = computed<GraphVisibleCounts>(() => filtered.value.visible)
+  const visible = computed<GraphVisibleCounts>(() => ({
+    ...filtered.value.visible,
+    proposals: scopedProposals.value.length,
+    matches: scopedMatches.value.length
+  }))
 
   const hasActiveFilters = computed(() => {
     const defaults = createDefaultFilters()
@@ -232,6 +280,7 @@ export function useEditorialBoard(
       || filters.articleLinksMin !== defaults.articleLinksMin
       || filters.articleLinksMax !== defaults.articleLinksMax
       || filters.proposalAuthorType !== defaults.proposalAuthorType
+      || proponent.value !== 'all'
       || (
         view.value === 'proposals'
         && (
@@ -245,7 +294,7 @@ export function useEditorialBoard(
   /** Matches of the current filter set, grouped both ways. */
   const matchesBySection = computed(() => {
     const map = new Map<number, Match[]>()
-    for (const match of filtered.value.matches) {
+    for (const match of scopedMatches.value) {
       const list = map.get(match.section_id)
       if (list) list.push(match)
       else map.set(match.section_id, [match])
@@ -263,7 +312,7 @@ export function useEditorialBoard(
 
   const sectionIdsByProposal = computed(() => {
     const map = new Map<number, number[]>()
-    for (const match of filtered.value.matches) {
+    for (const match of scopedMatches.value) {
       const list = map.get(match.proposal_id)
       if (list) list.push(match.section_id)
       else map.set(match.proposal_id, [match.section_id])
@@ -411,7 +460,7 @@ export function useEditorialBoard(
   }
 
   const boardProposals = computed<EditorialProposal[]>(() => {
-    const counts = countLinksByProposal(filtered.value.matches)
+    const counts = countLinksByProposal(scopedMatches.value)
     const scatter = idleLayout.value.positions
     const stack = stackLayout.value.positions
     const focused = selectedArticleId.value !== null
@@ -522,6 +571,7 @@ export function useEditorialBoard(
 
   function resetFilters() {
     Object.assign(filters, createDefaultFilters())
+    proponent.value = 'all'
   }
 
   /** Drop a selection that the filters just removed from the board. */
@@ -538,6 +588,8 @@ export function useEditorialBoard(
   return {
     filters,
     view,
+    proponent,
+    proponentOptions,
     linkCountBounds,
     totals,
     visible,

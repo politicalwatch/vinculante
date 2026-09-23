@@ -7,16 +7,9 @@ import {
   type EditorialProposal
 } from '~/composables/useEditorialBoard'
 import { countLinksByProposal } from '~/utils/graphFilters'
-import { assignProponents, PROPONENTS } from '~/utils/mockProponents'
 import { mulberry32 } from '~/utils/random'
 
 export type ProposalGrouping = 'none' | 'linkCount'
-
-export interface ProponentOption {
-  label: string
-  value: string
-  count: number
-}
 
 export interface ProposalColumn {
   key: number
@@ -107,43 +100,16 @@ export function useProposalExplorer(
   proposals: MaybeRefOrGetter<Proposal[]>,
   matches: MaybeRefOrGetter<Match[]>,
   articles: MaybeRefOrGetter<EditorialArticle[]>,
-  allProposals: MaybeRefOrGetter<Proposal[]> = proposals,
   layerWidth: MaybeRefOrGetter<number> = FALLBACK_LAYER_WIDTH,
   layerHeight: MaybeRefOrGetter<number> = FALLBACK_LAYER_HEIGHT
 ) {
   const grouping = ref<ProposalGrouping>('none')
-  const proponent = ref<string>('all')
   const selectedProposalId = ref<number | null>(null)
   const expandedProposalIds = ref<Set<number>>(new Set())
   const proposalHeights = ref<Map<number, number>>(new Map())
   const expandedArticleIds = ref<Set<number>>(new Set())
 
-  /** Assignment is derived from the full set so filters do not reshuffle organisations. */
-  const proponentById = computed(() => assignProponents(toValue(allProposals)))
-
-  const proponentOptions = computed<ProponentOption[]>(() => {
-    const visibleIds = new Set(toValue(proposals).map(p => p.id))
-    const counts = new Map<string, number>()
-    for (const name of PROPONENTS) counts.set(name, 0)
-    for (const [id, name] of proponentById.value) {
-      if (!visibleIds.has(id)) continue
-      counts.set(name, (counts.get(name) ?? 0) + 1)
-    }
-    return [
-      { label: 'Todos', value: 'all', count: toValue(proposals).length },
-      ...PROPONENTS.map(name => ({
-        label: name,
-        value: name as string,
-        count: counts.get(name) ?? 0
-      }))
-    ]
-  })
-
-  const explorerProposals = computed(() => {
-    const list = toValue(proposals)
-    if (proponent.value === 'all') return list
-    return list.filter(p => proponentById.value.get(p.id) === proponent.value)
-  })
+  const explorerProposals = computed(() => toValue(proposals))
 
   const linkCounts = computed(() => countLinksByProposal(toValue(matches)))
 
@@ -415,8 +381,6 @@ export function useProposalExplorer(
 
   return {
     grouping,
-    proponent,
-    proponentOptions,
     selectedProposalId,
     hasSelection,
     selectedProposal,

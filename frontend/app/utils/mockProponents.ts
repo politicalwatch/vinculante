@@ -5,6 +5,12 @@ import { mulberry32 } from '~/utils/random'
  * Stand-in for organisation/proponent metadata the client has but that is not
  * yet exposed by the API. Deterministic so the assignment survives reloads.
  */
+export interface ProponentOption {
+  label: string
+  value: string
+  count: number
+}
+
 export const PROPONENTS = [
   'Asociación Vecinal Centro',
   'Fundación Horizonte Verde',

@@ -5,6 +5,7 @@ import type {
   LinkCountBounds,
   ProposalAuthorTypeFilter
 } from '~/composables/useExperimentalGraph'
+import type { ProponentOption } from '~/utils/mockProponents'
 
 const props = withDefaults(defineProps<{
   filters: GraphFilters
@@ -12,12 +13,17 @@ const props = withDefaults(defineProps<{
   hasActiveFilters: boolean
   /** The article-count range only applies on the Propuestas tab. */
   showProposalArticleRange?: boolean
+  proponentOptions?: ProponentOption[]
+  proponent?: string
 }>(), {
-  showProposalArticleRange: true
+  showProposalArticleRange: true,
+  proponentOptions: undefined,
+  proponent: 'all'
 })
 
 const emit = defineEmits<{
-  reset: []
+  'reset': []
+  'update:proponent': [value: string]
 }>()
 
 const degreeFloorOptions: Array<{ label: string, value: DegreeFloor }> = [
@@ -111,6 +117,34 @@ const proposalLinksRange = computed({
         size="xs"
         class="w-40"
       />
+    </div>
+
+    <div
+      v-if="proponentOptions"
+      class="flex items-center gap-2"
+    >
+      <span class="text-xs text-muted whitespace-nowrap">Proponente</span>
+      <HelpTooltip
+        label="Ayuda: Proponente"
+        text="Filtra las propuestas por la organización que las presenta. El mismo filtro se aplica en Vinculaciones y en Propuestas."
+      />
+      <USelectMenu
+        :model-value="proponent"
+        :items="proponentOptions"
+        value-key="value"
+        label-key="label"
+        size="xs"
+        class="w-56"
+        :search-input="{ placeholder: 'Buscar…', icon: 'i-lucide-search' }"
+        @update:model-value="emit('update:proponent', String($event))"
+      >
+        <template #item-label="{ item }">
+          <span class="flex items-center justify-between gap-3 w-full">
+            <span>{{ item.label }}</span>
+            <span class="text-xs text-muted tabular-nums">{{ item.count }}</span>
+          </span>
+        </template>
+      </USelectMenu>
     </div>
 
     <div
