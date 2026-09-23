@@ -35,13 +35,22 @@ useResizeObserver(card, (entries) => {
 })
 
 /**
+ * The article-focus stack is a single column with room beside it, so those cards
+ * use the same double width as an expanded card. The in-flow focus card in the
+ * propuestas view stays at the column width its parent already reserves.
+ */
+const cardWidth = computed(() => {
+  const doubled = (!props.inFlow && props.proposal.stacked)
+    || (props.wideWhenExpanded && props.proposal.expanded)
+  return doubled ? PROPOSAL_CARD_WIDTH * 2 : PROPOSAL_CARD_WIDTH
+})
+
+/**
  * The outer element owns the position transform so the fly-to-column transition
  * never competes with the idle float animation running on the inner element.
  */
 const positionStyle = computed(() => ({
-  width: props.wideWhenExpanded && props.proposal.expanded
-    ? `${PROPOSAL_CARD_WIDTH * 2}px`
-    : `${PROPOSAL_CARD_WIDTH}px`,
+  width: `${cardWidth.value}px`,
   maxWidth: `calc(100% - ${props.proposal.x}px)`,
   height: props.proposal.expanded ? 'auto' : `${PROPOSAL_CARD_HEIGHT}px`,
   transform: `translate3d(${props.proposal.x}px, ${props.proposal.y}px, 0)`,
@@ -159,8 +168,18 @@ const cardShadow = computed(() => {
           aria-hidden="true"
         />
 
-        <div class="flex items-center justify-between gap-3">
-          <span class="flex items-center gap-1.5 min-w-0">
+        <div class="flex flex-col gap-1.5">
+          <span class="flex items-center justify-end gap-1 text-2xs text-ed-muted">
+            <span class="min-w-0 truncate">{{ props.proposal.relationLabel }}</span>
+            <UIcon
+              :name="props.proposal.expanded ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
+              class="size-3 shrink-0"
+            />
+          </span>
+          <span
+            v-if="props.proposal.authorTypeLabel || props.proposal.topic"
+            class="flex min-w-0 items-center gap-1.5"
+          >
             <span
               v-if="props.proposal.authorTypeLabel"
               class="inline-flex h-4.5 shrink-0 items-center rounded border px-1.5 text-2xs font-semibold tracking-wide whitespace-nowrap"
@@ -172,18 +191,11 @@ const cardShadow = computed(() => {
             </span>
             <span
               v-if="props.proposal.topic"
-              class="inline-flex h-4.5 min-w-0 items-center truncate rounded border border-ed-border px-1.5 text-2xs font-semibold tracking-wide whitespace-nowrap text-ed-muted"
+              class="inline-flex h-4.5 min-w-0 items-center truncate rounded border border-ed-border px-1.5 text-2xs font-semibold tracking-wide text-ed-muted"
               :title="props.proposal.topic"
             >
               {{ props.proposal.topic }}
             </span>
-          </span>
-          <span class="flex items-center gap-1 min-w-0 shrink-0 text-2xs text-ed-muted">
-            <span class="whitespace-nowrap truncate">{{ props.proposal.relationLabel }}</span>
-            <UIcon
-              :name="props.proposal.expanded ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
-              class="size-3 shrink-0"
-            />
           </span>
         </div>
         <p
@@ -251,6 +263,7 @@ const cardShadow = computed(() => {
 .proposal-position {
   transition:
     transform 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    width 0.7s cubic-bezier(0.22, 1, 0.36, 1),
     opacity 0.4s ease;
 }
 

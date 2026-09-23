@@ -31,7 +31,8 @@ export const MINIMAP_CONFIG = {
 
 export const ARTICLE_COLUMN_WIDTH = 580
 export const PROPOSAL_CARD_WIDTH = 364
-export const PROPOSAL_CARD_HEIGHT = 113
+/** Collapsed card: relation line, tag line, then three lines of body. */
+export const PROPOSAL_CARD_HEIGHT = 140
 
 const STACK_OFFSET_X = 32
 const STACK_TOP = 8
@@ -443,7 +444,7 @@ export function useEditorialBoard(
    * handful of cards are ever in view.
    *
    * Cards are placed on a jittered, row-staggered grid rather than relaxed with a
-   * force simulation: `forceCollide` is circular, so at 364x113 it cannot separate
+   * force simulation: `forceCollide` is circular, so at this card size it cannot separate
    * these cards horizontally without wasting most of the vertical space. A grid
    * guarantees no overlap, and the jitter plus stagger keeps it from reading as a grid.
    */
