@@ -57,6 +57,67 @@ const floatStyle = computed(() => ({
   '--float-y': `${props.proposal.floatY}px`
 }))
 
+const REVEAL_PAD = 24
+
+function scrollParent(el: HTMLElement): HTMLElement | null {
+  let node = el.parentElement
+  while (node) {
+    const { overflowX, overflowY } = getComputedStyle(node)
+    if (/(auto|scroll)/.test(`${overflowX}${overflowY}`)) return node
+    node = node.parentElement
+  }
+  return null
+}
+
+/** Nudge the board scroll the minimum amount that puts the whole card inside the viewport. */
+function revealCard() {
+  const box = card.value?.closest('.proposal-position')
+  if (!(box instanceof HTMLElement)) return
+  const layer = scrollParent(box)
+  if (!layer) return
+
+  const boxRect = box.getBoundingClientRect()
+  const view = layer.getBoundingClientRect()
+  const left = boxRect.left - view.left + layer.scrollLeft
+  const top = boxRect.top - view.top + layer.scrollTop
+
+  let nextLeft = layer.scrollLeft
+  let nextTop = layer.scrollTop
+
+  if (boxRect.width + REVEAL_PAD * 2 >= layer.clientWidth) {
+    nextLeft = left - REVEAL_PAD
+  } else if (left < layer.scrollLeft + REVEAL_PAD) {
+    nextLeft = left - REVEAL_PAD
+  } else if (left + boxRect.width > layer.scrollLeft + layer.clientWidth - REVEAL_PAD) {
+    nextLeft = left + boxRect.width - layer.clientWidth + REVEAL_PAD
+  }
+
+  if (boxRect.height + REVEAL_PAD * 2 >= layer.clientHeight) {
+    nextTop = top - REVEAL_PAD
+  } else if (top < layer.scrollTop + REVEAL_PAD) {
+    nextTop = top - REVEAL_PAD
+  } else if (top + boxRect.height > layer.scrollTop + layer.clientHeight - REVEAL_PAD) {
+    nextTop = top + boxRect.height - layer.clientHeight + REVEAL_PAD
+  }
+
+  nextLeft = Math.min(Math.max(0, nextLeft), Math.max(0, layer.scrollWidth - layer.clientWidth))
+  nextTop = Math.min(Math.max(0, nextTop), Math.max(0, layer.scrollHeight - layer.clientHeight))
+  if (Math.abs(nextLeft - layer.scrollLeft) < 1 && Math.abs(nextTop - layer.scrollTop) < 1) return
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  layer.scrollTo({
+    left: nextLeft,
+    top: nextTop,
+    behavior: reduceMotion ? 'auto' : 'smooth'
+  })
+}
+
+watch(() => props.proposal.expanded, async () => {
+  if (props.inFlow || props.proposal.stacked || props.proposal.opacity === 0) return
+  await nextTick()
+  revealCard()
+})
+
 const cardShadow = computed(() => {
   if (props.proposal.expanded) return 'shadow-lg'
   if (props.proposal.stacked) return 'shadow-md'
