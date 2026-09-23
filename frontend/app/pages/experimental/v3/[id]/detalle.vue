@@ -129,6 +129,15 @@ function onSelectArticle(sectionId: number) {
   if (!wasSelected) scrollArticleToTop(sectionId)
 }
 
+/** Same as picking the article on the left, then keeps the clicked card in view in the new stack. */
+async function onSelectArticleFromProposal(proposalId: number, sectionId: number) {
+  onSelectArticle(sectionId)
+  await nextTick()
+  const card = boardProposals.value.find(p => p.proposalId === proposalId)
+  if (!card || card.opacity === 0) return
+  proposalLayer.value?.scrollTo({ top: Math.max(0, card.y - 8), left: 0, behavior: 'smooth' })
+}
+
 function onMinimapSelect(sectionId: number) {
   onSelectArticle(sectionId)
 }
@@ -345,8 +354,11 @@ const emptyStateMessage = computed(() => {
               v-for="proposal in boardProposals"
               :key="proposal.proposalId"
               :proposal="proposal"
+              wide-when-expanded
+              :selected-article-id="selectedArticleId"
               @toggle="toggleProposalExpanded(proposal.proposalId)"
               @measure="setProposalHeight(proposal.proposalId, $event)"
+              @select-article="onSelectArticleFromProposal(proposal.proposalId, $event)"
             />
           </div>
 

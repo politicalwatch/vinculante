@@ -8,6 +8,7 @@ import {
   type LinkCountBounds
 } from '~/composables/useExperimentalGraph'
 import { applyGraphFilters, countLinksByProposal } from '~/utils/graphFilters'
+import { authorTypeLabel } from '~/utils/authorType'
 import { assignProponents, PROPONENTS, type ProponentOption } from '~/utils/mockProponents'
 import { mulberry32 } from '~/utils/random'
 
@@ -61,11 +62,22 @@ export interface EditorialArticle {
   minimapHeight: number
 }
 
+export interface EditorialLinkedArticle {
+  sectionId: number
+  label: string
+  title: string
+}
+
 export interface EditorialProposal {
   proposalId: number
-  label: string
+  authorTypeLabel: string | null
+  topic: string | null
   relationLabel: string
   text: string
+  /** Only set by the Vinculaciones board. */
+  linkedArticles?: EditorialLinkedArticle[]
+  /** Reasoning of the match with the selected article, when article-focused. */
+  explanation?: string | null
   linkCount: number
   accentSide: 'left' | 'right'
   x: number
@@ -91,6 +103,13 @@ export interface StackConnectors {
   ticks: Array<{ proposalId: number, path: string }>
   width: number
   height: number
+}
+
+function compareMatchStrength(a: Match, b: Match): number {
+  const degree
+    = (DEGREE_RANK[b.degree ?? 'ninguno'] ?? 0) - (DEGREE_RANK[a.degree ?? 'ninguno'] ?? 0)
+  if (degree !== 0) return degree
+  return (b.confidence ?? 0) - (a.confidence ?? 0)
 }
 
 function stripMarkdown(value: string): string {
@@ -360,17 +379,50 @@ export function useEditorialBoard(
     })
   })
 
+  const articleById = computed(() => {
+    const map = new Map<number, EditorialArticle>()
+    for (const article of articles.value) map.set(article.sectionId, article)
+    return map
+  })
+
   const relatedProposalIds = computed<number[]>(() => {
     if (selectedArticleId.value === null) return []
     const list = matchesBySection.value.get(selectedArticleId.value) ?? []
     return [...list]
-      .sort((a, b) => {
-        const degree
-          = (DEGREE_RANK[b.degree ?? 'ninguno'] ?? 0) - (DEGREE_RANK[a.degree ?? 'ninguno'] ?? 0)
-        if (degree !== 0) return degree
-        return (b.confidence ?? 0) - (a.confidence ?? 0)
-      })
+      .sort(compareMatchStrength)
       .map(m => m.proposal_id)
+  })
+
+  const linkedArticlesByProposal = computed(() => {
+    const map = new Map<number, EditorialLinkedArticle[]>()
+    const seen = new Map<number, Set<number>>()
+    for (const match of [...scopedMatches.value].sort(compareMatchStrength)) {
+      const article = articleById.value.get(match.section_id)
+      if (!article) continue
+      let sections = seen.get(match.proposal_id)
+      if (!sections) {
+        sections = new Set()
+        seen.set(match.proposal_id, sections)
+      }
+      if (sections.has(match.section_id)) continue
+      sections.add(match.section_id)
+      const entry = { sectionId: article.sectionId, label: article.label, title: article.title }
+      const list = map.get(match.proposal_id)
+      if (list) list.push(entry)
+      else map.set(match.proposal_id, [entry])
+    }
+    return map
+  })
+
+  const explanationByProposal = computed(() => {
+    const map = new Map<number, string>()
+    if (selectedArticleId.value === null) return map
+    for (const match of matchesBySection.value.get(selectedArticleId.value) ?? []) {
+      if (match.explanation && !map.has(match.proposal_id)) {
+        map.set(match.proposal_id, match.explanation)
+      }
+    }
+    return map
   })
 
   const relatedProposalIdSet = computed(() => new Set(relatedProposalIds.value))
@@ -488,9 +540,12 @@ export function useEditorialBoard(
 
       return {
         proposalId: proposal.id,
-        label: `PROPUESTA #${String(proposal.id).padStart(3, '0')}`,
+        authorTypeLabel: authorTypeLabel(proposal.author_type),
+        topic: proposal.topic,
         relationLabel: relationLabel(proposal, counts.get(proposal.id) ?? 0),
         text: proposal.text,
+        linkedArticles: linkedArticlesByProposal.value.get(proposal.id) ?? [],
+        explanation: stacked ? explanationByProposal.value.get(proposal.id) ?? null : null,
         linkCount: counts.get(proposal.id) ?? 0,
         accentSide: index % 2 === 0 ? 'left' : 'right',
         x: position.x,

@@ -8,12 +8,26 @@ import {
 
 const props = defineProps<{
   proposal: EditorialProposal
+  /** Double the width while expanded; the board clamps it to the surface. */
+  wideWhenExpanded?: boolean
+  selectedArticleId?: number | null
 }>()
 
 const emit = defineEmits<{
   toggle: []
   measure: [height: number]
+  selectArticle: [sectionId: number]
 }>()
+
+const tagClass = computed(() =>
+  props.proposal.accentSide === 'left'
+    ? 'text-(--ed-ink) border-(--ed-ink)/30'
+    : 'text-(--ed-accent) border-(--ed-accent)/40'
+)
+
+const showLinkedArticles = computed(() =>
+  props.proposal.expanded && (props.proposal.linkedArticles?.length ?? 0) > 0
+)
 
 const card = ref<HTMLElement | null>(null)
 
@@ -29,7 +43,10 @@ useResizeObserver(card, (entries) => {
  * never competes with the idle float animation running on the inner element.
  */
 const positionStyle = computed(() => ({
-  width: `${PROPOSAL_CARD_WIDTH}px`,
+  width: props.wideWhenExpanded && props.proposal.expanded
+    ? `${PROPOSAL_CARD_WIDTH * 2}px`
+    : `${PROPOSAL_CARD_WIDTH}px`,
+  maxWidth: `calc(100% - ${props.proposal.x}px)`,
   height: props.proposal.expanded ? 'auto' : `${PROPOSAL_CARD_HEIGHT}px`,
   transform: `translate3d(${props.proposal.x}px, ${props.proposal.y}px, 0)`,
   opacity: props.proposal.opacity,
@@ -48,6 +65,7 @@ const floatStyle = computed(() => ({
 <template>
   <div
     class="proposal-position"
+    :data-proposal-id="props.proposal.proposalId"
     :style="positionStyle"
     :aria-hidden="props.proposal.opacity === 0"
   >
@@ -71,16 +89,24 @@ const floatStyle = computed(() => ({
         @keydown.enter.prevent="emit('toggle')"
         @keydown.space.prevent="emit('toggle')"
       >
-        <div class="flex items-baseline justify-between gap-3">
-          <span
-            class="text-[10px] font-semibold tracking-[0.06em] whitespace-nowrap shrink-0"
-            :class="props.proposal.accentSide === 'left'
-              ? 'text-(--ed-ink)'
-              : 'text-(--ed-accent)'"
-          >
-            {{ props.proposal.label }}
+        <div class="flex items-center justify-between gap-3">
+          <span class="flex items-center gap-1.5 min-w-0">
+            <span
+              v-if="props.proposal.authorTypeLabel"
+              class="proposal-tag shrink-0"
+              :class="tagClass"
+            >
+              {{ props.proposal.authorTypeLabel }}
+            </span>
+            <span
+              v-if="props.proposal.topic"
+              class="proposal-tag truncate text-(--ed-muted) border-(--ed-border)"
+              :title="props.proposal.topic"
+            >
+              {{ props.proposal.topic }}
+            </span>
           </span>
-          <span class="flex items-center gap-1 min-w-0 text-[10px] text-(--ed-muted)">
+          <span class="flex items-center gap-1 min-w-0 shrink-0 text-[10px] text-(--ed-muted)">
             <span class="whitespace-nowrap truncate">{{ props.proposal.relationLabel }}</span>
             <UIcon
               :name="props.proposal.expanded ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
@@ -96,6 +122,55 @@ const floatStyle = computed(() => ({
         >
           <span class="text-(--ed-body) font-normal">{{ props.proposal.text }}</span>
         </p>
+
+        <section
+          v-if="showLinkedArticles"
+          class="proposal-section"
+        >
+          <h4 class="proposal-section-title">
+            Artículos vinculados
+          </h4>
+          <ul class="flex flex-col gap-1">
+            <li
+              v-for="article in props.proposal.linkedArticles"
+              :key="article.sectionId"
+            >
+              <button
+                type="button"
+                class="linked-article"
+                :class="article.sectionId === props.selectedArticleId ? 'is-selected' : ''"
+                :aria-pressed="article.sectionId === props.selectedArticleId"
+                @click.stop="emit('selectArticle', article.sectionId)"
+                @keydown.stop
+              >
+                
+                <span class="text-sm leading-snug text-(--ed-ink) truncate">
+                  {{ article.title }}
+                </span>
+                <UIcon
+                  name="i-lucide-chevron-right"
+                  class="size-4 shrink-0"
+                />
+              </button>
+            </li>
+          </ul>
+        </section>
+
+        <section
+          v-if="props.proposal.expanded && props.proposal.explanation"
+          class="proposal-section"
+        >
+          <h4 class="proposal-section-title">
+            <HelpTooltip
+              label="Ayuda: Razonamiento de la vinculación"
+              text="El razonamiento de la vinculación es el texto que explica la relación entre la propuesta y el artículo."
+            />
+            Razonamiento de la vinculación
+          </h4>
+          <p class="text-[12px] leading-relaxed text-(--ed-body) whitespace-pre-line">
+            {{ props.proposal.explanation }}
+          </p>
+        </section>
       </article>
     </div>
   </div>
@@ -145,6 +220,60 @@ const floatStyle = computed(() => ({
 .proposal-clamp {
   color: var(--ed-accent);
   font-weight: 800;
+}
+
+.proposal-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 6px;
+  border-width: 1px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.proposal-section {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--ed-border);
+}
+
+.proposal-section-title {
+  margin-bottom: 8px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ed-muted);
+}
+
+.linked-article {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  padding: 6px 8px;
+  border-radius: 4px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.linked-article:hover {
+  background: color-mix(in oklab, var(--ed-ink) 6%, transparent);
+}
+
+.linked-article.is-selected {
+  background: color-mix(in oklab, var(--ed-accent) 12%, transparent);
+}
+
+.linked-article:focus-visible {
+  outline: 2px solid var(--ed-accent);
+  outline-offset: 1px;
 }
 
 .proposal-card:focus-visible {

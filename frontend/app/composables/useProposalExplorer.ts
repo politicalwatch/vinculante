@@ -6,6 +6,7 @@ import {
   type EditorialArticle,
   type EditorialProposal
 } from '~/composables/useEditorialBoard'
+import { authorTypeLabel } from '~/utils/authorType'
 import { countLinksByProposal } from '~/utils/graphFilters'
 import { mulberry32 } from '~/utils/random'
 
@@ -71,7 +72,8 @@ function buildEditorialProposal(
   const random = mulberry32(proposal.id * 40503 + 7)
   return {
     proposalId: proposal.id,
-    label: `PROPUESTA #${String(proposal.id).padStart(3, '0')}`,
+    authorTypeLabel: authorTypeLabel(proposal.author_type),
+    topic: proposal.topic,
     relationLabel: relationLabel(
       proposal,
       linkCount,
