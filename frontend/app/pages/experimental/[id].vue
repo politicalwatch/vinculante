@@ -185,6 +185,7 @@ async function onClearSelection() {
       :filters="filters"
       :link-count-bounds="linkCountBounds"
       :has-active-filters="hasActiveFilters"
+      @update:filters="Object.assign(filters, $event)"
       @reset="resetFilters"
     />
 

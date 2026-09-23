@@ -27,7 +27,20 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{
   'reset': []
   'update:proponent': [value: string]
+  'update:filters': [value: GraphFilters]
 }>()
+
+function updateFilters(patch: Partial<GraphFilters>) {
+  emit('update:filters', { ...props.filters, ...patch })
+}
+
+function onDegreeFloor(value: DegreeFloor) {
+  updateFilters({ degreeFloor: value })
+}
+
+function onAuthorType(value: ProposalAuthorTypeFilter) {
+  updateFilters({ proposalAuthorType: value })
+}
 
 const degreeFloorOptions: Array<{ label: string, value: DegreeFloor }> = [
   { label: 'Fuerte (alto)', value: 'alto' },
@@ -52,8 +65,10 @@ const articleLinksRange = computed({
     const range = Array.isArray(value) ? value : [0, articleMaxBound.value]
     const min = Math.max(0, range[0] ?? 0)
     const max = Math.max(min, range[1] ?? articleMaxBound.value)
-    props.filters.articleLinksMin = min
-    props.filters.articleLinksMax = max >= articleMaxBound.value ? null : max
+    updateFilters({
+      articleLinksMin: min,
+      articleLinksMax: max >= articleMaxBound.value ? null : max
+    })
   }
 })
 
@@ -66,8 +81,10 @@ const proposalLinksRange = computed({
     const range = Array.isArray(value) ? value : [0, proposalMaxBound.value]
     const min = Math.max(0, range[0] ?? 0)
     const max = Math.max(min, range[1] ?? proposalMaxBound.value)
-    props.filters.proposalLinksMin = min
-    props.filters.proposalLinksMax = max >= proposalMaxBound.value ? null : max
+    updateFilters({
+      proposalLinksMin: min,
+      proposalLinksMax: max >= proposalMaxBound.value ? null : max
+    })
   }
 })
 </script>
@@ -81,10 +98,11 @@ const proposalLinksRange = computed({
         text="Nivel mínimo de coincidencia entre una propuesta y un artículo para mostrar la vinculación. 'Fuerte' muestra solo las más claras; 'Moderado' añade también las de coincidencia media."
       />
       <USelect
-        v-model="filters.degreeFloor"
+        :model-value="filters.degreeFloor"
         :items="degreeFloorOptions"
         size="xs"
         class="w-44"
+        @update:model-value="onDegreeFloor"
       />
     </div>
 
@@ -118,10 +136,11 @@ const proposalLinksRange = computed({
         text="Filtra las propuestas según su origen: ciudadanía o grupo de expertos."
       />
       <USelect
-        v-model="filters.proposalAuthorType"
+        :model-value="filters.proposalAuthorType"
         :items="authorTypeOptions"
         size="xs"
         class="w-40"
+        @update:model-value="onAuthorType"
       />
     </div>
 

@@ -203,6 +203,7 @@ const emptyStateMessage = computed(() => {
       :show-article-link-range="view === 'articles'"
       :show-proposal-article-range="view === 'proposals'"
       :proponent-options="proponentOptions"
+      @update:filters="Object.assign(filters, $event)"
       @reset="resetFilters"
     />
 
