@@ -7,7 +7,7 @@ import {
   PROPOSAL_CARD_WIDTH,
   type EditorialArticle
 } from '~/composables/useEditorialBoard'
-import { useProposalExplorer } from '~/composables/useProposalExplorer'
+import { COLUMN_GAP, useProposalExplorer } from '~/composables/useProposalExplorer'
 
 const props = defineProps<{
   proposals: Proposal[]
@@ -187,6 +187,16 @@ defineExpose({ clearSelection })
         >
           <template v-if="grouping === 'linkCount'">
             <div
+              v-for="(column, index) in columns"
+              :key="`band-${column.key}`"
+              class="column-band rounded-md border-2 border-(--ed-border)"
+              :class="index % 2 === 0 ? 'is-shaded' : 'is-shaded-alternate'"
+              :style="{
+                left: `${column.x - COLUMN_GAP / 2 + 8}px `,
+                width: `${PROPOSAL_CARD_WIDTH + COLUMN_GAP - 12}px`
+              }"
+            />
+            <div
               v-for="column in columns"
               :key="column.key"
               class="column-label"
@@ -297,6 +307,21 @@ defineExpose({ clearSelection })
 
 .proposal-surface {
   position: relative;
+}
+
+.column-band {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.column-band.is-shaded {
+  background: color-mix(in oklab, var(--ed-ink) 3.5%, transparent);
+}
+
+.column-band.is-shaded-alternate {
+  background: color-mix(in oklab, var(--ed-muted) 4.5%, transparent);
 }
 
 .column-label {

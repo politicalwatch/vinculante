@@ -11,11 +11,14 @@ const props = withDefaults(defineProps<{
   filters: GraphFilters
   linkCountBounds: LinkCountBounds
   hasActiveFilters: boolean
+  /** The article vinculación range only applies on the Vinculaciones tab. */
+  showArticleLinkRange?: boolean
   /** The article-count range only applies on the Propuestas tab. */
   showProposalArticleRange?: boolean
   proponentOptions?: ProponentOption[]
   proponent?: string
 }>(), {
+  showArticleLinkRange: true,
   showProposalArticleRange: true,
   proponentOptions: undefined,
   proponent: 'all'
@@ -85,7 +88,10 @@ const proposalLinksRange = computed({
       />
     </div>
 
-    <div class="flex items-center gap-2 min-w-0">
+    <div
+      v-if="showArticleLinkRange"
+      class="flex items-center gap-2 min-w-0"
+    >
       <span class="text-xs text-muted whitespace-nowrap">Artículos · vinculaciones</span>
       <HelpTooltip
         label="Ayuda: Artículos por número de vinculaciones"

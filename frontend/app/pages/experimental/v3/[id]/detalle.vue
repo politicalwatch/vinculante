@@ -200,6 +200,7 @@ const emptyStateMessage = computed(() => {
       :filters="filters"
       :link-count-bounds="linkCountBounds"
       :has-active-filters="hasActiveFilters"
+      :show-article-link-range="view === 'articles'"
       :show-proposal-article-range="view === 'proposals'"
       :proponent-options="proponentOptions"
       @reset="resetFilters"

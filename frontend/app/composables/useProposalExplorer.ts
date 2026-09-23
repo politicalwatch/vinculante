@@ -21,7 +21,7 @@ export interface ProposalColumn {
 const SURFACE_WIDTH_FACTOR = 2.4
 const SCATTER_GAP_X = 56
 const SCATTER_GAP_Y = 40
-const COLUMN_GAP = 48
+export const COLUMN_GAP = 48
 const COLUMN_PADDING_X = 24
 const COLUMN_HEADER_HEIGHT = 48
 const COLUMN_TOP = 16

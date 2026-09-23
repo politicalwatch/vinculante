@@ -190,11 +190,17 @@ export function useEditorialBoard(
   const proponent = ref('all')
 
   /**
-   * The proposal article-count range is a Propuestas control. Vinculaciones
-   * ignores it so a hidden slider cannot change which cards are on the board.
+   * Each range belongs to one tab. The hidden slider keeps its value, but it
+   * does not change the tab where the control is absent.
    */
   const appliedFilters = computed<GraphFilters>(() => {
-    if (view.value === 'proposals') return filters
+    if (view.value === 'proposals') {
+      return {
+        ...filters,
+        articleLinksMin: 0,
+        articleLinksMax: null
+      }
+    }
     return {
       ...filters,
       proposalLinksMin: 0,
@@ -277,8 +283,13 @@ export function useEditorialBoard(
     const defaults = createDefaultFilters()
     return (
       filters.degreeFloor !== defaults.degreeFloor
-      || filters.articleLinksMin !== defaults.articleLinksMin
-      || filters.articleLinksMax !== defaults.articleLinksMax
+      || (
+        view.value === 'articles'
+        && (
+          filters.articleLinksMin !== defaults.articleLinksMin
+          || filters.articleLinksMax !== defaults.articleLinksMax
+        )
+      )
       || filters.proposalAuthorType !== defaults.proposalAuthorType
       || proponent.value !== 'all'
       || (
