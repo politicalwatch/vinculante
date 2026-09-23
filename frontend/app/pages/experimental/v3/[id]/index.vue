@@ -39,8 +39,8 @@ const leyRemainder = computed(() => blocks.value.ley?.paragraphs.slice(1) ?? [])
 const navItems = computed(() => {
   const items: Array<{ id: string, label: string }> = []
   if (blocks.value.ley) items.push({ id: 'resumen-ley', label: 'Resumen de la ley' })
-  if (groups.value.length) items.push({ id: 'vinculaciones-detectadas', label: 'Vinculaciones detectadas' })
   if (blocks.value.linkages) items.push({ id: 'resumen-vinculaciones', label: 'Resumen de vinculaciones' })
+  if (groups.value.length) items.push({ id: 'vinculaciones-detectadas', label: 'Vinculaciones detectadas' })
   if (blocks.value.gaps) items.push({ id: 'propuestas-no-recogidas', label: 'Propuestas no recogidas' })
   return items
 })
@@ -149,21 +149,6 @@ watch(navItems, () => nextTick(updateActiveNav), { immediate: true })
       </SummarySection>
 
       <SummarySection
-        v-if="groups.length && coverage"
-        anchor="vinculaciones-detectadas"
-        title="Vinculaciones detectadas"
-        :gap="32"
-      >
-        <LinkageBarChart
-          :groups="groups"
-          :max-total="maxTotal"
-          :alto="coverage.alto"
-          :medio="coverage.medio"
-          :detail-path="detailPath"
-        />
-      </SummarySection>
-
-      <SummarySection
         v-if="blocks.linkages"
         anchor="resumen-vinculaciones"
         title="Resumen de vinculaciones"
@@ -188,6 +173,21 @@ watch(navItems, () => nextTick(updateActiveNav), { immediate: true })
             </dl>
           </template>
         </ExpandableProse>
+      </SummarySection>
+
+      <SummarySection
+        v-if="groups.length && coverage"
+        anchor="vinculaciones-detectadas"
+        title="Vinculaciones detectadas"
+        :gap="32"
+      >
+        <LinkageBarChart
+          :groups="groups"
+          :max-total="maxTotal"
+          :alto="coverage.alto"
+          :medio="coverage.medio"
+          :detail-path="detailPath"
+        />
       </SummarySection>
 
       <SummarySection

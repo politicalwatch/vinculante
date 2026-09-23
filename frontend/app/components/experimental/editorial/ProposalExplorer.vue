@@ -87,7 +87,7 @@ defineExpose({ clearSelection })
 <template>
   <section class="proposal-explorer flex-1 min-w-0 flex flex-col min-h-0">
     <div class="column-header">
-      <h2>Propuestas Ciudadanas</h2>
+      <h2>Propuestas</h2>
       <span class="column-badge">{{ visibleCount }} VISIBLES</span>
 
       <div class="ml-auto flex items-center gap-4 flex-wrap justify-end">

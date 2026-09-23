@@ -23,16 +23,16 @@ const isProposals = computed(() => isDetail.value && route.query.vista === 'prop
 
 const chips = computed(() => [
   {
-    key: 'propuestas',
-    label: 'Propuestas',
-    to: { path: detailPath.value, query: { vista: 'propuestas' } },
-    active: isProposals.value
-  },
-  {
     key: 'vinculaciones',
     label: 'Vinculaciones',
     to: { path: detailPath.value, query: { vista: 'vinculaciones' } },
     active: isDetail.value && !isProposals.value
+  },
+  {
+    key: 'propuestas',
+    label: 'Propuestas',
+    to: { path: detailPath.value, query: { vista: 'propuestas' } },
+    active: isProposals.value
   }
 ])
 
