@@ -88,6 +88,11 @@ const linkLabel = computed(() =>
     box-shadow 0.25s ease;
 }
 
+.editorial-article-card:hover:not(.is-selected) {
+  border-color: rgb(27 58 92 / 0.22);
+  box-shadow: 0 6px 16px rgb(27 58 92 / 0.1);
+}
+
 .editorial-article-card.is-selected {
   border-color: var(--ed-ink);
   box-shadow:

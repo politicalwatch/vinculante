@@ -89,10 +89,12 @@ const floatStyle = computed(() => ({
           </span>
         </div>
         <p
-          class="mt-2.5 text-[13px] leading-[1.55] text-(--ed-body)"
-          :class="props.proposal.expanded ? 'whitespace-pre-line' : 'line-clamp-3'"
+          class="mt-2.5 text-[13px] leading-[1.55]"
+          :class="props.proposal.expanded
+            ? 'whitespace-pre-line text-(--ed-body)'
+            : 'line-clamp-3 proposal-clamp'"
         >
-          {{ props.proposal.text }}
+          <span class="text-(--ed-body) font-normal">{{ props.proposal.text }}</span>
         </p>
       </article>
     </div>
@@ -128,8 +130,21 @@ const floatStyle = computed(() => ({
   border: 1px solid var(--ed-border);
   border-radius: 4px;
   box-shadow: 0 2px 6px rgb(27 58 92 / 0.07);
-  transition: box-shadow 0.3s ease;
+  transition:
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
   cursor: pointer;
+}
+
+.proposal-card:hover:not(.is-expanded) {
+  border-color: rgb(27 58 92 / 0.22);
+  box-shadow: 0 8px 22px rgb(27 58 92 / 0.16);
+}
+
+/* The truncation ellipsis takes the clamped block's color and weight, not the inner text's. */
+.proposal-clamp {
+  color: var(--ed-accent);
+  font-weight: 800;
 }
 
 .proposal-card:focus-visible {

@@ -11,10 +11,6 @@ const targetId = computed(() => {
 /** The catalogue page shows the brand alone: there is no session to describe. */
 const isIndex = computed(() => targetId.value === null)
 
-const sessionTitle = computed(
-  () => laws.value?.find(law => law.id === targetId.value)?.title ?? ''
-)
-
 const summaryPath = computed(() => `/experimental/v3/${targetId.value}`)
 const detailPath = computed(() => `${summaryPath.value}/detalle`)
 
@@ -37,16 +33,17 @@ const chips = computed(() => [
 ])
 
 const lawItems = computed(() =>
-  (laws.value ?? []).map(law => ({ label: law.title, id: law.id }))
+  (laws.value ?? []).map(law => ({ label: law.title, value: law.id }))
 )
 
 function onSelectLaw(id: number) {
+  if (!Number.isFinite(id) || id === targetId.value) return
   navigateTo(`/experimental/v3/${id}`)
 }
 </script>
 
 <template>
-  <header class="editorial-top-bar shrink-0 flex items-center gap-6 px-6 xl:px-10 h-[68px]">
+  <header class="editorial-top-bar shrink-0 flex items-center gap-6 px-6 xl:px-10 h-17">
     <NuxtLink
       to="/experimental"
       class="brand"
@@ -98,30 +95,18 @@ function onSelectLaw(id: number) {
         </div>
       </nav>
 
-      <div class="flex items-center gap-4 min-w-0">
-        <span class="hidden lg:block text-[13px] text-(--ed-muted) truncate max-w-[240px]">
-          Sesión: {{ sessionTitle }}
-        </span>
-
-        <USelectMenu
-          :items="lawItems"
-          value-key="id"
-          icon="i-lucide-search"
-          color="neutral"
-          variant="ghost"
-          :loading="lawsStatus === 'pending'"
-          :search-input="{ placeholder: 'Buscar una ley…' }"
-          :ui="{
-            base: 'size-8 shrink-0 rounded-full justify-center p-0 border border-(--ed-border) hover:bg-(--ed-surface-sunken)',
-            leading: 'inset-0 justify-center',
-            leadingIcon: 'size-4 text-(--ed-ink)',
-            trailing: 'hidden',
-            content: 'w-[420px]'
-          }"
-          aria-label="Buscar una ley"
-          @update:model-value="onSelectLaw"
-        />
-      </div>
+      <USelect
+        :model-value="targetId ?? undefined"
+        :items="lawItems"
+        color="neutral"
+        variant="ghost"
+        size="sm"
+        :loading="lawsStatus === 'pending'"
+        placeholder="Selecciona una ley"
+        class="min-w-0 w-64 lg:w-80"
+        aria-label="Seleccionar una ley"
+        @update:model-value="onSelectLaw"
+      />
     </template>
   </header>
 </template>
