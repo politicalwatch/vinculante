@@ -11,6 +11,8 @@ const PAGE_SUFFIX_RE = /\s*\(p\.\s*\d+\)\s*$/
 
 export interface CoverageStat {
   pct: number
+  sectionsMatched: number
+  sectionsTotal: number
   proposalsIncorporated: number
   proposalsTotal: number
   alto: number
@@ -142,8 +144,11 @@ export function useTargetSummary(
   const coverage = computed<CoverageStat | null>(() => {
     const stats = target.value?.stats
     if (!stats) return null
+    const perSection = stats.distribution.per_section
     return {
       pct: Math.round(stats.coverage.pct_sections_matched * 100),
+      sectionsMatched: perSection.filter(s => s.alto + s.medio > 0).length,
+      sectionsTotal: perSection.length,
       proposalsIncorporated: stats.coverage.unique_proposals,
       proposalsTotal: stats.coverage.total_proposals,
       alto: stats.degree.alto.count,

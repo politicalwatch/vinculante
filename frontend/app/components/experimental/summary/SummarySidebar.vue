@@ -5,6 +5,7 @@ import SummarySection from '~/components/experimental/summary/SummarySection.vue
 
 const VISIBLE_HIGHLIGHTS = 2
 const VISIBLE_ORPHANS = 4
+const MIN_BAR_PCT = 40
 
 const props = defineProps<{
   title: string
@@ -19,6 +20,34 @@ const props = defineProps<{
 const visibleHighlights = computed(() => props.highlights.slice(0, VISIBLE_HIGHLIGHTS))
 const visibleOrphans = computed(() => props.orphanSections.slice(0, VISIBLE_ORPHANS))
 const remainingOrphans = computed(() => Math.max(0, props.orphanSections.length - VISIBLE_ORPHANS))
+
+const statGroups = computed(() => {
+  const c = props.coverage
+  if (!c) return []
+  return [
+    {
+      title: 'Propuestas',
+      max: c.proposalsTotal,
+      rows: [
+        { label: 'Recibidas', value: c.proposalsTotal, class: 'bg-ed-surface text-ed-ink [&>dt]:opacity-70' },
+        { label: 'Utilizadas', value: c.proposalsIncorporated, class: 'bg-ed-surface text-ed-accent [&>dt]:opacity-70' }
+      ]
+    },
+    {
+      title: 'Vinculaciones',
+      max: Math.max(c.alto, c.medio),
+      rows: [
+        { label: 'Fuertes', value: c.alto, class: 'bg-ed-degree-alto text-white' },
+        { label: 'Moderadas', value: c.medio, class: 'bg-ed-degree-medio text-white' }
+      ]
+    }
+  ]
+})
+
+function barWidth(value: number, max: number) {
+  const pct = max > 0 ? (value / max) * 100 : 100
+  return `${Math.max(MIN_BAR_PCT, pct)}%`
+}
 </script>
 
 <template>
@@ -30,43 +59,47 @@ const remainingOrphans = computed(() => Math.max(0, props.orphanSections.length 
 
       <div
         v-if="coverage"
-        class="flex items-center gap-8"
+        class="flex flex-col gap-8"
       >
-        <div class="flex shrink-0 flex-col gap-1">
-          <p class="font-serif text-56 font-extrabold text-ed-accent tabular-nums">
+        <div class="flex items-center justify-between gap-6">
+          <div class="flex flex-col gap-0.5 font-bold text-ed-ink/70">
+            <p class="text-11 uppercase">
+              Artículos con vinculaciones
+            </p>
+            <p class="text-base tabular-nums">
+              {{ coverage.sectionsMatched }}/{{ coverage.sectionsTotal }}
+            </p>
+          </div>
+          <p class="font-serif text-5xl font-black text-ed-accent tabular-nums">
             {{ coverage.pct }}%
-          </p>
-          <p class="text-xs font-bold tracking-widest text-ed-ink/70 uppercase">
-            Cobertura global
           </p>
         </div>
 
-        <dl class="flex min-w-0 flex-1 flex-col gap-2">
-          <div class="flex items-center justify-between gap-3 rounded-md border border-ed-border bg-ed-surface px-3 py-2 font-bold">
-            <dt class="text-11 text-ed-ink/70 uppercase">
-              Propuestas
-            </dt>
-            <dd class="text-13 text-ed-ink tabular-nums">
-              {{ coverage.proposalsIncorporated }} / {{ coverage.proposalsTotal }}
-            </dd>
-          </div>
-          <div class="flex items-center justify-between gap-3 rounded-md border border-ed-border bg-ed-degree-alto/10 px-3 py-2 font-bold">
-            <dt class="text-11 text-ed-ink/70 uppercase">
-              Fuerte
-            </dt>
-            <dd class="text-13 text-ed-degree-alto tabular-nums">
-              {{ coverage.alto }}
-            </dd>
-          </div>
-          <div class="flex items-center justify-between gap-3 rounded-md border border-ed-border bg-ed-degree-medio/10 px-3 py-2 font-bold">
-            <dt class="text-11 text-ed-ink/70 uppercase">
-              Moderado
-            </dt>
-            <dd class="text-13 text-ed-degree-medio tabular-nums">
-              {{ coverage.medio }}
-            </dd>
-          </div>
-        </dl>
+        <div
+          v-for="group in statGroups"
+          :key="group.title"
+          class="flex flex-col gap-2"
+        >
+          <p class="text-11 font-bold text-ed-ink/70 uppercase">
+            {{ group.title }}
+          </p>
+          <dl class="flex flex-col gap-2">
+            <div
+              v-for="row in group.rows"
+              :key="row.label"
+              class="flex items-center justify-between gap-3 rounded-md border border-ed-border px-3 py-2 font-bold transition-[width] duration-500"
+              :class="row.class"
+              :style="{ width: barWidth(row.value, group.max) }"
+            >
+              <dt class="text-11 uppercase">
+                {{ row.label }}
+              </dt>
+              <dd class="text-13 tabular-nums">
+                {{ row.value }}
+              </dd>
+            </div>
+          </dl>
+        </div>
       </div>
     </div>
 
