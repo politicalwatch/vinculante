@@ -20,15 +20,11 @@ services:
     restart: unless-stopped
     env_file:
       - .env
-    volumes:
-      - ./engine:/code
-      - /code/.venv
     command:
       [
-        "uv",
-        "run",
         "uvicorn",
-        "engine.app:app",
+        "vinculante.main:create_app",
+        "--factory",
         "--proxy-headers",
         "--host",
         "0.0.0.0",
