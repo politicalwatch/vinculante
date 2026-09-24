@@ -55,16 +55,7 @@ function onSelectLaw(id: number) {
       class="flex shrink-0 items-center gap-4 text-ed-ink no-underline"
       aria-label="Vinculante — todos los documentos"
     >
-      <svg
-        class="h-9 w-auto"
-        viewBox="0 86.7 512 338.8"
-        fill="currentColor"
-        aria-hidden="true"
-      >
-        <path d="M512,87.6l-111.9-1.2-19,30.6-75.6.9-128.6,268.2L45.8,116.3l52.1-.3,21.1,28.7h69.7l44.5,91.6,15.6-30.1-42.5-88.9h-73.6l-21.9-30.9-110.8.3,163.5,336.2c9,2.3,19.9,2.1,27.3-1l133.1-276.9,70.1.4,20.7-29.2,52.1-.3-130.9,269.2-56-113.8-15.4,32,44.9,93.7-89-.7-14.6,29.3,142.7-.5,163.6-337.4Z" />
-        <path d="M512,87.6l-163.6,337.5-142.7.5,14.6-29.3,89,.7-44.9-93.7,15.4-32,56,113.8L466.7,115.9l-52.1.3-20.7,29.2-70.1-.4-133.1,276.9c-7.4,3.1-18.3,3.3-27.3,1L0,86.7l110.8-.3,21.9,31h73.6l42.5,88.8-15.6,30.1-44.5-91.8h-69.7l-21.1-28.6-52.1.3,131.1,269.8L305.5,117.9l75.6-.9,19.1-30.6,111.9,1.2Z" />
-      </svg>
-      <span class="font-serif text-22 font-bold italic">Vinculante</span>
+      <span class="font-serif text-[1.375rem]/[1.3] font-bold italic text-ed-ink">Vinculante<span class="font-mono text-ed-accent">.ai</span></span>
     </NuxtLink>
 
     <template v-if="!isIndex">
