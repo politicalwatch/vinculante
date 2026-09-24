@@ -30,7 +30,7 @@ const statGroups = computed(() => {
       max: c.proposalsTotal,
       rows: [
         { label: 'Recibidas', value: c.proposalsTotal, class: 'bg-ed-surface text-ed-ink [&>dt]:opacity-70' },
-        { label: 'Utilizadas', value: c.proposalsIncorporated, class: 'bg-ed-surface text-ed-accent [&>dt]:opacity-70' }
+        { label: 'Vinculadas', value: c.proposalsIncorporated, class: 'bg-ed-surface text-ed-accent [&>dt]:opacity-70' }
       ]
     },
     {
