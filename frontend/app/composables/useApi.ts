@@ -1,4 +1,5 @@
 export function useApi() {
   const config = useRuntimeConfig()
-  return $fetch.create({ baseURL: config.public.apiBase })
+  const baseURL = (import.meta.server && config.apiBaseServer) || config.public.apiBase
+  return $fetch.create({ baseURL })
 }
