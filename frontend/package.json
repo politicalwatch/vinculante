@@ -19,6 +19,7 @@
     "@iconify-json/simple-icons": "^1.2.78",
     "@nuxt/ui": "^4.6.1",
     "@nuxtjs/mdc": "^0.23.1",
+    "@nuxtjs/seo": "^5.3.16",
     "@vue-flow/core": "^1.48.2",
     "chart.js": "^4.5.1",
     "d3-force": "^3.0.0",
