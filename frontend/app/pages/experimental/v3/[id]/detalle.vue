@@ -7,7 +7,7 @@ import ArticleMinimap from '~/components/experimental/editorial/ArticleMinimap.v
 import EditorialArticleCard from '~/components/experimental/editorial/EditorialArticleCard.vue'
 import FloatingProposalCard from '~/components/experimental/editorial/FloatingProposalCard.vue'
 import ProposalExplorer from '~/components/experimental/editorial/ProposalExplorer.vue'
-import { FETCH_MATCH_DEGREES } from '~/composables/useExperimentalGraph'
+import { FETCH_MATCH_DEGREES } from '~/utils/graphFilters'
 import { ARTICLE_COLUMN_WIDTH, useEditorialBoard } from '~/composables/useEditorialBoard'
 
 definePageMeta({ layout: 'editorial', colorMode: 'light' })
