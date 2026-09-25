@@ -4,7 +4,7 @@ import type {
   GraphFilters,
   LinkCountBounds,
   ProposalAuthorTypeFilter
-} from '~/composables/useExperimentalGraph'
+} from '~/utils/graphFilters'
 import type { ProponentOption } from '~/utils/mockProponents'
 
 const props = withDefaults(defineProps<{
