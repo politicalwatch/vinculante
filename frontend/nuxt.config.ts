@@ -1,4 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+
+// GA4 measurement ID. Read at build time too: the cookie-control config below
+// needs it to name the `_ga_<id>` cookie.
 const gtagId = process.env.NUXT_PUBLIC_GTAG_ID ?? ''
 const cookiePolicyUrl = 'https://politicalwatch.es/politica-de-cookies/'
 export default defineNuxtConfig({
@@ -10,6 +13,10 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
+  // Nuxt SEO: shared site identity. Set NUXT_SITE_URL in production so og:image resolves to an absolute URL
+  site: {
+    name: 'Vinculante.ai'
+  },
   runtimeConfig: {
     public: {
       apiBase: 'http://localhost:8000',
@@ -100,5 +107,10 @@ export default defineNuxtConfig({
       }
     }
   },
+
+})  ogImage: {
+    // The social card is a static image shared with vinculante.ai: public/og-image.png
+    enabled: false
+  }
 
 })
