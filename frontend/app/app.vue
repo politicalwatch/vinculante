@@ -1,4 +1,6 @@
 <script setup lang="ts">
+const config = useRuntimeConfig()
+
 useHead({
   meta: [
     { name: 'viewport', content: 'width=device-width, initial-scale=1' }
@@ -42,5 +44,10 @@ useSeoMeta({
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
+
+    <CookieControl
+      v-if="config.public.gtagId"
+      locale="es"
+    />
   </UApp>
 </template>

@@ -15,8 +15,10 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@dargmuesli/nuxt-cookie-control": "^9.3.7",
     "@iconify-json/lucide": "^1.2.102",
     "@iconify-json/simple-icons": "^1.2.78",
+    "@nuxt/scripts": "^1.3.9",
     "@nuxt/ui": "^4.6.1",
     "@nuxtjs/mdc": "^0.23.1",
     "@nuxtjs/seo": "^5.3.16",

@@ -14,6 +14,8 @@
   --color-ed-border: #f1eee9;
   --color-ed-ink: #314158;
   --color-ed-accent: #2a8e8e;
+  /* Logo indigo (the landing's --color-brand-indigo): button hover, as on vinculante.ai */
+  --color-ed-indigo: #29235c;
   --color-ed-body: #5a6472;
   --color-ed-muted: #8b93a0;
   --color-ed-shape-empty: #dcd7ce;
@@ -60,3 +62,97 @@
   --color-green-900: #0A5331;
   --color-green-950: #052E16;
 }
+
+/* The rules below read Nuxt UI tokens; pin them to the vinculante.ai landing values
+   (teal primary, cream paper, indigo ink) so the banner matches it without retheming
+   the rest of the app. The module's own colours are literals in nuxt.config. */
+.cookieControl {
+  --ui-primary: #2a8e8e;
+  --ui-bg: #faf7f2;
+  --ui-bg-elevated: #ffffff;
+  --ui-border: #e7e2da;
+  --ui-border-accented: #dcd7ce;
+  --ui-text-muted: #5a6472;
+  --ui-text: #314158;
+  --ui-text-highlighted: #29235c;
+}
+
+/* nuxt-cookie-control: colours come from `cookieControl.colors` in nuxt.config;
+   this only swaps its Arial and square buttons for the site's type and radii.
+   Scoped under .cookieControl because the module stylesheet loads after this one. */
+.cookieControl .cookieControl__Bar,
+.cookieControl .cookieControl__Modal > div,
+.cookieControl h2 {
+  font-family: var(--font-sans);
+}
+
+.cookieControl .cookieControl__Bar {
+  border: 1px solid var(--ui-border);
+  border-radius: calc(var(--ui-radius) * 3);
+  box-shadow: var(--shadow-lg);
+}
+
+.cookieControl .cookieControl__Bar h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ui-text-highlighted);
+}
+
+.cookieControl .cookieControl__Bar p {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--ui-text-muted);
+}
+
+.cookieControl .cookieControl__ModalContent {
+  border-radius: calc(var(--ui-radius) * 3);
+  /* The module forces `scroll`, which leaves an empty scrollbar gutter */
+  overflow-y: auto;
+}
+
+.cookieControl .cookieControl__ModalContent a {
+  color: var(--ui-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.cookieControl .cookieControl__Bar button,
+.cookieControl .cookieControl__ModalButtons button {
+  border-radius: calc(var(--ui-radius) * 1.5);
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.5rem 0.875rem;
+}
+
+/* Close: light icon button instead of a solid "Cerrar" one. The module sets
+   the label with v-text and has no slot, so the text stays as the accessible
+   name (font-size: 0) and the X (lucide `x`) is drawn with a mask. */
+.cookieControl .cookieControl__ModalClose {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  font-size: 0;
+  border-radius: 9999px;
+  background-color: var(--ui-bg);
+  color: var(--ui-text-muted);
+}
+
+.cookieControl .cookieControl__ModalClose:hover {
+  background-color: var(--ui-primary);
+  color: var(--ui-bg);
+}
+
+.cookieControl .cookieControl__ModalClose::before {
+  content: '';
+  width: 1.125rem;
+  height: 1.125rem;
+  background-color: currentColor;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 6 6 18M6 6l12 12'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
