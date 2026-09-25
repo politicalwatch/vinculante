@@ -17,7 +17,10 @@ export default defineNuxtConfig({
   site: {
     name: 'Vinculante.ai'
   },
+
   runtimeConfig: {
+    /** Server-only API base for SSR (e.g. the internal Docker hostname); falls back to the public one. */
+    apiBaseServer: '',
     public: {
       apiBase: 'http://localhost:8000',
       // Google Analytics 4 measurement ID (`G-...`). Empty: no banner, no analytics.
@@ -108,7 +111,7 @@ export default defineNuxtConfig({
     }
   },
 
-})  ogImage: {
+  ogImage: {
     // The social card is a static image shared with vinculante.ai: public/og-image.png
     enabled: false
   }
