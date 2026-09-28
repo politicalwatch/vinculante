@@ -14,7 +14,7 @@ function blockAncestor(node: Node): Node | null {
   return null
 }
 
-function buildDomIndex(root: HTMLElement): { norm: string; map: CharEntry[] } {
+function buildDomIndex(root: HTMLElement): { norm: string, map: CharEntry[] } {
   const norm: string[] = []
   const map: CharEntry[] = []
   let prevSpace = true
@@ -35,7 +35,7 @@ function buildDomIndex(root: HTMLElement): { norm: string; map: CharEntry[] } {
 
     const text = node.nodeValue ?? ''
     for (let i = 0; i < text.length; i++) {
-      const ch = text[i]
+      const ch = text.charAt(i)
       for (const sub of ch.normalize('NFKD')) {
         if (/\p{M}/u.test(sub)) continue
         const c = sub.toLowerCase()
@@ -68,9 +68,13 @@ function normalizeQuery(q: string): string {
       if (/\p{M}/u.test(sub)) continue
       const c = sub.toLowerCase()
       if (/\s/.test(c)) {
-        if (!prevSpace && out.length) { out.push(' '); prevSpace = true }
+        if (!prevSpace && out.length) {
+          out.push(' ')
+          prevSpace = true
+        }
       } else {
-        out.push(c); prevSpace = false
+        out.push(c)
+        prevSpace = false
       }
     }
   }
@@ -109,7 +113,7 @@ export function removeHighlights(root: HTMLElement): void {
   })
 }
 
-function findRange(norm: string, normQ: string): { pos: number; end: number } | null {
+function findRange(norm: string, normQ: string): { pos: number, end: number } | null {
   const MIN = 20
   let pos = norm.indexOf(normQ)
   if (pos >= 0) return { pos, end: pos + normQ.length }
@@ -139,7 +143,7 @@ export function highlightQuotes(root: HTMLElement, quotes: string[]): void {
   if (!quotes.length) return
   const { norm, map } = buildDomIndex(root)
 
-  const ranges: Array<{ start: number; end: number }> = []
+  const ranges: Array<{ start: number, end: number }> = []
   for (const q of quotes) {
     const normQ = normalizeQuery(q)
     if (normQ.length < 5) continue

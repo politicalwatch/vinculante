@@ -79,7 +79,8 @@ function shapeFill(article: EditorialArticle): string | undefined {
     <span class="shrink-0 text-3xs font-semibold tracking-widest text-ed-muted">
       Articulado
       <HelpTooltip
-        label="Ayuda sobre el minimapa de artículos">
+        label="Ayuda sobre el minimapa de artículos"
+      >
         <p>El minimapa muestra el articulado de la ley y las vinculaciones detectadas entre las propuestas y los artículos.</p>
         <ul class="list-disc list-inside">
           <li>El largo de la barra indica el número de vinculaciones detectadas entre la propuesta y el artículo.</li>
@@ -88,7 +89,7 @@ function shapeFill(article: EditorialArticle): string | undefined {
         <p>Por ejemplo una barra ancha y larga indica que ese artículo tiene muchas vinculaciones y es largo.</p>
         <p>Una barra estrecha y larga indica que hay muchas vinculaciones pero el artículo es corto.</p>
       </HelpTooltip>
-      
+
     </span>
 
     <div
@@ -114,7 +115,5 @@ function shapeFill(article: EditorialArticle): string | undefined {
         @click="emit('select', article.sectionId)"
       />
     </div>
-
-    
   </div>
 </template>

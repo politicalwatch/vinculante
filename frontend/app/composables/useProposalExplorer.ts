@@ -278,12 +278,12 @@ export function useProposalExplorer(
       const width = cols.length === 0
         ? viewWidth
         : Math.max(
-          viewWidth,
-          COLUMN_PADDING_X
+            viewWidth,
+            COLUMN_PADDING_X
             + cols.length * (PROPOSAL_CARD_WIDTH + COLUMN_GAP)
             - COLUMN_GAP
             + COLUMN_PADDING_X
-        )
+          )
       const height = Math.max(
         viewHeight,
         ...cols.map((column) => {

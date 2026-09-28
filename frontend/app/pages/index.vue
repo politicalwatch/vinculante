@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import LawSignatureCard from '~/components/LawSignatureCard.vue'
-import { TOPIC_PALETTE, topicCssVar } from '~/utils/topicPalette'
 
 definePageMeta({ colorMode: 'light' })
 
