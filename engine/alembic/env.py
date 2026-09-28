@@ -13,7 +13,8 @@ import vinculante.domain.entities  # noqa: F401 — ensures all models are regis
 config = context.config
 
 if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
+    # Keep loggers created before alembic runs (e.g. by the test suite, which upgrades in-process)
+    fileConfig(config.config_file_name, disable_existing_loggers=False)
 
 target_metadata = Base.metadata
 
