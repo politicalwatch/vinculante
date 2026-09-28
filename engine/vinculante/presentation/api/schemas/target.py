@@ -8,6 +8,7 @@ class TargetDocumentBase(BaseModel):
     author: str
     date: datetime.date | None = None
     version: str | None = None
+    topic: str | None = None
 
 
 class TargetListItemRead(TargetDocumentBase):

@@ -108,6 +108,7 @@ class TargetRepository(BaseRepository[TargetDocument]):
                 "author": target.author,
                 "date": target.date,
                 "version": target.version,
+                "topic": target.topic,
                 "articles": articles,
                 "touched": touched,
                 "proposals": proposals,

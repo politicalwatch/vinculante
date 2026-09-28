@@ -10,7 +10,7 @@ const props = defineProps<{
   maxProposals: number
 }>()
 
-const topic = computed(() => topicOf(props.target.id))
+const topic = computed(() => topicOf(props.target.topic))
 const accent = computed(() => `var(${topic.value.cssVar})`)
 </script>
 

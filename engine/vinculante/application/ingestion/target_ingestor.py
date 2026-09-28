@@ -107,8 +107,9 @@ class TargetIngestor:
         title: str,
         author: str,
         version: str | None = None,
+        topic: str | None = None,
     ) -> TargetDocument:
-        target = TargetDocument(title=title, author=author, version=version)
+        target = TargetDocument(title=title, author=author, version=version, topic=topic)
         target = self.target_repo.save(target)
 
         title_norm = _norm_strip(title)

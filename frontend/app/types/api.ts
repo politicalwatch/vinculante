@@ -39,6 +39,7 @@ export interface TargetDocument {
   author: string
   date: string | null
   version: string | null
+  topic: string | null
   stats: TargetStats | null
   summary: string | null
 }
@@ -49,6 +50,7 @@ export interface TargetListItem {
   author: string
   date: string | null
   version: string | null
+  topic: string | null
   articles: number
   touched: number
   proposals: number
