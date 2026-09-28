@@ -11,7 +11,7 @@ const targetId = computed(() => {
 /** The catalogue page shows the brand alone: there is no session to describe. */
 const isIndex = computed(() => targetId.value === null)
 
-const summaryPath = computed(() => `/experimental/v3/${targetId.value}`)
+const summaryPath = computed(() => `/${targetId.value}`)
 const detailPath = computed(() => `${summaryPath.value}/detalle`)
 
 const isDetail = computed(() => route.path === detailPath.value)
@@ -44,14 +44,14 @@ const lawItems = computed(() =>
 
 function onSelectLaw(id: number) {
   if (!Number.isFinite(id) || id === targetId.value) return
-  navigateTo(`/experimental/v3/${id}`)
+  navigateTo(`/${id}`)
 }
 </script>
 
 <template>
   <header class="flex h-17 shrink-0 items-center gap-6 border-b border-ed-border bg-ed-surface px-6 xl:px-10">
     <NuxtLink
-      to="/experimental"
+      to="/"
       class="flex shrink-0 items-center gap-4 text-ed-ink no-underline"
       aria-label="Vinculante — todos los documentos"
     >
@@ -94,5 +94,15 @@ function onSelectLaw(id: number) {
         @update:model-value="onSelectLaw"
       />
     </template>
+
+    <UButton
+      to="https://vinculante.ai/"
+      label="Saber más sobre el proyecto"
+      trailing-icon="i-lucide-arrow-up-right"
+      variant="solid"
+      size="sm"
+      class="shrink-0 bg-ed-accent text-white hover:bg-ed-indigo active:bg-ed-indigo focus-visible:outline-ed-accent"
+      :class="{ 'ms-auto': isIndex }"
+    />
   </header>
 </template>

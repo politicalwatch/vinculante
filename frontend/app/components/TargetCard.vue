@@ -8,7 +8,7 @@ defineProps<{ target: TargetDocument }>()
   <UCard
     :ui="{ root: 'hover:ring-primary transition-shadow cursor-pointer' }"
     as="div"
-    @click="navigateTo(`/targets/${target.id}`)"
+    @click="navigateTo(`/${target.id}`)"
   >
     <div class="flex flex-col gap-3">
       <div>

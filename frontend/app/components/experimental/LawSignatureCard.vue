@@ -16,7 +16,7 @@ const accent = computed(() => `var(${topic.value.cssVar})`)
 
 <template>
   <NuxtLink
-    :to="`/experimental/v3/${target.id}`"
+    :to="`/${target.id}`"
     class="law-signature-card"
   >
     <header class="w-full">

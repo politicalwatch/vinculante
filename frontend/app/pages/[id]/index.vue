@@ -29,7 +29,7 @@ const { data: sections, status: sectionsStatus } = useFetch<Section[]>(
 const { blocks, hasSummary, coverage, groups, maxTotal, orphanSections, highlights }
   = useTargetSummary(target, sections)
 
-const detailPath = computed(() => `/experimental/v3/${id}/detalle`)
+const detailPath = computed(() => `/${id}/detalle`)
 
 const leyQuote = computed(() => splitPullQuote(blocks.value.ley?.paragraphs[0]))
 
@@ -58,7 +58,7 @@ const SPY_OFFSET = 160
 function updateActiveNav() {
   const items = navItems.value
   let current = items[0]?.id ?? ''
-  for (const item of items) {
+  for (const item of import.meta.client ? items : []) {
     const el = document.getElementById(item.id)
     if (el && el.getBoundingClientRect().top <= SPY_OFFSET) current = item.id
   }
