@@ -10,10 +10,16 @@ class TargetDocumentBase(BaseModel):
     version: str | None = None
 
 
+class TargetListItemRead(TargetDocumentBase):
+    id: int
+    articles: int = 0  # matchable sections
+    touched: int = 0  # matchable sections with at least one alto/medio match
+    proposals: int = 0
+    incorporated: int = 0  # proposals with at least one alto/medio match
+
+
 class TargetDocumentRead(TargetDocumentBase):
     id: int
-    proposal_count: int = 0
-    match_count: int = 0
     stats: dict | None = None
     summary: str | None = None
 

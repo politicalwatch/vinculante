@@ -39,13 +39,11 @@ export interface TargetDocument {
   author: string
   date: string | null
   version: string | null
-  proposal_count: number
-  match_count: number
   stats: TargetStats | null
   summary: string | null
 }
 
-export interface VizTargetSignature {
+export interface TargetListItem {
   id: number
   title: string
   author: string

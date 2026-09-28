@@ -1,4 +1,4 @@
-import type { VizTargetSignature } from '~/types/api'
+import type { TargetListItem } from '~/types/api'
 
 /**
  * The catalogue of available laws. The explicit key lets the header and the
@@ -6,8 +6,8 @@ import type { VizTargetSignature } from '~/types/api'
  */
 export function useLawIndex() {
   const api = useApi()
-  return useFetch<VizTargetSignature[]>('/viz_api/targets', {
+  return useFetch<TargetListItem[]>('/targets', {
     $fetch: api,
-    key: 'viz-targets'
+    key: 'targets'
   })
 }

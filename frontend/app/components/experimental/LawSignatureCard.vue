@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import type { VizTargetSignature } from '~/types/api'
+import type { TargetListItem } from '~/types/api'
 import LawSignature from '~/components/experimental/LawSignature.vue'
 import { topicOf } from '~/utils/topicPalette'
 
 const SIGNATURE_SIZE = 264
 
 const props = defineProps<{
-  target: VizTargetSignature
+  target: TargetListItem
   maxProposals: number
 }>()
 

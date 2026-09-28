@@ -36,53 +36,9 @@ class TargetRepository(BaseRepository[TargetDocument]):
             self.db.commit()
 
     def get_all_with_counts(self) -> list[dict]:
-        proposal_subq = (
-            self.db.query(
-                Proposal.target_id,
-                func.count(Proposal.id).label("proposal_count"),
-            )
-            .filter(Proposal.target_id.isnot(None))
-            .group_by(Proposal.target_id)
-            .subquery()
-        )
-
-        match_subq = (
-            self.db.query(
-                Section.target_id,
-                func.count(Match.id).label("match_count"),
-            )
-            .join(Match, Match.section_id == Section.id)
-            .filter(Match.degree.in_(("medio", "alto")))
-            .group_by(Section.target_id)
-            .subquery()
-        )
-
-        rows = (
-            self.db.query(
-                TargetDocument,
-                func.coalesce(proposal_subq.c.proposal_count, 0),
-                func.coalesce(match_subq.c.match_count, 0),
-            )
-            .outerjoin(proposal_subq, proposal_subq.c.target_id == TargetDocument.id)
-            .outerjoin(match_subq, match_subq.c.target_id == TargetDocument.id)
-            .order_by(TargetDocument.id.desc())
-            .all()
-        )
-
-        return [
-            {
-                "id": target.id,
-                "title": target.title,
-                "author": target.author,
-                "date": target.date,
-                "version": target.version,
-                "proposal_count": p_count,
-                "match_count": m_count,
-            }
-            for target, p_count, m_count in rows
-        ]
-
-    def get_all_signatures(self) -> list[dict]:
+        """Every target with the counts behind its signature: matchable articles,
+        how many of them have an accepted (alto/medio) match, proposals, and how
+        many of those have an accepted match."""
         accepted = ("alto", "medio")
 
         article_subq = (
