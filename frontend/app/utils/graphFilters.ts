@@ -1,11 +1,48 @@
 import type { Match, MatchDegree, Proposal, Section } from '~/types/api'
-import type {
-  DegreeFloor,
-  GraphFilters,
-  GraphTotalCounts,
-  GraphVisibleCounts,
-  LinkCountBounds
-} from '~/composables/useExperimentalGraph'
+
+/** Degrees fetched from the API; floor filtering happens client-side. */
+export const FETCH_MATCH_DEGREES: MatchDegree[] = ['bajo', 'medio', 'alto']
+
+export type DegreeFloor = 'alto' | 'medio' | 'bajo'
+export type ProposalAuthorTypeFilter = 'all' | 'citizen' | 'academia'
+
+export interface GraphFilters {
+  degreeFloor: DegreeFloor
+  articleLinksMin: number
+  /** null = no upper cap (treat as observed max in UI). */
+  articleLinksMax: number | null
+  proposalAuthorType: ProposalAuthorTypeFilter
+  proposalLinksMin: number
+  proposalLinksMax: number | null
+}
+
+export interface LinkCountBounds {
+  articleMax: number
+  proposalMax: number
+}
+
+export interface GraphVisibleCounts {
+  articles: number
+  proposals: number
+  matches: number
+}
+
+export interface GraphTotalCounts {
+  articles: number
+  proposals: number
+  matches: number
+}
+
+export function createDefaultFilters(): GraphFilters {
+  return {
+    degreeFloor: 'medio',
+    articleLinksMin: 0,
+    articleLinksMax: null,
+    proposalAuthorType: 'all',
+    proposalLinksMin: 0,
+    proposalLinksMax: null
+  }
+}
 
 const DEGREE_RANK: Record<string, number> = {
   alto: 3,

@@ -1,13 +1,14 @@
 import type { MaybeRefOrGetter } from 'vue'
 import type { Match, Proposal, Section } from '~/types/api'
 import {
+  applyGraphFilters,
+  countLinksByProposal,
   createDefaultFilters,
   type GraphFilters,
   type GraphTotalCounts,
   type GraphVisibleCounts,
   type LinkCountBounds
-} from '~/composables/useExperimentalGraph'
-import { applyGraphFilters, countLinksByProposal } from '~/utils/graphFilters'
+} from '~/utils/graphFilters'
 import { authorTypeLabel } from '~/utils/authorType'
 import { assignProponents, PROPONENTS, type ProponentOption } from '~/utils/mockProponents'
 import { mulberry32 } from '~/utils/random'
