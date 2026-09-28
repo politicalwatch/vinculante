@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { useElementSize } from '@vueuse/core'
 import type { Match, Proposal } from '~/types/api'
-import EditorialArticleCard from '~/components/experimental/editorial/EditorialArticleCard.vue'
-import FloatingProposalCard from '~/components/experimental/editorial/FloatingProposalCard.vue'
+import EditorialArticleCard from '~/components/editorial/EditorialArticleCard.vue'
+import FloatingProposalCard from '~/components/editorial/FloatingProposalCard.vue'
 import {
   PROPOSAL_CARD_WIDTH,
   type EditorialArticle

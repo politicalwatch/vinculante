@@ -2,15 +2,15 @@
 import { useElementSize } from '@vueuse/core'
 import type { Match, Proposal, Section } from '~/types/api'
 import type { BoardView } from '~/composables/useEditorialBoard'
-import GraphFilterToolbar from '~/components/experimental/GraphFilterToolbar.vue'
-import ArticleMinimap from '~/components/experimental/editorial/ArticleMinimap.vue'
-import EditorialArticleCard from '~/components/experimental/editorial/EditorialArticleCard.vue'
-import FloatingProposalCard from '~/components/experimental/editorial/FloatingProposalCard.vue'
-import ProposalExplorer from '~/components/experimental/editorial/ProposalExplorer.vue'
+import GraphFilterToolbar from '~/components/GraphFilterToolbar.vue'
+import ArticleMinimap from '~/components/editorial/ArticleMinimap.vue'
+import EditorialArticleCard from '~/components/editorial/EditorialArticleCard.vue'
+import FloatingProposalCard from '~/components/editorial/FloatingProposalCard.vue'
+import ProposalExplorer from '~/components/editorial/ProposalExplorer.vue'
 import { FETCH_MATCH_DEGREES } from '~/utils/graphFilters'
 import { ARTICLE_COLUMN_WIDTH, useEditorialBoard } from '~/composables/useEditorialBoard'
 
-definePageMeta({ layout: 'editorial', colorMode: 'light' })
+definePageMeta({ colorMode: 'light' })
 
 /** The header drives the board view through the URL, so both stay in sync. */
 const VIEW_BY_QUERY: Record<string, BoardView> = {
@@ -28,7 +28,7 @@ if (targetError.value) {
   throw createError({ statusCode: 404, message: 'Documento no encontrado' })
 }
 
-useSeoMeta({ title: () => `Exploración v3 — ${target.value?.title ?? ''} — Vinculante` })
+useSeoMeta({ title: () => `${target.value?.title ?? ''} — Vinculante` })
 
 const { data: sections, status: sectionsStatus, error: sectionsError } = useFetch<Section[]>(
   '/sections',

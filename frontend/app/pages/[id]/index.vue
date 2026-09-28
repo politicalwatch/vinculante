@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import type { Section } from '~/types/api'
-import ExpandableProse from '~/components/experimental/summary/ExpandableProse.vue'
-import LinkageBarChart from '~/components/experimental/summary/LinkageBarChart.vue'
-import SummarySection from '~/components/experimental/summary/SummarySection.vue'
-import SummarySidebar from '~/components/experimental/summary/SummarySidebar.vue'
+import ExpandableProse from '~/components/summary/ExpandableProse.vue'
+import LinkageBarChart from '~/components/summary/LinkageBarChart.vue'
+import SummarySection from '~/components/summary/SummarySection.vue'
+import SummarySidebar from '~/components/summary/SummarySidebar.vue'
 import { useTargetSummary } from '~/composables/useTargetSummary'
 import { splitPullQuote } from '~/utils/summaryMarkdown'
 
-definePageMeta({ layout: 'editorial', colorMode: 'light' })
+definePageMeta({ colorMode: 'light' })
 
 const route = useRoute()
 const id = Number(route.params.id)

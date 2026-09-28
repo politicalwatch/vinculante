@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { TargetListItem } from '~/types/api'
-import LawSignature from '~/components/experimental/LawSignature.vue'
+import LawSignature from '~/components/LawSignature.vue'
 import { topicOf } from '~/utils/topicPalette'
 
 const SIGNATURE_SIZE = 264

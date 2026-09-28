@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { CoverageStat, OrphanSection, ResolvedHighlight } from '~/composables/useTargetSummary'
-import HighlightQuoteCard from '~/components/experimental/summary/HighlightQuoteCard.vue'
-import SummarySection from '~/components/experimental/summary/SummarySection.vue'
+import HighlightQuoteCard from '~/components/summary/HighlightQuoteCard.vue'
+import SummarySection from '~/components/summary/SummarySection.vue'
 
 const VISIBLE_HIGHLIGHTS = 2
 const VISIBLE_ORPHANS = 4

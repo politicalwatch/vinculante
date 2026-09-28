@@ -91,7 +91,7 @@ export interface FilteredGraph {
 }
 
 /**
- * Applies the shared experimental filters. Link-count bounds are derived from the
+ * Applies the shared graph filters. Link-count bounds are derived from the
  * degree-filtered matches so the sliders always describe the current degree floor.
  */
 export function applyGraphFilters(

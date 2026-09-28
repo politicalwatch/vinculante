@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import LawSignatureCard from '~/components/experimental/LawSignatureCard.vue'
+import LawSignatureCard from '~/components/LawSignatureCard.vue'
 import { TOPIC_PALETTE, topicCssVar } from '~/utils/topicPalette'
 
-definePageMeta({ layout: 'editorial', colorMode: 'light' })
+definePageMeta({ colorMode: 'light' })
 
 const { data: targets, status, error } = await useLawIndex()
 

@@ -27,12 +27,6 @@ export default defineNuxtConfig({
       gtagId
     }
   },
-  routeRules: {
-    '/experimental/**': {
-      ssr: false,
-      isr: false
-    }
-  },
 
   compatibilityDate: '2025-01-15',
 
