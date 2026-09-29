@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING
 
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import ForeignKey, Integer, String
+from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..base import Base
@@ -16,7 +17,10 @@ class Proposal(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     text: Mapped[str] = mapped_column(String, nullable=False)
-    author: Mapped[str | None] = mapped_column(String)
+    # One item per proponent: an organisation, or "Persona (Organización)" for individuals
+    authors: Mapped[list[str]] = mapped_column(
+        ARRAY(String), nullable=False, default=list, server_default="{}"
+    )
     author_type: Mapped[str | None] = mapped_column(String)
     reference: Mapped[str | None] = mapped_column(String)
     topic: Mapped[str | None] = mapped_column(String)

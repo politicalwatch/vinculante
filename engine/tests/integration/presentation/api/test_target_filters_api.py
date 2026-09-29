@@ -9,6 +9,14 @@ def test_proposals_filtered_by_target(client, scenario):
     assert {p["id"] for p in other} == scenario.other_proposal_ids
 
 
+def test_proposals_expose_authors_as_list(client, scenario):
+    proposals = client.get("/proposals", params={"target_id": scenario.law.id}).json()
+
+    authors = sorted((p["authors"] for p in proposals), key=len)
+    assert authors == [[], [], ["Talento para el Futuro", "Harmon", "Political Watch"]]
+    assert all("author" not in p for p in proposals)
+
+
 def test_proposals_without_target_returns_all(client, scenario):
     proposals = client.get("/proposals").json()
 

@@ -40,12 +40,12 @@ def classify_author_type(
     return None
 
 
-def anonymise_author(author: str | None, author_type: str | None) -> str:
+def anonymise_author(authors: list[str], author_type: str | None) -> str:
     if not author_type:
         return "propuesta ciudadana"
     if classify_author_type(author_type) == "citizen":
         return "propuesta ciudadana"
-    return author or "propuesta ciudadana"
+    return ", ".join(authors) or "propuesta ciudadana"
 
 
 def find_orphan_sections(sections: list[Section], accepted_matches: list[Match]) -> list[Section]:

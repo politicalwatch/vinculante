@@ -3,7 +3,7 @@ from pydantic import BaseModel
 
 class ProposalBase(BaseModel):
     text: str
-    author: str | None = None
+    authors: list[str] = []
     author_type: str | None = None
     reference: str | None = None
     topic: str | None = None

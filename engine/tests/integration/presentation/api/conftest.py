@@ -54,6 +54,7 @@ def scenario(db_session: Session) -> Scenario:
     s1, s2, s4 = (Section(text=f"artículo {n}", target_id=law.id) for n in (1, 2, 4))
     s3 = Section(text="preámbulo", target_id=law.id, is_matchable=False)
     p1, p2, p3 = (Proposal(text=f"propuesta {n}", target_id=law.id) for n in (1, 2, 3))
+    p1.authors = ["Talento para el Futuro", "Harmon", "Political Watch"]
     other_section = Section(text="artículo único", target_id=other.id)
     other_proposal = Proposal(text="propuesta única", target_id=other.id)
     db_session.add_all([s1, s2, s3, s4, p1, p2, p3, other_section, other_proposal])

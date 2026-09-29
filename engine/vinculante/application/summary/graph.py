@@ -83,7 +83,7 @@ def build_summary_graph(
 
         author_labels: dict[int, str] = {}
         for p in proposals:
-            author_labels[p.id] = anonymise_author(p.author, p.author_type)
+            author_labels[p.id] = anonymise_author(p.authors, p.author_type)
 
         highlight_candidates = [
             m for m in accepted

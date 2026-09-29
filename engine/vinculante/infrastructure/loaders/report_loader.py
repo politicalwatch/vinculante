@@ -6,6 +6,7 @@ from docling.datamodel.base_models import InputFormat
 from docling.datamodel.pipeline_options import PdfPipelineOptions
 from docling.document_converter import DocumentConverter, PdfFormatOption
 
+from vinculante.application.ingestion.proposal_ingestor import parse_authors
 from vinculante.application.ingestion.report_schemas import (
     AuthorExtraction,
     ExtractedProposalList,
@@ -44,13 +45,14 @@ _FIELD_PREFIX_RE  = re.compile(
 _AUTHOR_WINDOW = 2500
 
 _AUTHOR_PROMPT = """\
-Extrae el nombre del autor o autores de este documento académico a partir del texto de las primeras páginas.
+Extrae los proponentes (autores) de este documento académico a partir del texto de las primeras páginas.
+Devuelve una lista con un elemento por proponente.
 
-- Si son varios individuos, devuelve sus nombres separados por coma.
-- Si es una organización o colectivo, devuelve el nombre de la entidad.
-- Si aparecen tanto individuos como una organización editora, devuelve primero los individuos \
-seguidos de la organización entre paréntesis.
-- Si no puedes determinarlo con certeza, devuelve "Desconocido".
+- Si el documento lo firma una organización o colectivo, devuelve solo el nombre de la entidad.
+- Si lo firman personas (por ejemplo, los miembros de un comité), devuelve un elemento por \
+persona con su organización entre paréntesis cuando aparezca: "Nombre Apellido (Organización)".
+- Si varias organizaciones firman juntas, devuelve un elemento por organización.
+- Si no puedes determinarlo con certeza, devuelve una lista vacía.
 
 TEXTO:
 {text}"""
@@ -246,15 +248,15 @@ class ReportLoader:
         conv_res = self._converter.convert(file_path)
         dl_doc = conv_res.document
 
-        author = self._extract_author(dl_doc)
+        authors = self._extract_authors(dl_doc)
         rows = self._extract_proposals(dl_doc)
         for row in rows:
-            row["author"] = author
+            row["authors"] = list(authors)
         return _dedup_by_reference(rows)
 
     # ------------------------------------------------------------------ author
 
-    def _extract_author(self, dl_doc) -> str:
+    def _extract_authors(self, dl_doc) -> list[str]:
         parts: list[str] = []
         total = 0
         for item, _ in dl_doc.iterate_items():
@@ -266,10 +268,10 @@ class ReportLoader:
                     break
         try:
             result = self._author_llm.invoke(_AUTHOR_PROMPT.format(text="\n".join(parts)))
-            return result.author
+            return parse_authors(result.authors)
         except Exception:
-            _logger.exception("Author extraction failed; defaulting to 'Desconocido'")
-            return "Desconocido"
+            _logger.exception("Author extraction failed; leaving authors empty")
+            return []
 
     # ------------------------------------------------------------------ main extraction
 

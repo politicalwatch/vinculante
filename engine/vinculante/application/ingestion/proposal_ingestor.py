@@ -8,6 +8,28 @@ _logger = logging.getLogger(__name__)
 
 _CANONICAL_AUTHOR_TYPES = frozenset({"citizen", "academia", "institution", "government", "ngo"})
 
+# Separates proponents in flat files (CSV/XLSX `author` column, preview CSVs).
+# Not a comma: organisation names can contain commas.
+AUTHORS_SEPARATOR = ";"
+
+
+def parse_authors(value: str | list[str] | None) -> list[str]:
+    """One item per proponent, stripped, without empties or repeats (order kept)."""
+    if not value:
+        return []
+    parts = value if isinstance(value, list) else value.split(AUTHORS_SEPARATOR)
+    authors: list[str] = []
+    for part in parts:
+        name = part.strip()
+        if name and name not in authors:
+            authors.append(name)
+    return authors
+
+
+def format_authors(authors: list[str]) -> str:
+    """Inverse of `parse_authors`, for writing flat files."""
+    return f"{AUTHORS_SEPARATOR} ".join(authors)
+
 
 def normalize_author_type(value: str | None) -> str | None:
     if not value:
@@ -38,7 +60,7 @@ class ProposalIngestor:
         proposals = [
             Proposal(
                 text=row["text"],
-                author=row.get("author") or None,
+                authors=parse_authors(row.get("authors") or row.get("author")),
                 author_type=normalize_author_type(row.get("author_type") or author_type),
                 reference=row.get("reference") or None,
                 topic=row.get("topic") or None,
