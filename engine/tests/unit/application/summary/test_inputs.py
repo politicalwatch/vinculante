@@ -42,10 +42,10 @@ def _proposal(
     *,
     id: int = 1,
     text: str = "x" * 90,
-    author: str | None = None,
+    authors: list[str] | None = None,
     author_type: str | None = None,
 ) -> SimpleNamespace:
-    return SimpleNamespace(id=id, text=text, author=author, author_type=author_type)
+    return SimpleNamespace(id=id, text=text, authors=authors or [], author_type=author_type)
 
 
 def _match(
@@ -108,23 +108,28 @@ def test_classify_unknown_returns_none():
 
 
 def test_anonymise_author_citizen():
-    assert anonymise_author("Real Name", "citizen") == "propuesta ciudadana"
+    assert anonymise_author(["Real Name"], "citizen") == "propuesta ciudadana"
 
 
 def test_anonymise_author_none_author_type():
-    assert anonymise_author("any", None) == "propuesta ciudadana"
+    assert anonymise_author(["any"], None) == "propuesta ciudadana"
 
 
 def test_anonymise_author_empty_author_type():
-    assert anonymise_author("any", "") == "propuesta ciudadana"
+    assert anonymise_author(["any"], "") == "propuesta ciudadana"
 
 
 def test_anonymise_author_non_citizen_with_author():
-    assert anonymise_author("Univ. Autónoma", "academia") == "Univ. Autónoma"
+    assert anonymise_author(["Univ. Autónoma"], "academia") == "Univ. Autónoma"
+
+
+def test_anonymise_author_joins_several_authors():
+    authors = ["Talento para el Futuro", "Harmon", "Political Watch"]
+    assert anonymise_author(authors, "academia") == "Talento para el Futuro, Harmon, Political Watch"
 
 
 def test_anonymise_author_non_citizen_without_author():
-    assert anonymise_author(None, "academia") == "propuesta ciudadana"
+    assert anonymise_author([], "academia") == "propuesta ciudadana"
 
 
 # ---------------------------------------------------------------------------
@@ -358,7 +363,7 @@ def test_format_unmatched_proposals_citizen_in_citizen_block():
 
 
 def test_format_unmatched_proposals_academia_in_academia_block():
-    p = _proposal(id=1, text="propuesta académica", author="Univ X", author_type="academia")
+    p = _proposal(id=1, text="propuesta académica", authors=["Univ X"], author_type="academia")
     item = {"proposal": p, "representative_ninguno": "razón detallada"}
     result = format_unmatched_proposals([item])
     assert "## Propuestas académicas" in result
@@ -426,7 +431,7 @@ def test_format_matches_for_highlights_citizen_only():
 
 
 def test_format_matches_for_highlights_academia_only():
-    p = _proposal(id=1, text="propuesta academia", author="Univ X", author_type="academia")
+    p = _proposal(id=1, text="propuesta academia", authors=["Univ X"], author_type="academia")
     s = _section(id=1, section_number="2")
     m = _highlight_match(proposal_id=1)
     result = format_matches_for_highlights([m], [s], [p], {1: "Univ X"})

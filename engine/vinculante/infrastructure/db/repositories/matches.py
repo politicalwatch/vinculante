@@ -17,10 +17,13 @@ class MatchRepository(BaseRepository[Match]):
     def list_filtered(
         self,
         section_id: int | None = None,
+        target_id: int | None = None,
         degrees: list[str] | None = None,
         status: MatchStatus | None = None,
     ) -> list[Match]:
         q = self.db.query(Match).options(joinedload(Match.proposal))
+        if target_id is not None:
+            q = q.filter(Match.proposal.has(Proposal.target_id == target_id))
         if section_id is not None:
             q = q.filter(Match.section_id == section_id)
         if degrees:

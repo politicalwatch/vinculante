@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { highlightQuotes, removeHighlights } from '../../../app/utils/highlight'
 
 function makeDiv(html: string): HTMLElement {
@@ -36,7 +36,7 @@ describe('highlightQuotes', () => {
   it('highlights across sibling text nodes (cross-node span)', () => {
     const el = document.createElement('div')
     const p1 = document.createElement('p')
-    p1.textContent = 'start of the '  // trailing space bridges the node boundary
+    p1.textContent = 'start of the ' // trailing space bridges the node boundary
     const p2 = document.createElement('p')
     p2.textContent = 'quote end here'
     el.append(p1, p2)

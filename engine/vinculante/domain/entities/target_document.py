@@ -19,6 +19,7 @@ class TargetDocument(Base):
     author: Mapped[str] = mapped_column(String, nullable=False)
     date: Mapped[datetime.date | None] = mapped_column(Date)
     version: Mapped[str | None] = mapped_column(String)
+    topic: Mapped[str | None] = mapped_column(String, nullable=True)
     stats: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     summary: Mapped[str | None] = mapped_column(Text, nullable=True)
 

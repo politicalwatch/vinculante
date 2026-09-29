@@ -1,4 +1,6 @@
 <script setup lang="ts">
+const config = useRuntimeConfig()
+
 useHead({
   meta: [
     { name: 'viewport', content: 'width=device-width, initial-scale=1' }
@@ -11,40 +13,41 @@ useHead({
   }
 })
 
+// Same title, description and social card as the vinculante.ai landing
+const title = 'Vinculante.ai — La participación que deja huella'
+const description = 'Vinculante.ai analiza las aportaciones de un proceso participativo para identificar de manera automática de qué forma han quedado recogidas, con qué grado y explicando el por qué. Trazabilidad verificable entre lo que se propuso y el texto que finalmente vio la luz.'
+
 useSeoMeta({
-  title: 'Vinculante',
-  description: 'Analiza el grado de cobertura de propuestas ciudadanas en documentos normativos.'
+  title,
+  // Page titles already name the site, so skip Nuxt SEO's "%s | Vinculante.ai" template
+  titleTemplate: '%s',
+  ogTitle: title,
+  description,
+  ogDescription: description,
+  ogLocale: 'es_ES',
+  // Static screenshot of the vinculante.ai hero, copied from that repo's public/og-image.png
+  ogImage: {
+    url: '/og-image.png',
+    width: 1200,
+    height: 630,
+    type: 'image/png',
+    alt: title
+  },
+  twitterCard: 'summary_large_image',
+  twitterImageAlt: title
 })
 </script>
 
 <template>
   <UApp>
     <NuxtLoadingIndicator color="var(--ui-primary)" />
-    <div class="flex flex-col h-screen overflow-hidden">
-      <UHeader>
-        <template #left>
-          <NuxtLink to="/" aria-label="Vinculante" class="block">
-            <img src="/logo.svg" alt="Vinculante" class="h-7 w-auto block dark:hidden" />
-            <img src="/logo-white.svg" alt="Vinculante" aria-hidden="true" class="h-7 w-auto hidden dark:block" />
-          </NuxtLink>
-        </template>
+    <NuxtLayout>
+      <NuxtPage />
+    </NuxtLayout>
 
-        <template #right>
-          <UColorModeButton />
-        </template>
-      </UHeader>
-
-      <UMain class="flex-1 min-h-0 overflow-y-auto">
-        <NuxtPage />
-      </UMain>
-
-      <UFooter class="border-t border-default shrink-0" :ui="{ container: 'py-2 sm:py-4 lg:flex lg:items-center lg:justify-between lg:gap-x-3' }">
-        <template #left>
-          <p class="text-sm text-muted">
-            Una iniciativa de <a href="https://www.politicalwatch.es" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">Political Watch</a>
-          </p>
-        </template>
-      </UFooter>
-    </div>
+    <CookieControl
+      v-if="config.public.gtagId"
+      locale="es"
+    />
   </UApp>
 </template>

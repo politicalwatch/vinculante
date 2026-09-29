@@ -5,7 +5,7 @@ from typing import Optional
 import typer
 
 from vinculante.application.clear_language.generator_service import ClearLanguageGeneratorService
-from vinculante.application.ingestion.proposal_ingestor import ProposalIngestor
+from vinculante.application.ingestion.proposal_ingestor import ProposalIngestor, format_authors
 from vinculante.application.ingestion.target_ingestor import TargetIngestor
 from vinculante.infrastructure.chunking.docling_chunker import DoclingChunker
 from vinculante.infrastructure.config.settings import get_settings
@@ -34,7 +34,12 @@ class _PreviewDumpingLoader:
             with open(self._csv_path, "w", newline="", encoding="utf-8") as f:
                 writer = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
                 writer.writeheader()
-                writer.writerows(rows)
+                # Join authors with the separator the ingestor splits on, so the preview
+                # can be edited and re-ingested as a CSV
+                writer.writerows(
+                    {**row, "authors": format_authors(row["authors"])} if "authors" in row else row
+                    for row in rows
+                )
             typer.echo(f"Preview CSV written to {self._csv_path}")
         return rows
 
@@ -98,6 +103,7 @@ def ingest_target(
     title: str = typer.Option(..., help="Document title"),
     author: str = typer.Option(..., help="Document author"),
     version: str = typer.Option(None, help="Document version"),
+    topic: str = typer.Option(None, help="Topic key for the frontend gallery (e.g. digitales)"),
 ):
     """Chunk and load a target normative document into the database."""
     settings = get_settings()
@@ -110,7 +116,9 @@ def ingest_target(
             section_repo=section_repo,
             chunker=chunker,
         )
-        target = ingestor.ingest(str(file), title=title, author=author, version=version)
+        target = ingestor.ingest(
+            str(file), title=title, author=author, version=version, topic=topic
+        )
         typer.echo(f"Ingested target document '{target.title}' (id={target.id})")
 
         llm = create_llm_from_env(settings)

@@ -2,12 +2,12 @@ from fastapi import APIRouter, HTTPException, status
 
 from vinculante.application.stats.target_stats import compute_target_stats
 from vinculante.presentation.api.deps import MatchRepoDep, ProposalRepoDep, SectionRepoDep, TargetRepoDep
-from vinculante.presentation.api.schemas.target import TargetDocumentRead
+from vinculante.presentation.api.schemas.target import TargetDocumentRead, TargetListItemRead
 
 router = APIRouter(prefix="/targets", tags=["targets"])
 
 
-@router.get("", response_model=list[TargetDocumentRead])
+@router.get("", response_model=list[TargetListItemRead])
 def list_targets(repo: TargetRepoDep):
     return repo.get_all_with_counts()
 

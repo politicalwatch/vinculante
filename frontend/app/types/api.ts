@@ -17,19 +17,19 @@ export interface TargetStats {
     total_proposals: number
   }
   degree: {
-    alto: { count: number; pct: number }
-    medio: { count: number; pct: number }
+    alto: { count: number, pct: number }
+    medio: { count: number, pct: number }
   }
   confidence: ConfidenceStats & {
-    by_degree: { alto: ConfidenceStats; medio: ConfidenceStats }
+    by_degree: { alto: ConfidenceStats, medio: ConfidenceStats }
   }
   distribution: {
     avg_matches_per_matched_section: number | null
-    per_section: Array<{ section_id: number; label: string; alto: number; medio: number }>
+    per_section: Array<{ section_id: number, label: string, alto: number, medio: number }>
   }
   quality: {
     pct_with_spans: number
-    top_proposals: Array<{ proposal_id: number; count: number }>
+    top_proposals: Array<{ proposal_id: number, count: number }>
   }
 }
 
@@ -39,10 +39,22 @@ export interface TargetDocument {
   author: string
   date: string | null
   version: string | null
-  proposal_count: number
-  match_count: number
+  topic: string | null
   stats: TargetStats | null
   summary: string | null
+}
+
+export interface TargetListItem {
+  id: number
+  title: string
+  author: string
+  date: string | null
+  version: string | null
+  topic: string | null
+  articles: number
+  touched: number
+  proposals: number
+  incorporated: number
 }
 
 export interface Section {
@@ -61,7 +73,7 @@ export interface Section {
 export interface Proposal {
   id: number
   text: string
-  author: string | null
+  authors: string[]
   author_type: string | null
   reference: string | null
   topic: string | null

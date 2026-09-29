@@ -1,0 +1,34 @@
+.editorial-theme {
+  --ed-bg: var(--color-ed-bg);
+  --ed-surface: var(--color-ed-surface);
+  --ed-surface-sunken: var(--color-ed-surface-sunken);
+  --ed-border: var(--color-ed-border);
+  --ed-ink: var(--color-ed-ink);
+  --ed-accent: var(--color-ed-accent);
+  --ed-body: var(--color-ed-body);
+  --ed-muted: var(--color-ed-muted);
+  --ed-shape-empty: var(--color-ed-shape-empty);
+
+  /* Match degree: strong links share the accent hue, moderate ones sit deeper. */
+  --ed-degree-alto: var(--color-ed-degree-alto);
+  --ed-degree-medio: var(--color-ed-degree-medio);
+
+  /*
+   * Topic palette: same chroma/weight as accent and ink, walked around
+   * the hue circle so marks stay comparable on cream paper.
+   * 01 and 06 are the two existing chromatic tokens.
+   */
+  --ed-topic-digitales: var(--color-ed-topic-digitales);
+  --ed-topic-movilidad: var(--color-ed-topic-movilidad);
+  --ed-topic-clima: var(--color-ed-topic-clima);
+  --ed-topic-educacion: var(--color-ed-topic-educacion);
+  --ed-topic-vivienda: var(--color-ed-topic-vivienda);
+  --ed-topic-salud: var(--color-ed-topic-salud);
+  --ed-topic-empleo: var(--color-ed-topic-empleo);
+  --ed-topic-justicia: var(--color-ed-topic-justicia);
+  --ed-topic-igualdad: var(--color-ed-topic-igualdad);
+  --ed-topic-cultura: var(--color-ed-topic-cultura);
+
+  background: var(--color-ed-bg);
+  color: var(--color-ed-body);
+}

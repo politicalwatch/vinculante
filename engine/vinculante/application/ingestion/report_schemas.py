@@ -2,15 +2,15 @@ from pydantic import BaseModel, Field
 
 
 class AuthorExtraction(BaseModel):
-    author: str = Field(
+    authors: list[str] = Field(
+        default_factory=list,
         description=(
-            "Nombre(s) del autor o autores tal como aparecen en el documento. "
-            "Si son varios individuos, separados por coma. "
-            "Si es una organización o colectivo, el nombre de la entidad. "
-            "Si aparecen individuos y organización editora, primero los individuos "
-            "seguidos de la organización entre paréntesis. "
-            "Si no se puede determinar, devuelve 'Desconocido'."
-        )
+            "Proponentes del documento, un elemento por proponente, tal como aparecen. "
+            "Si lo firma una organización o colectivo, solo el nombre de la entidad. "
+            "Si lo firman personas, un elemento por persona con su organización entre "
+            "paréntesis cuando se conozca: 'Nombre Apellido (Organización)'. "
+            "Lista vacía si no se puede determinar."
+        ),
     )
 
 

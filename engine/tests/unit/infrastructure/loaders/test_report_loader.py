@@ -77,11 +77,13 @@ def _make_text_item(text: str) -> MagicMock:
 
 
 def _make_llm(
-    author: str = "Test Author",
+    authors: list[str] | None = None,
     proposals: list[ExtractedProposal] | None = None,
 ) -> MagicMock:
     author_chain = MagicMock()
-    author_chain.invoke.return_value = AuthorExtraction(author=author)
+    author_chain.invoke.return_value = AuthorExtraction(
+        authors=["Test Author"] if authors is None else authors
+    )
     extract_chain = MagicMock()
     extract_chain.invoke.return_value = ExtractedProposalList(proposals=proposals or [])
 
@@ -97,12 +99,15 @@ def _make_loader_with_items(
     author: str = "Test Author",
     llm: MagicMock | None = None,
 ) -> ReportLoader:
-    """Build a ReportLoader backed by a mocked doc with the given items."""
-    llm = llm or _make_llm(author=author)
+    """Build a ReportLoader backed by a mocked doc with the given items.
+
+    `author` is the byline text in the mocked document; the LLM mock decides the authors.
+    """
+    llm = llm or _make_llm()
     with patch("vinculante.infrastructure.loaders.report_loader.DocumentConverter"):
         loader = ReportLoader(llm=llm)
 
-    # Prepend an author text item so _extract_author picks it up
+    # Prepend an author text item so _extract_authors picks it up
     author_item = _make_text_item(f"Autor: {author}")
     all_items: list[tuple[MagicMock, int]] = [(author_item, 0)] + list(doc_items)
 
@@ -296,7 +301,7 @@ def test_tier1_extracts_titulo_desarrollo_table():
     assert rows[0]["subtopic"] == "Ciencias Políticas"
     assert "Voto a los 16" in rows[0]["text"]
     assert "Los jóvenes de 16 años" in rows[0]["text"]
-    assert rows[0]["author"] == "Test Author"
+    assert rows[0]["authors"] == ["Test Author"]
 
 
 def test_tier1_accepts_criterio_explicacion_headers():
@@ -399,7 +404,7 @@ def test_post_tier1_prose_under_same_subitem_is_skipped():
     subitem = _make_heading_item("1. Ciencias Políticas", level=3)
 
     author_chain = MagicMock()
-    author_chain.invoke.return_value = AuthorExtraction(author="Test Author")
+    author_chain.invoke.return_value = AuthorExtraction(authors=["Test Author"])
     extract_chain = MagicMock()
     extract_chain.invoke.return_value = ExtractedProposalList(proposals=[])
     llm = MagicMock()
@@ -666,7 +671,7 @@ def test_tier2_calls_llm_for_prose_section():
             subtopic="2.1 Ley de Juventud",
         ),
     ]
-    llm = _make_llm(author="Kilian Wirthwein, Javier Carbonell", proposals=proposals)
+    llm = _make_llm(authors=["Kilian Wirthwein", "Javier Carbonell"], proposals=proposals)
 
     long_prose = "Medida 1. La nueva Ley debe garantizar la presencia de centros juveniles. " * 3
     body = _make_text_item(long_prose)
@@ -684,7 +689,7 @@ def test_tier2_calls_llm_for_prose_section():
     assert len(rows) == 2
     assert rows[0]["topic"] == "2. Propuestas"
     assert rows[0]["subtopic"] == "2.1 Ley de Juventud"
-    assert rows[0]["author"] == "Kilian Wirthwein, Javier Carbonell"
+    assert rows[0]["authors"] == ["Kilian Wirthwein", "Javier Carbonell"]
 
 
 def test_tier2_skips_bibliography_section():
@@ -797,7 +802,7 @@ def test_real_v16_docx_extracts_tier1_rows():
     assert len(rows) >= 60, f"Expected ≥60 rows from V16, got {len(rows)}"
     topics = {r["topic"] for r in rows if r["topic"]}
     assert len(topics) >= 1
-    assert all(r["author"] for r in rows)
+    assert all(r["authors"] for r in rows)
 
 
 @NEEDS_LLM
@@ -808,7 +813,9 @@ def test_real_juventud_pdf_extracts_16_medidas():
     # Should find the 16 Medidas; LLM might find slightly more or fewer
     assert 12 <= len(rows) <= 25, f"Expected ~16 rows from La juventud, got {len(rows)}"
     # Author should be detected
-    assert any("Wirthwein" in (r.get("author") or "") or "Carbonell" in (r.get("author") or "") for r in rows)
+    assert any(
+        "Wirthwein" in author or "Carbonell" in author for r in rows for author in r["authors"]
+    )
 
 
 @NEEDS_LLM

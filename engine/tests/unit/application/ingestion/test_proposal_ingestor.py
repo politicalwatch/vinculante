@@ -3,7 +3,12 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from vinculante.application.ingestion.proposal_ingestor import ProposalIngestor, normalize_author_type
+from vinculante.application.ingestion.proposal_ingestor import (
+    ProposalIngestor,
+    format_authors,
+    normalize_author_type,
+    parse_authors,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -78,3 +83,61 @@ def test_normalize_unknown_returns_none_and_warns(caplog):
 @pytest.mark.parametrize("value", ["citizen", "academia", "institution", "government", "ngo"])
 def test_normalize_all_canonical_passthrough(value):
     assert normalize_author_type(value) == value
+
+
+# ---------------------------------------------------------------------------
+# authors
+# ---------------------------------------------------------------------------
+
+
+def test_parse_authors_splits_on_semicolon_and_strips():
+    assert parse_authors(" Talento para el Futuro; Harmon ;Political Watch ") == [
+        "Talento para el Futuro",
+        "Harmon",
+        "Political Watch",
+    ]
+
+
+def test_parse_authors_keeps_commas_inside_a_name():
+    assert parse_authors("Fundación X, Delegación Madrid; Harmon") == [
+        "Fundación X, Delegación Madrid",
+        "Harmon",
+    ]
+
+
+def test_parse_authors_drops_empties_and_repeats():
+    assert parse_authors("A;; A ; B;") == ["A", "B"]
+
+
+@pytest.mark.parametrize("value", [None, "", "  ", []])
+def test_parse_authors_empty_values(value):
+    assert parse_authors(value) == []
+
+
+def test_parse_authors_accepts_lists():
+    assert parse_authors([" Ana Pérez (Fundación X) ", "", "Ana Pérez (Fundación X)"]) == [
+        "Ana Pérez (Fundación X)"
+    ]
+
+
+def test_format_authors_round_trips():
+    authors = ["Ana Pérez (Fundación X)", "Luis Gil (Universidad Y)"]
+    assert parse_authors(format_authors(authors)) == authors
+
+
+def test_ingest_reads_authors_from_author_column():
+    ingestor = _make_ingestor([{"text": "Propuesta", "author": "Harmon; Political Watch"}])
+    proposals = ingestor.ingest("file.csv")
+    assert proposals[0].authors == ["Harmon", "Political Watch"]
+
+
+def test_ingest_reads_authors_list_from_report_rows():
+    ingestor = _make_ingestor([{"text": "Propuesta", "authors": ["Harmon", "Political Watch"]}])
+    proposals = ingestor.ingest("file.pdf")
+    assert proposals[0].authors == ["Harmon", "Political Watch"]
+
+
+def test_ingest_without_author_gives_empty_list():
+    ingestor = _make_ingestor([{"text": "Propuesta"}])
+    proposals = ingestor.ingest("file.csv")
+    assert proposals[0].authors == []

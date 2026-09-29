@@ -7,7 +7,9 @@ router = APIRouter(prefix="/proposals", tags=["proposals"])
 
 
 @router.get("", response_model=list[ProposalRead])
-def list_proposals(repo: ProposalRepoDep):
+def list_proposals(repo: ProposalRepoDep, target_id: int | None = None):
+    if target_id is not None:
+        return repo.get_by_target(target_id)
     return repo.get_all()
 
 
