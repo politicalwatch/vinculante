@@ -5,7 +5,7 @@ import type {
   LinkCountBounds,
   ProposalAuthorTypeFilter
 } from '~/utils/graphFilters'
-import type { ProponentOption } from '~/utils/mockProponents'
+import type { ProponentOption } from '~/utils/proponents'
 
 const props = withDefaults(defineProps<{
   filters: GraphFilters
@@ -156,7 +156,7 @@ const proposalLinksRange = computed({
         <span class="text-xs text-muted whitespace-nowrap">Proponente</span>
         <HelpTooltip
           label="Ayuda: Proponente"
-          text="Filtra las propuestas por la organización que las presenta. El mismo filtro se aplica en Vinculaciones y en Propuestas."
+          text="Filtra las propuestas por quién las presenta: una organización o una persona y su organización. El mismo filtro se aplica en Vinculaciones y en Propuestas."
         />
         <USelectMenu
           :model-value="proponent"

@@ -29,7 +29,7 @@ function proposal(id: number, authorType: string | null = 'citizen'): Proposal {
   return {
     id,
     text: `propuesta ${id}`,
-    author: null,
+    authors: [],
     author_type: authorType,
     reference: null,
     topic: null,

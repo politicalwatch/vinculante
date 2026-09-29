@@ -10,7 +10,7 @@ import {
   type LinkCountBounds
 } from '~/utils/graphFilters'
 import { authorTypeLabel } from '~/utils/authorType'
-import { assignProponents, PROPONENTS, type ProponentOption } from '~/utils/mockProponents'
+import { buildProponentOptions, matchesProponent, type ProponentOption } from '~/utils/proponents'
 import { mulberry32 } from '~/utils/random'
 
 export type BoardView = 'articles' | 'proposals'
@@ -239,19 +239,18 @@ export function useEditorialBoard(
     )
   )
 
-  /** Stable across filters so the same proposal keeps its organisation. */
-  const proponentById = computed(() => assignProponents(toValue(proposals) ?? []))
-
-  function matchesProponent(proposalId: number): boolean {
-    if (proponent.value === 'all') return true
-    return proponentById.value.get(proposalId) === proponent.value
-  }
+  const proposalById = computed(
+    () => new Map((toValue(proposals) ?? []).map(proposal => [proposal.id, proposal]))
+  )
 
   const scopedProposals = computed(() =>
-    filtered.value.proposals.filter(p => matchesProponent(p.id))
+    filtered.value.proposals.filter(p => matchesProponent(p, proponent.value))
   )
   const scopedMatches = computed(() =>
-    filtered.value.matches.filter(m => matchesProponent(m.proposal_id))
+    filtered.value.matches.filter((m) => {
+      const proposal = proposalById.value.get(m.proposal_id)
+      return proposal ? matchesProponent(proposal, proponent.value) : proponent.value === 'all'
+    })
   )
 
   const filteredProposals = computed(() => scopedProposals.value)
@@ -271,26 +270,18 @@ export function useEditorialBoard(
    * Counts in the dropdown describe the current tab before the proponent filter,
    * so picking an organisation does not shrink the numbers of the others.
    */
-  const proponentOptions = computed<ProponentOption[]>(() => {
+  const proponentOptions = computed<ProponentOption[] | undefined>(() => {
     const linkCounts = countLinksByProposal(filtered.value.matches)
     const pool = view.value === 'proposals'
       ? filtered.value.proposals
       : filtered.value.proposals.filter(proposal => (linkCounts.get(proposal.id) ?? 0) > 0)
-    const visibleIds = new Set(pool.map(p => p.id))
-    const counts = new Map<string, number>()
-    for (const name of PROPONENTS) counts.set(name, 0)
-    for (const [id, name] of proponentById.value) {
-      if (!visibleIds.has(id)) continue
-      counts.set(name, (counts.get(name) ?? 0) + 1)
-    }
-    return [
-      { label: 'Todos', value: 'all', count: pool.length },
-      ...PROPONENTS.map(name => ({
-        label: name,
-        value: name,
-        count: counts.get(name) ?? 0
-      }))
-    ]
+    return buildProponentOptions(toValue(proposals) ?? [], pool)
+  })
+
+  /** Another law, or one with a single author, may not offer the selected proponent. */
+  watch(proponentOptions, (options) => {
+    if (proponent.value === 'all') return
+    if (!options?.some(option => option.value === proponent.value)) proponent.value = 'all'
   })
 
   const linkCountBounds = computed<LinkCountBounds>(() => filtered.value.linkCountBounds)

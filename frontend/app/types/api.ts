@@ -73,7 +73,7 @@ export interface Section {
 export interface Proposal {
   id: number
   text: string
-  author: string | null
+  authors: string[]
   author_type: string | null
   reference: string | null
   topic: string | null
