@@ -5,7 +5,6 @@ services:
       - .env
     volumes:
       - vinculante-postgres:/var/lib/postgresql/data
-      - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql
 
   redis:
     image: redis:8.2
