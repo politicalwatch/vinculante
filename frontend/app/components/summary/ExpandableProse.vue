@@ -25,7 +25,8 @@ const rest = computed(() => props.paragraphs.slice(props.collapsedCount))
 const hasMore = computed(() => rest.value.length > 0 || Boolean(slots.extra))
 
 function clampStyle(index: number) {
-  if (expanded.value || !props.collapsedLines || index !== head.value.length - 1) return undefined
+  // Without "Leer más" there would be no way to read the clamped text
+  if (expanded.value || !hasMore.value || !props.collapsedLines || index !== head.value.length - 1) return undefined
   return {
     display: '-webkit-box',
     WebkitBoxOrient: 'vertical' as const,
