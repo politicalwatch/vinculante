@@ -33,7 +33,6 @@ const {
   visibleCount,
   selectProposal,
   clearSelection,
-  toggleProposalExpanded,
   setProposalHeight,
   isArticleExpanded,
   toggleArticleExpanded
@@ -152,7 +151,6 @@ defineExpose({ clearSelection })
                 opacity: 1,
                 zIndex: 1
               }"
-              @toggle="toggleProposalExpanded(selectedProposal.proposalId)"
               @measure="setProposalHeight(selectedProposal.proposalId, $event)"
             />
           </div>
