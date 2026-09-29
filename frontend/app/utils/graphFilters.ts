@@ -44,6 +44,21 @@ export function createDefaultFilters(): GraphFilters {
   }
 }
 
+/**
+ * Keeps the link ranges inside the current bounds, which shrink when the degree
+ * floor rises. A max at or past the bound means "no cap", as the sliders set it.
+ */
+export function clampLinkRanges(filters: GraphFilters, bounds: LinkCountBounds): GraphFilters {
+  const clampMax = (max: number | null, bound: number) => (max === null || max >= bound ? null : max)
+  return {
+    ...filters,
+    articleLinksMin: Math.min(filters.articleLinksMin, bounds.articleMax),
+    articleLinksMax: clampMax(filters.articleLinksMax, bounds.articleMax),
+    proposalLinksMin: Math.min(filters.proposalLinksMin, bounds.proposalMax),
+    proposalLinksMax: clampMax(filters.proposalLinksMax, bounds.proposalMax)
+  }
+}
+
 const DEGREE_RANK: Record<string, number> = {
   alto: 3,
   medio: 2,

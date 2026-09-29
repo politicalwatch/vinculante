@@ -2,6 +2,7 @@ import type { MaybeRefOrGetter } from 'vue'
 import type { Match, Proposal, Section } from '~/types/api'
 import {
   applyGraphFilters,
+  clampLinkRanges,
   countLinksByProposal,
   createDefaultFilters,
   type GraphFilters,
@@ -285,6 +286,9 @@ export function useEditorialBoard(
   })
 
   const linkCountBounds = computed<LinkCountBounds>(() => filtered.value.linkCountBounds)
+
+  /** A higher degree floor lowers the bounds; a range past them would hide everything. */
+  watch(linkCountBounds, bounds => Object.assign(filters, clampLinkRanges(filters, bounds)))
   const totals = computed<GraphTotalCounts>(() => filtered.value.totals)
   const visible = computed<GraphVisibleCounts>(() => ({
     ...filtered.value.visible,

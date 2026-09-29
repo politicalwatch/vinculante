@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import type { Match, MatchDegree, Proposal, Section } from '../../../app/types/api'
 import {
   applyGraphFilters,
+  clampLinkRanges,
   countLinksByProposal,
   countLinksBySection,
   createDefaultFilters,
@@ -93,6 +94,29 @@ describe('countLinks', () => {
 
   it('counts matches per proposal', () => {
     expect(countLinksByProposal(matches)).toEqual(new Map([[1, 2], [2, 1]]))
+  })
+})
+
+describe('clampLinkRanges', () => {
+  const bounds = { articleMax: 3, proposalMax: 2 }
+
+  it('pulls minimums above the bound down to it and drops maxes past it', () => {
+    const clamped = clampLinkRanges(
+      filters({ articleLinksMin: 5, articleLinksMax: 8, proposalLinksMin: 4, proposalLinksMax: 2 }),
+      bounds
+    )
+
+    expect(clamped).toMatchObject({
+      articleLinksMin: 3,
+      articleLinksMax: null,
+      proposalLinksMin: 2,
+      proposalLinksMax: null
+    })
+  })
+
+  it('leaves ranges inside the bounds untouched', () => {
+    const inside = filters({ degreeFloor: 'alto', articleLinksMin: 1, articleLinksMax: 2, proposalLinksMin: 1 })
+    expect(clampLinkRanges(inside, bounds)).toEqual(inside)
   })
 })
 
