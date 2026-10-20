@@ -132,7 +132,7 @@ defineExpose({ clearSelection })
 
 <template>
   <section class="flex min-h-0 min-w-0 flex-1 flex-col">
-    <div class="flex shrink-0 items-center gap-3 px-4 pt-5 pb-3 sm:px-6">
+    <div class="hidden shrink-0 items-center gap-3 px-6 pt-5 pb-3 sm:flex">
       <h2 class="text-xs font-semibold tracking-widest text-ed-muted uppercase">
         Propuestas
       </h2>
@@ -140,7 +140,7 @@ defineExpose({ clearSelection })
         {{ visibleCount }} VISIBLES
       </span>
 
-      <div class="ml-auto hidden flex-wrap items-center justify-end gap-4 sm:flex">
+      <div class="ml-auto flex flex-wrap items-center justify-end gap-4">
         <div class="flex items-center gap-2">
           <span class="text-11 whitespace-nowrap text-ed-muted">Agrupar por</span>
           <div class="inline-flex items-center gap-0.5 rounded-lg border border-ed-border bg-ed-surface-sunken p-0.5">
@@ -171,6 +171,15 @@ defineExpose({ clearSelection })
     </div>
 
     <div class="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-8 sm:hidden">
+      <div class="flex items-center gap-3 px-4 pt-5 pb-3">
+        <h2 class="text-xs font-semibold tracking-widest text-ed-muted uppercase">
+          Propuestas
+        </h2>
+        <span class="inline-flex h-5 items-center rounded bg-ed-ink/8 px-2 text-2xs font-semibold tracking-wide whitespace-nowrap text-ed-ink">
+          {{ visibleCount }} VISIBLES
+        </span>
+      </div>
+
       <section
         v-for="group in mobileGroups"
         :key="group.key"
