@@ -28,17 +28,17 @@ const COLUMN_HEADER_HEIGHT = 48
 const COLUMN_TOP = 16
 const FALLBACK_LAYER_WIDTH = 900
 const FALLBACK_LAYER_HEIGHT = 700
-const LINK_COUNT_CAP = 5
+export const LINK_COUNT_CAP = 5
 
 const DEGREE_RANK: Record<string, number> = { alto: 3, medio: 2, bajo: 1, ninguno: 0 }
 
-const COLUMN_LABELS: Record<number, string> = {
+export const COLUMN_LABELS: Record<number, string> = {
   0: 'Sin vinculación',
-  1: '1 artículo',
-  2: '2 artículos',
-  3: '3 artículos',
-  4: '4 artículos',
-  5: '5 o más artículos'
+  1: 'Vinculadas con 1 artículo',
+  2: 'Vinculadas con 2 artículos',
+  3: 'Vinculadas con 3 artículos',
+  4: 'Vinculadas con 4 artículos',
+  5: 'Vinculadas con 5 o más artículos'
 }
 
 function relationLabel(
