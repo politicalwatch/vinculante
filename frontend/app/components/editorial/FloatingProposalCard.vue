@@ -13,6 +13,8 @@ const props = defineProps<{
   /** Sit in normal flow instead of the absolute board layer. */
   inFlow?: boolean
   selectedArticleId?: number | null
+  /** Edge-to-edge row without border, shadow or accent bar; only meaningful with `inFlow`. */
+  flush?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -50,7 +52,7 @@ const cardWidth = computed(() => {
  * never competes with the idle float animation running on the inner element.
  */
 const positionStyle = computed(() => ({
-  width: `${cardWidth.value}px`,
+  width: props.inFlow ? '100%' : `${cardWidth.value}px`,
   maxWidth: `calc(100% - ${props.proposal.x}px)`,
   height: props.proposal.expanded ? 'auto' : `${PROPOSAL_CARD_HEIGHT}px`,
   transform: `translate3d(${props.proposal.x}px, ${props.proposal.y}px, 0)`,
@@ -128,6 +130,7 @@ watch(() => props.proposal.expanded, async () => {
 })
 
 const cardShadow = computed(() => {
+  if (props.flush) return ''
   if (props.proposal.expanded) return 'shadow-lg'
   if (props.proposal.stacked) return 'shadow-md'
   return 'shadow-sm hover:border-ed-ink/20 hover:shadow-md'
@@ -149,11 +152,14 @@ const cardShadow = computed(() => {
     >
       <article
         ref="card"
-        class="proposal-card relative h-full cursor-pointer overflow-hidden rounded border border-ed-border bg-ed-surface p-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ed-accent"
+        class="proposal-card relative h-full cursor-pointer overflow-hidden border-ed-border bg-ed-surface p-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ed-accent"
         :class="[
           cardShadow,
-          props.proposal.accentSide === 'left' ? 'pl-5' : 'pr-5',
-          props.proposal.expanded ? 'is-expanded h-auto overflow-y-auto overscroll-contain' : ''
+          props.flush ? 'border-y focus-visible:-outline-offset-2' : 'rounded border',
+          props.flush ? '' : props.proposal.accentSide === 'left' ? 'pl-5' : 'pr-5',
+          props.proposal.expanded
+            ? props.flush ? 'h-auto' : 'is-expanded h-auto overflow-y-auto overscroll-contain'
+            : ''
         ]"
         role="button"
         tabindex="0"
@@ -163,6 +169,7 @@ const cardShadow = computed(() => {
         @keydown.space.prevent="emit('toggle')"
       >
         <span
+          v-if="!props.flush"
           class="pointer-events-none absolute inset-y-0 w-1"
           :class="props.proposal.accentSide === 'left' ? 'left-0 bg-ed-ink' : 'right-0 bg-ed-accent'"
           aria-hidden="true"

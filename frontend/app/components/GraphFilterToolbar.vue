@@ -87,10 +87,263 @@ const proposalLinksRange = computed({
     })
   }
 })
+
+// ---------------------------------------------------------------------------
+// Mobile chip bar
+// ---------------------------------------------------------------------------
+
+type ChipKey = 'degree' | 'articleRange' | 'authorType' | 'proposalRange'
+
+const openChip = ref<ChipKey | null>(null)
+
+function setChipOpen(key: ChipKey, open: boolean) {
+  if (open) openChip.value = key
+  else if (openChip.value === key) openChip.value = null
+}
+
+function chipClass(active: boolean) {
+  return active
+    ? 'border-ed-ink bg-ed-ink text-ed-surface'
+    : 'border-ed-border bg-ed-surface text-ed-ink'
+}
+
+const degreeChipLabel = computed(() =>
+  props.filters.degreeFloor === 'alto' ? 'Grado: Fuerte' : 'Grado: Moderado'
+)
+
+const authorTypeChipLabel = computed(() =>
+  props.filters.proposalAuthorType === 'all'
+    ? 'Origen'
+    : authorTypeOptions.find(o => o.value === props.filters.proposalAuthorType)?.label ?? 'Origen'
+)
+
+const articleRangeActive = computed(() =>
+  props.filters.articleLinksMin > 0 || props.filters.articleLinksMax !== null
+)
+
+const proposalRangeActive = computed(() =>
+  props.filters.proposalLinksMin > 0 || props.filters.proposalLinksMax !== null
+)
+
+const proponentChipLabel = computed(() =>
+  props.proponent === 'all' ? 'Proponente' : props.proponent
+)
+
+function pickDegree(value: DegreeFloor) {
+  onDegreeFloor(value)
+  openChip.value = null
+}
+
+function pickAuthorType(value: ProposalAuthorTypeFilter) {
+  onAuthorType(value)
+  openChip.value = null
+}
+
 </script>
 
 <template>
-  <div class="shrink-0 border-b border-default px-4 md:px-6 py-2 flex items-center gap-x-4 gap-y-2 flex-wrap justify-between">
+  <div
+    class="sticky top-0 z-10 shrink-0 border-b border-ed-border bg-ed-surface sm:hidden"
+    role="toolbar"
+    aria-label="Filtros"
+  >
+    <div class="flex items-center gap-2 overflow-x-auto px-4 py-2.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <button
+        v-if="hasActiveFilters"
+        type="button"
+        class="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-ed-border bg-ed-surface px-3 text-13 text-ed-muted"
+        @click="emit('reset')"
+      >
+        <UIcon
+          name="i-lucide-x"
+          class="size-4"
+        />
+        Restaurar
+      </button>
+
+      <UPopover
+        :open="openChip === 'degree'"
+        :content="{ align: 'start', collisionPadding: 12 }"
+        @update:open="setChipOpen('degree', $event)"
+      >
+        <button
+          type="button"
+          class="inline-flex h-9 shrink-0 items-center gap-1 rounded-full border px-3.5 text-13 whitespace-nowrap"
+          :class="chipClass(filters.degreeFloor !== 'medio')"
+        >
+          {{ degreeChipLabel }}
+          <UIcon
+            name="i-lucide-chevron-down"
+            class="size-4 opacity-70"
+          />
+        </button>
+        <template #content>
+          <div class="flex w-[min(20rem,calc(100vw-2rem))] flex-col gap-3 p-4">
+            <p class="text-xs text-ed-muted">
+              Nivel mínimo de coincidencia entre una propuesta y un artículo para mostrar la vinculación.
+            </p>
+            <div class="flex flex-col">
+              <button
+                v-for="option in degreeFloorOptions"
+                :key="option.value"
+                type="button"
+                class="flex h-11 items-center justify-between rounded-md px-2 text-sm text-ed-ink hover:bg-ed-ink/5"
+                @click="pickDegree(option.value)"
+              >
+                {{ option.label }}
+                <UIcon
+                  v-if="filters.degreeFloor === option.value"
+                  name="i-lucide-check"
+                  class="size-4 text-ed-accent"
+                />
+              </button>
+            </div>
+          </div>
+        </template>
+      </UPopover>
+
+      <UPopover
+        v-if="showArticleLinkRange"
+        :open="openChip === 'articleRange'"
+        :content="{ align: 'start', collisionPadding: 12 }"
+        @update:open="setChipOpen('articleRange', $event)"
+      >
+        <button
+          type="button"
+          class="inline-flex h-9 shrink-0 items-center gap-1 rounded-full border px-3.5 text-13 whitespace-nowrap tabular-nums"
+          :class="chipClass(articleRangeActive)"
+        >
+          {{ articleRangeActive ? `${articleLinksRange[0]}–${articleLinksRange[1]} vinculaciones` : 'Vinculaciones por artículo' }}
+          <UIcon
+            name="i-lucide-chevron-down"
+            class="size-4 opacity-70"
+          />
+        </button>
+        <template #content>
+          <div class="flex w-[min(20rem,calc(100vw-2rem))] flex-col gap-4 p-4">
+            <p class="text-xs text-ed-muted">
+              Muestra solo los artículos cuyo número de propuestas vinculadas está dentro de este rango.
+            </p>
+            <p class="text-sm text-ed-ink tabular-nums">
+              Artículos con entre <strong>{{ articleLinksRange[0] }}</strong> y <strong>{{ articleLinksRange[1] }}</strong> vinculaciones
+            </p>
+            <USlider
+              v-model="articleLinksRange"
+              :min="0"
+              :max="Math.max(articleMaxBound, 1)"
+              :step="1"
+              size="md"
+            />
+          </div>
+        </template>
+      </UPopover>
+
+      <UPopover
+        :open="openChip === 'authorType'"
+        :content="{ align: 'start', collisionPadding: 12 }"
+        @update:open="setChipOpen('authorType', $event)"
+      >
+        <button
+          type="button"
+          class="inline-flex h-9 shrink-0 items-center gap-1 rounded-full border px-3.5 text-13 whitespace-nowrap"
+          :class="chipClass(filters.proposalAuthorType !== 'all')"
+        >
+          {{ authorTypeChipLabel }}
+          <UIcon
+            name="i-lucide-chevron-down"
+            class="size-4 opacity-70"
+          />
+        </button>
+        <template #content>
+          <div class="flex w-[min(20rem,calc(100vw-2rem))] flex-col gap-3 p-4">
+            <p class="text-xs text-ed-muted">
+              Filtra las propuestas según su origen: ciudadanía o grupo de expertos.
+            </p>
+            <div class="flex flex-col">
+              <button
+                v-for="option in authorTypeOptions"
+                :key="option.value"
+                type="button"
+                class="flex h-11 items-center justify-between rounded-md px-2 text-sm text-ed-ink hover:bg-ed-ink/5"
+                @click="pickAuthorType(option.value)"
+              >
+                {{ option.label }}
+                <UIcon
+                  v-if="filters.proposalAuthorType === option.value"
+                  name="i-lucide-check"
+                  class="size-4 text-ed-accent"
+                />
+              </button>
+            </div>
+          </div>
+        </template>
+      </UPopover>
+
+      <USelectMenu
+        v-if="proponentOptions"
+        :model-value="proponent"
+        :items="proponentOptions"
+        value-key="value"
+        label-key="label"
+        variant="none"
+        :search-input="{ placeholder: 'Buscar…', icon: 'i-lucide-search', autofocus: false }"
+        :content="{ align: 'start', collisionPadding: 12 }"
+        :ui="{
+          base: ['inline-flex h-9 w-auto max-w-56 shrink-0 items-center rounded-full border ps-3.5 pe-8 text-13!', chipClass(proponent !== 'all')],
+          trailingIcon: 'size-4 opacity-70 text-current',
+          content: 'w-[min(20rem,calc(100vw-2rem))]'
+        }"
+        class="shrink-0"
+        @update:model-value="emit('update:proponent', String($event))"
+      >
+        <span class="truncate">{{ proponentChipLabel }}</span>
+        <template #item-label="{ item }">
+          <span class="flex items-center justify-between gap-3 w-full">
+            <span>{{ item.label }}</span>
+            <span class="text-xs text-muted tabular-nums">{{ item.count }}</span>
+          </span>
+        </template>
+      </USelectMenu>
+
+      <UPopover
+        v-if="showProposalArticleRange"
+        :open="openChip === 'proposalRange'"
+        :content="{ align: 'end', collisionPadding: 12 }"
+        @update:open="setChipOpen('proposalRange', $event)"
+      >
+        <button
+          type="button"
+          class="inline-flex h-9 shrink-0 items-center gap-1 rounded-full border px-3.5 text-13 whitespace-nowrap tabular-nums"
+          :class="chipClass(proposalRangeActive)"
+        >
+          {{ proposalRangeActive ? `${proposalLinksRange[0]}–${proposalLinksRange[1]} artículos` : 'Artículos por propuesta' }}
+          <UIcon
+            name="i-lucide-chevron-down"
+            class="size-4 opacity-70"
+          />
+        </button>
+        <template #content>
+          <div class="flex w-[min(20rem,calc(100vw-2rem))] flex-col gap-4 p-4">
+            <p class="text-xs text-ed-muted">
+              Muestra solo las propuestas vinculadas a un número de artículos dentro de este rango. Con muchos artículos es transversal; con uno solo, es específica.
+            </p>
+            <p class="text-sm text-ed-ink tabular-nums">
+              Propuestas relacionadas con entre <strong>{{ proposalLinksRange[0] }}</strong> y <strong>{{ proposalLinksRange[1] }}</strong> artículos
+            </p>
+            <USlider
+              v-model="proposalLinksRange"
+              :min="0"
+              :max="Math.max(proposalMaxBound, 1)"
+              :step="1"
+              size="md"
+            />
+          </div>
+        </template>
+      </UPopover>
+    </div>
+  </div>
+
+  <div class="shrink-0 border-b border-default px-4 md:px-6 py-2 hidden sm:flex items-center gap-x-4 gap-y-2 flex-wrap justify-between">
     <div class="article-related flex gap-x-8 border-r border-default pr-8">
       <div class="flex items-center gap-2">
         <span class="text-xs text-muted whitespace-nowrap">Grado mín.</span>

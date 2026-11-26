@@ -80,7 +80,7 @@ watch(navItems, () => nextTick(updateActiveNav), { immediate: true })
 <template>
   <div class="flex min-h-full flex-col items-start lg:flex-row">
     <SummarySidebar
-      class="w-full shrink-0 overflow-y-auto overscroll-contain border-b border-ed-border lg:sticky lg:top-0 lg:w-md lg:max-h-[calc(100vh-4.25rem)] lg:border-r lg:border-b-0"
+      class="w-full shrink-0 border-b border-ed-border lg:sticky lg:overflow-y-auto lg:overscroll-contain lg:top-0 lg:w-md lg:max-h-[calc(100vh-4.25rem)] lg:border-r lg:border-b-0"
       :title="target?.title ?? ''"
       :coverage="coverage"
       :nav-items="navItems"
@@ -91,7 +91,7 @@ watch(navItems, () => nextTick(updateActiveNav), { immediate: true })
     />
 
     <div class="flex w-full min-w-0 max-w-4xl flex-1 flex-col gap-12 px-6 py-10 lg:gap-16 lg:px-14 lg:py-20">
-      <h1 class="font-serif text-34 font-extrabold text-ed-ink lg:text-5xl">
+      <h1 class="sr-only font-serif text-34 font-extrabold text-ed-ink lg:not-sr-only lg:text-5xl">
         {{ target?.title }}
       </h1>
 

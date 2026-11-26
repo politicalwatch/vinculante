@@ -49,7 +49,7 @@ function onSelectLaw(id: number) {
 </script>
 
 <template>
-  <header class="flex h-17 shrink-0 items-center gap-6 border-b border-ed-border bg-ed-surface px-6 xl:px-10">
+  <header class="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-3 border-b border-ed-border bg-ed-surface px-4 py-3 sm:h-17 sm:flex-nowrap sm:gap-6 sm:px-6 sm:py-0 xl:px-10">
     <NuxtLink
       to="/"
       class="flex shrink-0 items-center gap-4 text-ed-ink no-underline"
@@ -60,14 +60,14 @@ function onSelectLaw(id: number) {
 
     <template v-if="!isIndex">
       <nav
-        class="mx-auto flex items-center gap-1"
+        class="order-last mx-auto flex w-full items-center justify-center gap-1 sm:order-none sm:w-auto"
         aria-label="Vista"
       >
         <NuxtLink
           v-for="chip in chips"
           :key="chip.key"
           :to="chip.to"
-          class="inline-flex h-8 items-center gap-2 rounded-full border border-transparent px-4 text-13 no-underline transition-colors"
+          class="inline-flex h-8 items-center gap-2 rounded-full border border-transparent px-3 text-13 no-underline transition-colors sm:px-4"
           :class="chip.active
             ? 'border-ed-ink bg-ed-ink text-ed-surface'
             : 'text-ed-muted hover:text-ed-ink'"
@@ -89,7 +89,7 @@ function onSelectLaw(id: number) {
         size="sm"
         :loading="lawsStatus === 'pending'"
         placeholder="Selecciona una ley"
-        class="w-64 min-w-0 lg:w-80"
+        class="hidden w-64 min-w-0 sm:flex lg:w-80"
         aria-label="Seleccionar una ley"
         @update:model-value="onSelectLaw"
       />
@@ -97,12 +97,14 @@ function onSelectLaw(id: number) {
 
     <UButton
       to="https://vinculante.ai/"
-      label="Saber más sobre el proyecto"
       trailing-icon="i-lucide-arrow-up-right"
       variant="solid"
       size="sm"
       class="shrink-0 bg-ed-accent text-white hover:bg-ed-indigo active:bg-ed-indigo focus-visible:outline-ed-accent"
-      :class="{ 'ms-auto': isIndex }"
-    />
+      :class="isIndex ? 'ms-auto' : 'ms-auto sm:ms-0'"
+    >
+      <span class="sm:hidden">Saber más</span>
+      <span class="hidden sm:inline">Saber más sobre el proyecto</span>
+    </UButton>
   </header>
 </template>

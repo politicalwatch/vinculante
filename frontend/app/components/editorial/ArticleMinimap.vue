@@ -14,6 +14,8 @@ const emit = defineEmits<{
 }>()
 
 const X_PADDING = 4
+/** Only honoured below `sm`; wider screens always show the full strip. */
+const collapsed = ref(false)
 const root = ref<HTMLElement | null>(null)
 const track = ref<HTMLElement | null>(null)
 const { width: trackWidth, height: trackHeight } = useElementSize(track)
@@ -74,9 +76,23 @@ function shapeFill(article: EditorialArticle): string | undefined {
 <template>
   <div
     ref="root"
-    class="flex h-full min-h-0 w-20 shrink-0 flex-col items-center gap-2 overflow-y-auto overscroll-contain border-r border-ed-border bg-ed-surface-sunken py-4"
+    class="flex h-full min-h-0 shrink-0 flex-col items-center gap-2 overflow-y-auto overscroll-contain border-r border-ed-border bg-ed-surface-sunken py-3 transition-[width] sm:w-20 sm:py-4"
+    :class="collapsed ? 'w-7' : 'w-11'"
   >
-    <span class="shrink-0 text-3xs font-semibold tracking-widest text-ed-muted">
+    <button
+      type="button"
+      class="flex size-7 shrink-0 items-center justify-center rounded text-ed-muted hover:text-ed-ink sm:hidden"
+      :aria-label="collapsed ? 'Mostrar minimapa de artículos' : 'Ocultar minimapa de artículos'"
+      :aria-expanded="!collapsed"
+      @click="collapsed = !collapsed"
+    >
+      <UIcon
+        :name="collapsed ? 'i-lucide-chevrons-right' : 'i-lucide-chevrons-left'"
+        class="size-4"
+      />
+    </button>
+
+    <span class="hidden shrink-0 text-3xs font-semibold tracking-widest text-ed-muted sm:inline">
       Articulado
       <HelpTooltip
         label="Ayuda sobre el minimapa de artículos"
@@ -94,7 +110,8 @@ function shapeFill(article: EditorialArticle): string | undefined {
 
     <div
       ref="track"
-      class="flex w-full min-h-0 flex-1 flex-col items-start px-2"
+      class="w-full min-h-0 flex-1 flex-col items-start px-1 sm:flex sm:px-2"
+      :class="collapsed ? 'hidden' : 'flex'"
       :style="{ gap: `${MINIMAP_CONFIG.gap}px` }"
     >
       <button

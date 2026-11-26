@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useElementSize } from '@vueuse/core'
+import { useElementSize, useMediaQuery } from '@vueuse/core'
 import type { Match, Proposal, Section } from '~/types/api'
 import type { BoardView } from '~/composables/useEditorialBoard'
 import GraphFilterToolbar from '~/components/GraphFilterToolbar.vue'
@@ -138,8 +138,10 @@ async function onSelectArticleFromProposal(proposalId: number, sectionId: number
   proposalLayer.value?.scrollTo({ top: Math.max(0, card.y - 8), left: 0, behavior: 'smooth' })
 }
 
+/** On mobile selecting opens the proposals slideover, so the minimap only navigates. */
 function onMinimapSelect(sectionId: number) {
-  onSelectArticle(sectionId)
+  if (isMobile.value) scrollArticleToTop(sectionId)
+  else onSelectArticle(sectionId)
 }
 
 function onBackgroundClick() {
@@ -190,6 +192,38 @@ const matchCountLabel = computed(() =>
     ? `${visible.value.matches} / ${totals.value.matches} vinculaciones`
     : `${visible.value.matches} vinculaciones`
 )
+
+// ---------------------------------------------------------------------------
+// Mobile: related proposals open in a slideover instead of the board
+// ---------------------------------------------------------------------------
+
+/** Mirrors Tailwind's `sm` breakpoint, below which the board is hidden. */
+const isMobile = useMediaQuery('(max-width: 639.98px)')
+const proposalSheetList = ref<HTMLElement | null>(null)
+
+const selectedArticle = computed(() =>
+  articles.value.find(article => article.sectionId === selectedArticleId.value) ?? null
+)
+
+const sheetProposals = computed(() => {
+  const byId = new Map(boardProposals.value.map(p => [p.proposalId, p]))
+  return relatedProposalIds.value
+    .map(proposalId => byId.get(proposalId))
+    .filter(proposal => proposal !== undefined)
+    .map(proposal => ({ ...proposal, x: 0, y: 0, floating: false }))
+})
+
+const proposalSheetOpen = computed({
+  get: () => isMobile.value && hasSelection.value,
+  set: (open: boolean) => {
+    if (!open) clearSelection()
+  }
+})
+
+watch(selectedArticleId, async () => {
+  await nextTick()
+  proposalSheetList.value?.closest('[data-slot="body"]')?.scrollTo({ top: 0 })
+})
 
 const emptyStateMessage = computed(() => {
   if (hasSelection.value && relatedProposalIds.value.length === 0) {
@@ -258,10 +292,10 @@ const emptyStateMessage = computed(() => {
       />
 
       <section
-        class="flex min-h-0 shrink-0 flex-col border-r border-ed-border"
-        :style="{ width: `${ARTICLE_COLUMN_WIDTH + 48}px` }"
+        class="flex min-h-0 min-w-0 flex-1 flex-col border-ed-border sm:w-(--article-column-width) sm:flex-none sm:border-r"
+        :style="{ '--article-column-width': `${ARTICLE_COLUMN_WIDTH + 48}px` }"
       >
-        <div class="flex shrink-0 items-center gap-3 px-6 pt-5 pb-3">
+        <div class="flex shrink-0 items-center gap-3 px-4 pt-5 pb-3 sm:px-6">
           <h2 class="text-xs font-semibold tracking-widest text-ed-muted uppercase">
             Artículos de Ley
           </h2>
@@ -272,18 +306,19 @@ const emptyStateMessage = computed(() => {
 
         <div
           ref="articleScroll"
-          class="flex-1 min-h-0 overflow-y-auto overscroll-contain px-6 pb-8"
+          class="flex-1 min-h-0 overflow-y-auto overscroll-contain pb-8 sm:px-6"
           @scroll="onArticleScroll"
         >
           <div
             ref="articleList"
-            class="relative flex flex-col gap-3"
+            class="relative flex flex-col border-t border-ed-border sm:gap-3 sm:border-t-0"
           >
             <EditorialArticleCard
               v-for="article in articles"
               :key="article.sectionId"
               :ref="el => setCardRef(article.sectionId, (el as { $el?: unknown })?.$el ?? el)"
               :article="article"
+              flush
               :selected="article.sectionId === selectedArticleId"
               :expanded="isExpanded(article.sectionId)"
               :opacity="articleOpacity(article.sectionId)"
@@ -301,7 +336,7 @@ const emptyStateMessage = computed(() => {
         </div>
       </section>
 
-      <section class="flex-1 min-w-0 flex flex-col min-h-0">
+      <section class="flex-1 min-w-0 hidden sm:flex flex-col min-h-0">
         <div class="flex shrink-0 items-center gap-3 px-6 pt-5 pb-3">
           <h2 class="text-xs font-semibold tracking-widest text-ed-muted uppercase">
             Propuestas Ciudadanas
@@ -378,6 +413,55 @@ const emptyStateMessage = computed(() => {
           </p>
         </div>
       </section>
+
+      <USlideover
+        v-model:open="proposalSheetOpen"
+        side="right"
+        :title="selectedArticle?.title ?? ''"
+        :description="selectedArticle?.label ?? ''"
+        :ui="{
+          content: 'max-w-[92vw] bg-ed-bg',
+          header: 'border-b border-ed-border bg-ed-surface',
+          title: 'pe-8 font-serif text-base text-ed-ink',
+          description: 'text-2xs font-semibold tracking-widest text-ed-muted',
+          body: 'px-0 py-4 sm:px-0 sm:py-4'
+        }"
+      >
+        <template #body>
+          <div
+            ref="proposalSheetList"
+            class="flex flex-col gap-4"
+          >
+            <div class="flex items-center gap-3 px-4">
+              <h2 class="text-xs font-semibold tracking-widest text-ed-muted uppercase">
+                Propuestas
+              </h2>
+              <span class="inline-flex h-5 items-center rounded bg-ed-ink/8 px-2 text-2xs font-semibold tracking-wide whitespace-nowrap text-ed-ink">
+                {{ proposalBadge }}
+              </span>
+            </div>
+
+            <FloatingProposalCard
+              v-for="proposal in sheetProposals"
+              :key="proposal.proposalId"
+              in-flow
+              flush
+              :proposal="proposal"
+              :selected-article-id="selectedArticleId"
+              @toggle="toggleProposalExpanded(proposal.proposalId)"
+              @measure="setProposalHeight(proposal.proposalId, $event)"
+              @select-article="$event !== selectedArticleId && onSelectArticle($event)"
+            />
+
+            <p
+              v-if="sheetProposals.length === 0"
+              class="px-4 py-8 text-center text-sm text-ed-muted"
+            >
+              Este artículo no tiene vinculaciones con el grado mínimo seleccionado.
+            </p>
+          </div>
+        </template>
+      </USlideover>
     </div>
   </div>
 </template>

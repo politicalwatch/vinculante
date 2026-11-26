@@ -6,6 +6,8 @@ const props = defineProps<{
   selected: boolean
   expanded: boolean
   opacity: number
+  /** Below `sm`, render as an edge-to-edge row instead of a floating card. */
+  flush?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -22,8 +24,15 @@ const linkLabel = computed(() =>
 
 <template>
   <article
-    class="flex flex-col rounded-md border border-ed-border bg-ed-surface shadow-sm transition-shadow"
-    :class="props.selected ? 'border-ed-ink ring-1 ring-ed-ink' : 'hover:border-ed-ink/20 hover:shadow-md'"
+    class="flex flex-col border-ed-border bg-ed-surface transition-shadow"
+    :class="[
+      props.flush
+        ? 'border-b sm:rounded-md sm:border sm:shadow-sm mb-4 sm:mb-0'
+        : 'rounded-md border shadow-sm',
+      props.selected
+        ? ['border-ed-ink ring-1 ring-ed-ink', props.flush ? 'max-sm:ring-inset' : '']
+        : 'hover:border-ed-ink/20 hover:shadow-md'
+    ]"
     :style="{ opacity: props.opacity }"
   >
     <button

@@ -51,9 +51,12 @@ function barWidth(value: number, max: number) {
 </script>
 
 <template>
-  <aside class="flex flex-col gap-12 p-10">
+  <aside class="flex flex-col gap-12 px-6 py-8 lg:p-10">
     <div class="flex flex-col gap-6">
-      <p class="font-serif text-sm leading-snug text-ed-ink/70">
+      <p
+        class="font-serif text-2xl font-extrabold text-ed-ink lg:text-sm lg:leading-snug lg:font-normal lg:text-ed-ink/70"
+        aria-hidden="true"
+      >
         {{ title }}
       </p>
 
@@ -104,7 +107,7 @@ function barWidth(value: number, max: number) {
     </div>
 
     <nav
-      class="flex flex-col gap-3"
+      class="hidden md:flex flex-col gap-3 "
       aria-label="Secciones del resumen"
     >
       <a
@@ -125,6 +128,7 @@ function barWidth(value: number, max: number) {
 
     <SummarySection
       v-if="visibleHighlights.length"
+      class="hidden md:block"
       title="Vinculaciones destacadas"
     >
       <div class="flex flex-col gap-6">
@@ -144,6 +148,7 @@ function barWidth(value: number, max: number) {
 
     <SummarySection
       v-if="visibleOrphans.length"
+      class="hidden md:block"
       title="Propuestas no recogidas"
       :underline="false"
     >
